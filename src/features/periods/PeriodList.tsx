@@ -1,13 +1,17 @@
+import { useMemo } from "react";
 import { useAppStore } from "../../app/store";
 import { PeriodCard } from "./PeriodCard";
 import styles from "./PeriodList.module.css";
 
 export function PeriodList() {
   const activeGroupId = useAppStore((s) => s.activeGroupId);
-  const periods = useAppStore((s) =>
-    s.periods.filter((p) => p.groupId === activeGroupId && !p.archived)
-  );
+  const allPeriods = useAppStore((s) => s.periods);
   const addPeriod = useAppStore((s) => s.addPeriod);
+
+  const periods = useMemo(
+    () => allPeriods.filter((p) => p.groupId === activeGroupId && !p.archived),
+    [allPeriods, activeGroupId]
+  );
 
   if (!activeGroupId) {
     return <div className={styles.placeholder}>აირჩიე ან შექმენი ჯგუფი, რომ დაამატო პერიოდი.</div>;

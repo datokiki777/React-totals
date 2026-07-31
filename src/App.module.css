@@ -4,6 +4,45 @@
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
+  padding: 24px;
+}
+
+.errorBox {
+  max-width: 420px;
+  background: var(--surface-2);
+  border: 1px solid var(--danger);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.errorTitle {
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.errorText {
+  font-size: 13px;
+  color: var(--text-muted);
+  word-break: break-word;
+  margin-bottom: 10px;
+}
+
+.errorHint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.errorRetry {
+  background: var(--accent);
+  color: #071633;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .app {

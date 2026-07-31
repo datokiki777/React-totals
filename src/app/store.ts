@@ -17,6 +17,7 @@ interface AppState {
   periods: Period[];
   clientRows: ClientRow[];
   loaded: boolean;
+  initError: string | null;
 
   // ui state
   activeGroupId: string | null;
@@ -56,24 +57,37 @@ export const useAppStore = create<AppState>((set, get) => ({
   periods: [],
   clientRows: [],
   loaded: false,
+  initError: null,
   activeGroupId: null,
   mode: "edit",
   workspace: "active",
 
   init: async () => {
-    const [groups, periods, clientRows] = await Promise.all([
-      db.groups.toArray(),
-      db.periods.toArray(),
-      db.clientRows.toArray(),
-    ]);
-    const firstActive = groups.find((g) => !g.archived)?.id ?? null;
-    set({
-      groups,
-      periods,
-      clientRows,
-      loaded: true,
-      activeGroupId: firstActive,
-    });
+    try {
+      const [groups, periods, clientRows] = await Promise.all([
+        db.groups.toArray(),
+        db.periods.toArray(),
+        db.clientRows.toArray(),
+      ]);
+      const firstActive = groups.find((g) => !g.archived)?.id ?? null;
+      set({
+        groups,
+        periods,
+        clientRows,
+        activeGroupId: firstActive,
+        initError: null,
+      });
+    } catch (error) {
+      console.error("Failed to initialize local database:", error);
+      set({
+        initError:
+          error instanceof Error
+            ? error.message
+            : "Unknown error while loading local data.",
+      });
+    } finally {
+      set({ loaded: true });
+    }
   },
 
   addGroup: async (name) => {

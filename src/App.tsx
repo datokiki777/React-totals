@@ -9,6 +9,7 @@ import styles from "./App.module.css";
 
 function App() {
   const loaded = useAppStore((s) => s.loaded);
+  const initError = useAppStore((s) => s.initError);
   const init = useAppStore((s) => s.init);
   const mode = useAppStore((s) => s.mode);
   const setMode = useAppStore((s) => s.setMode);
@@ -21,6 +22,24 @@ function App() {
 
   if (!loaded) {
     return <div className={styles.splash}>იტვირთება…</div>;
+  }
+
+  if (initError) {
+    return (
+      <div className={styles.splash}>
+        <div className={styles.errorBox}>
+          <div className={styles.errorTitle}>⚠️ ლოკალური მონაცემების ჩატვირთვა ვერ მოხერხდა</div>
+          <div className={styles.errorText}>{initError}</div>
+          <div className={styles.errorHint}>
+            სცადე გვერდის განახლება. თუ ეს არ დაეხმარა, IndexedDB შესაძლოა
+            ბრაუზერის მიერ დაბლოკილია (მაგ. პრივატული რეჟიმი).
+          </div>
+          <button className={styles.errorRetry} onClick={() => init()} type="button">
+            ხელახლა ცდა
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

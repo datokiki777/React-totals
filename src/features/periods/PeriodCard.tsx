@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAppStore } from "../../app/store";
 import { computePeriodTotals, formatMoney } from "../../shared/lib/calc";
 import { ClientRowItem } from "../clients/ClientRowItem";
@@ -6,11 +6,16 @@ import styles from "./PeriodCard.module.css";
 
 export function PeriodCard({ periodId }: { periodId: string }) {
   const period = useAppStore((s) => s.periods.find((p) => p.id === periodId));
-  const rows = useAppStore((s) => s.clientRows.filter((r) => r.periodId === periodId));
+  const allClientRows = useAppStore((s) => s.clientRows);
   const updatePeriod = useAppStore((s) => s.updatePeriod);
   const removePeriod = useAppStore((s) => s.removePeriod);
   const addClientRow = useAppStore((s) => s.addClientRow);
   const [collapsed, setCollapsed] = useState(false);
+
+  const rows = useMemo(
+    () => allClientRows.filter((r) => r.periodId === periodId),
+    [allClientRows, periodId]
+  );
 
   if (!period) return null;
 
