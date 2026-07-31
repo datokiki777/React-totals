@@ -16,6 +16,7 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
   const updateRow = useAppStore((s) => s.updateClientRow);
   const removeRow = useAppStore((s) => s.removeClientRow);
   const cycleStatus = useAppStore((s) => s.cycleRowStatus);
+  const isHighlighted = useAppStore((s) => s.highlightedRowId === rowId);
   const [commentOpen, setCommentOpen] = useState(false);
 
   if (!row) return null;
@@ -32,7 +33,14 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
   }
 
   return (
-    <tr className={row.status === "wrong" ? styles.wrongRow : undefined}>
+    <tr
+      data-row-id={row.id}
+      className={
+        [row.status === "wrong" && styles.wrongRow, isHighlighted && styles.highlighted]
+          .filter(Boolean)
+          .join(" ") || undefined
+      }
+    >
       <td data-label="კლიენტი">
         <input
           className={styles.input}

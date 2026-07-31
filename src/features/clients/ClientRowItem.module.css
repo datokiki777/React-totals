@@ -77,6 +77,19 @@
   opacity: 0.55;
 }
 
+.highlighted {
+  animation: rowHighlight 1.8s ease-out;
+}
+
+@keyframes rowHighlight {
+  0% {
+    background: rgba(255, 196, 64, 0.35);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
 .wrongRow .input,
 .wrongRow .status_wrong {
   text-decoration: line-through;

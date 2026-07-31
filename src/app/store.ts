@@ -10,6 +10,7 @@ import type {
 
 export type ViewMode = "edit" | "review";
 export type WorkspaceTab = "active" | "archive";
+export type TotalsScope = "current" | "all";
 
 interface AppState {
   // data
@@ -23,6 +24,8 @@ interface AppState {
   activeGroupId: string | null;
   mode: ViewMode;
   workspace: WorkspaceTab;
+  highlightedRowId: string | null;
+  totalsScope: TotalsScope;
 
   // lifecycle
   init: () => Promise<void>;
@@ -49,6 +52,8 @@ interface AppState {
   // ui
   setMode: (mode: ViewMode) => void;
   setWorkspace: (ws: WorkspaceTab) => void;
+  setTotalsScope: (scope: TotalsScope) => void;
+  highlightRow: (id: string) => void;
 }
 
 const STATUS_CYCLE: DoneStatus[] = ["none", "done", "fail", "fixed", "wrong"];
@@ -72,6 +77,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   activeGroupId: null,
   mode: "edit",
   workspace: "active",
+  highlightedRowId: null,
+  totalsScope: "current",
 
   init: async () => {
     try {
@@ -240,4 +247,13 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setMode: (mode) => set({ mode }),
   setWorkspace: (workspace) => set({ workspace }),
+  setTotalsScope: (totalsScope) => set({ totalsScope }),
+
+  highlightRow: (id) => {
+    set({ highlightedRowId: id });
+    setTimeout(() => {
+      // Only clear if nothing else re-triggered a highlight in the meantime.
+      if (get().highlightedRowId === id) set({ highlightedRowId: null });
+    }, 1800);
+  },
 }));

@@ -1,0 +1,264 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.emptyCard {
+  padding: 50px 20px;
+  text-align: center;
+  background: var(--surface-2);
+  border-radius: 12px;
+}
+
+.emptyIcon {
+  font-size: 48px;
+  opacity: 0.6;
+  margin-bottom: 12px;
+}
+
+.emptyTitle {
+  font-size: 16px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.emptyHint {
+  font-size: 13px;
+  opacity: 0.55;
+  margin-top: 8px;
+}
+
+.groupCard {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.groupToggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface-3);
+  border: none;
+  padding: 14px 16px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.groupHeadMain {
+  min-width: 0;
+}
+
+.groupTitle {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.groupMeta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.groupBadges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.badgeDone,
+.badgeFail,
+.badgeFixed,
+.badgeWrong {
+  min-width: 20px;
+  text-align: center;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #071633;
+}
+.badgeDone { background: #35d07f; }
+.badgeFail { background: #ff6b6b; }
+.badgeFixed { background: #ffc440; }
+.badgeWrong { background: #b892ff; }
+
+.chevron {
+  color: var(--text-muted);
+}
+
+.groupBody {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.groupKpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.kpi {
+  background: var(--surface-3);
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+}
+
+.kpiLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.kpiValue {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.hint {
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+  padding: 10px;
+}
+
+.periodCard {
+  background: var(--surface-3);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.periodSummary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  list-style: none;
+  flex-wrap: wrap;
+}
+
+.periodSummary::-webkit-details-marker {
+  display: none;
+}
+
+.periodRange {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.periodMini {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.periodSums {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.clientList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+
+.clientItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--surface-1);
+  border-radius: 8px;
+  padding: 8px 10px;
+  flex-wrap: wrap;
+}
+
+.clientMain {
+  min-width: 0;
+  flex: 1;
+}
+
+.clientNameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.clientName {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.clientCity {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.clientComment {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.clientValues {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.status_done,
+.status_fail,
+.status_fixed,
+.status_wrong {
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 1px 6px;
+  color: #071633;
+}
+.status_done { background: #35d07f; }
+.status_fail { background: #ff6b6b; }
+.status_fixed { background: #ffc440; }
+.status_wrong { background: #b892ff; }
+
+@media (max-width: 480px) {
+  .groupKpis {
+    grid-template-columns: 1fr;
+  }
+
+  .clientItem {
+    flex-direction: column;
+  }
+
+  .clientValues {
+    flex-direction: row;
+    gap: 12px;
+    text-align: left;
+  }
+}

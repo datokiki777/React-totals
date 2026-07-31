@@ -5,6 +5,7 @@ import { PeriodList } from "./features/periods/PeriodList";
 import { OverviewSection } from "./features/overview/OverviewSection";
 import { BackupPanel } from "./features/backup/BackupPanel";
 import { ReviewSearch } from "./features/review/ReviewSearch";
+import { ReviewList } from "./features/review/ReviewList";
 import styles from "./App.module.css";
 
 function App() {
@@ -88,7 +89,10 @@ function App() {
         {mode === "edit" ? (
           <PeriodList />
         ) : (
-          <ReviewSearch />
+          <>
+            <ReviewSearch />
+            <ReviewList />
+          </>
         )}
       </main>
 

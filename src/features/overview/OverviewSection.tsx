@@ -17,16 +17,15 @@ import {
 import type { Group } from "../../shared/types/domain";
 import styles from "./OverviewSection.module.css";
 
-type Scope = "current" | "all";
-
 export function OverviewSection() {
   const workspace = useAppStore((s) => s.workspace);
   const activeGroupId = useAppStore((s) => s.activeGroupId);
   const allGroups = useAppStore((s) => s.groups);
   const allPeriods = useAppStore((s) => s.periods);
   const clientRows = useAppStore((s) => s.clientRows);
+  const scope = useAppStore((s) => s.totalsScope);
+  const setScope = useAppStore((s) => s.setTotalsScope);
 
-  const [scope, setScope] = useState<Scope>("current");
   const [monthIndex, setMonthIndex] = useState<number | null>(null);
 
   // Groups visible in the current workspace tab (Active / Archive).

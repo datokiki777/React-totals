@@ -2,17 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, cleanup, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
-import { db } from "../../db/database";
-
-async function resetDb() {
-  await db.groups.clear();
-  await db.periods.clear();
-  await db.clientRows.clear();
-}
+import { resetAppForTest } from "../../test/resetAppForTest";
 
 describe("Overview page — matches the old app's business logic", () => {
   beforeEach(async () => {
-    await resetDb();
+    await resetAppForTest();
   });
 
   afterEach(() => {

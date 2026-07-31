@@ -1,0 +1,218 @@
+import { useMemo, useState } from "react";
+import { useAppStore } from "../../app/store";
+import {
+  computeGroupFinancials,
+  computePeriodTotals,
+  computeStatusCounts,
+  formatMoney,
+} from "../../shared/lib/calc";
+import { parseMoney } from "../../shared/lib/money";
+import type { ClientRow, Group, Period } from "../../shared/types/domain";
+import styles from "./ReviewList.module.css";
+
+const STATUS_LABEL: Record<string, string> = {
+  done: "Done",
+  fail: "Fail",
+  fixed: "Fixed",
+  wrong: "Wrong",
+};
+
+export function ReviewList() {
+  const workspace = useAppStore((s) => s.workspace);
+  const scope = useAppStore((s) => s.totalsScope);
+  const activeGroupId = useAppStore((s) => s.activeGroupId);
+  const allGroups = useAppStore((s) => s.groups);
+  const allPeriods = useAppStore((s) => s.periods);
+  const clientRows = useAppStore((s) => s.clientRows);
+
+  const workspaceGroups = useMemo(
+    () => allGroups.filter((g) => (workspace === "archive" ? g.archived : !g.archived)),
+    [allGroups, workspace]
+  );
+
+  const groupsToShow: Group[] = useMemo(() => {
+    if (scope === "all") return workspaceGroups;
+    const current = workspaceGroups.find((g) => g.id === activeGroupId);
+    return current ? [current] : [];
+  }, [scope, workspaceGroups, activeGroupId]);
+
+  if (groupsToShow.length === 0) {
+    const emptyMessage =
+      workspace === "archive"
+        ? scope === "current"
+          ? "📦 არჩეული არქივის ჯგუფი არ არის"
+          : "📦 არქივში ჯგუფები არ არის"
+        : scope === "current"
+          ? "👤 აქტიური ჯგუფი არ არის არჩეული"
+          : "👥 აქტიური ჯგუფები არ არის";
+
+    return (
+      <div className={styles.emptyCard}>
+        <div className={styles.emptyIcon}>📭</div>
+        <div className={styles.emptyTitle}>{emptyMessage}</div>
+        <div className={styles.emptyHint}>შექმენი ჯგუფი ან დაამატე პერიოდი დასაწყებად</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.list}>
+      {groupsToShow.map((group) => (
+        <ReviewGroupCard
+          key={group.id}
+          group={group}
+          periods={allPeriods.filter((p) => p.groupId === group.id)}
+          clientRows={clientRows}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ReviewGroupCard({
+  group,
+  periods,
+  clientRows,
+}: {
+  group: Group;
+  periods: Period[];
+  clientRows: ClientRow[];
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  const groupRows = useMemo(
+    () => clientRows.filter((r) => periods.some((p) => p.id === r.periodId)),
+    [clientRows, periods]
+  );
+
+  const financials = useMemo(
+    () => computeGroupFinancials(group, periods, clientRows),
+    [group, periods, clientRows]
+  );
+  const statusCounts = useMemo(() => computeStatusCounts(groupRows), [groupRows]);
+
+  return (
+    <section className={styles.groupCard}>
+      <button
+        type="button"
+        className={styles.groupToggle}
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+      >
+        <div className={styles.groupHeadMain}>
+          <h3 className={styles.groupTitle}>
+            {group.name}
+            {group.archived && " 📦"}
+          </h3>
+          <div className={styles.groupMeta}>
+            {periods.length} periods • {groupRows.length} rows • Default {formatMoney(group.defaultRate)}%
+          </div>
+        </div>
+        <div className={styles.groupBadges}>
+          {statusCounts.done > 0 && <span className={styles.badgeDone}>{statusCounts.done}</span>}
+          {statusCounts.fail > 0 && <span className={styles.badgeFail}>{statusCounts.fail}</span>}
+          {statusCounts.fixed > 0 && <span className={styles.badgeFixed}>{statusCounts.fixed}</span>}
+          {statusCounts.wrong > 0 && <span className={styles.badgeWrong}>{statusCounts.wrong}</span>}
+          <span className={styles.chevron}>{expanded ? "▾" : "▸"}</span>
+        </div>
+      </button>
+
+      {expanded && (
+        <div className={styles.groupBody}>
+          <div className={styles.groupKpis}>
+            <div className={styles.kpi}>
+              <div className={styles.kpiLabel}>Gross</div>
+              <div className={styles.kpiValue}>{formatMoney(financials.gross)}</div>
+            </div>
+            <div className={styles.kpi}>
+              <div className={styles.kpiLabel}>Net</div>
+              <div className={styles.kpiValue}>{formatMoney(financials.net)}</div>
+            </div>
+            <div className={styles.kpi}>
+              <div className={styles.kpiLabel}>My €</div>
+              <div className={styles.kpiValue}>{formatMoney(financials.myEur)}</div>
+            </div>
+          </div>
+
+          {periods.length === 0 && <div className={styles.hint}>No periods.</div>}
+
+          {periods.map((period) => (
+            <ReviewPeriodCard
+              key={period.id}
+              period={period}
+              rate={group.defaultRate}
+              rows={clientRows.filter((r) => r.periodId === period.id)}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ReviewPeriodCard({
+  period,
+  rate,
+  rows,
+}: {
+  period: Period;
+  rate: number;
+  rows: ClientRow[];
+}) {
+  const totals = useMemo(() => computePeriodTotals(period, rows, rate), [period, rows, rate]);
+
+  return (
+    <details className={styles.periodCard}>
+      <summary className={styles.periodSummary}>
+        <div className={styles.periodMeta}>
+          <div className={styles.periodRange}>
+            {period.fromDate || "—"} → {period.toDate || "—"}
+          </div>
+          <div className={styles.periodMini}>{rows.length} clients</div>
+        </div>
+        <div className={styles.periodSums}>
+          <span className={styles.badge}>
+            Gross: <b>{formatMoney(totals.gross)}</b>
+          </span>
+          <span className={styles.badge}>
+            Net: <b>{formatMoney(totals.net)}</b>
+          </span>
+          <span className={styles.badge}>
+            My €: <b>{formatMoney(totals.myEur)}</b>
+          </span>
+          {(period.paidWeeks ?? 0) > 0 && (
+            <span className={styles.badge}>💰 {period.paidWeeks}w</span>
+          )}
+        </div>
+      </summary>
+
+      <div className={styles.clientList}>
+        {rows.length === 0 && <div className={styles.hint}>No clients.</div>}
+        {rows.map((row) => (
+          <div key={row.id} className={styles.clientItem}>
+            <div className={styles.clientMain}>
+              <div className={styles.clientNameRow}>
+                <span className={styles.clientName}>{row.customer.trim() || "Client"}</span>
+                {row.status !== "none" && (
+                  <span className={styles[`status_${row.status}`]}>{STATUS_LABEL[row.status]}</span>
+                )}
+              </div>
+              <div className={styles.clientCity}>
+                City: <b>{row.city.trim() || "—"}</b>
+              </div>
+              {row.comment.trim() && (
+                <div className={styles.clientComment}>
+                  <span aria-hidden="true">✎</span> {row.comment.trim()}
+                </div>
+              )}
+            </div>
+            <div className={styles.clientValues}>
+              <span>Gross: <b>{formatMoney(parseMoney(row.gross) || 0)}</b></span>
+              <span>Net: <b>{formatMoney(parseMoney(row.net) || 0)}</b></span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </details>
+  );
+}

@@ -1,7 +1,8 @@
 .wrap {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .searchInput {
@@ -18,6 +19,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 .empty {
@@ -27,35 +30,72 @@
 }
 
 .resultCard {
+  width: 100%;
+  text-align: left;
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 12px 14px;
+  cursor: pointer;
+  color: var(--text);
+  font: inherit;
+}
+
+.resultCard:hover {
+  border-color: var(--accent);
 }
 
 .resultHead {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-weight: 600;
+  gap: 8px;
 }
 
-.status {
+.customer {
+  overflow-wrap: anywhere;
+}
+
+.mark {
+  background: var(--accent);
+  color: #071633;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+.status_done,
+.status_fail,
+.status_fixed,
+.status_wrong {
   font-size: 11px;
-  color: var(--text-muted);
-  text-transform: uppercase;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 2px 8px;
+  white-space: nowrap;
+  color: #071633;
+}
+
+.status_done {
+  background: #35d07f;
+}
+.status_fail {
+  background: #ff6b6b;
+}
+.status_fixed {
+  background: #ffc440;
+}
+.status_wrong {
+  background: #b892ff;
 }
 
 .resultMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
   font-size: 12px;
   color: var(--text-muted);
-  margin-top: 2px;
-}
-
-.resultNumbers {
-  display: flex;
-  gap: 16px;
-  margin-top: 6px;
-  font-size: 13px;
+  margin-top: 4px;
 }
 
 .comment {
@@ -63,4 +103,11 @@
   font-size: 12px;
   color: var(--text-muted);
   font-style: italic;
+}
+
+@media (max-width: 480px) {
+  .resultMeta {
+    flex-direction: column;
+    gap: 2px;
+  }
 }

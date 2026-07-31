@@ -3,16 +3,11 @@ import { render, screen, within, cleanup, waitFor } from "@testing-library/react
 import userEvent from "@testing-library/user-event";
 import App from "../App";
 import { db } from "../db/database";
-
-async function resetDb() {
-  await db.groups.clear();
-  await db.periods.clear();
-  await db.clientRows.clear();
-}
+import { resetAppForTest } from "../test/resetAppForTest";
 
 describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
   beforeEach(async () => {
-    await resetDb();
+    await resetAppForTest();
   });
 
   afterEach(() => {
