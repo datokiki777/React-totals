@@ -6,6 +6,9 @@ import styles from "./PeriodCard.module.css";
 
 export function PeriodCard({ periodId }: { periodId: string }) {
   const period = useAppStore((s) => s.periods.find((p) => p.id === periodId));
+  const group = useAppStore((s) =>
+    period ? s.groups.find((g) => g.id === period.groupId) : undefined
+  );
   const allClientRows = useAppStore((s) => s.clientRows);
   const updatePeriod = useAppStore((s) => s.updatePeriod);
   const removePeriod = useAppStore((s) => s.removePeriod);
@@ -17,9 +20,9 @@ export function PeriodCard({ periodId }: { periodId: string }) {
     [allClientRows, periodId]
   );
 
-  if (!period) return null;
+  if (!period || !group) return null;
 
-  const totals = computePeriodTotals(period, rows);
+  const totals = computePeriodTotals(period, rows, group.defaultRate);
 
   return (
     <section className={styles.card}>
@@ -51,12 +54,16 @@ export function PeriodCard({ periodId }: { periodId: string }) {
               />
             </label>
             <label className={styles.field}>
-              <span>%</span>
+              <span>ანაზღ. კვირები</span>
               <input
-                type="number"
-                step="0.01"
-                value={period.defaultRate}
-                onChange={(e) => updatePeriod(period.id, { defaultRate: Number(e.target.value) })}
+                type="text"
+                inputMode="numeric"
+                placeholder="0"
+                value={period.paidWeeks ?? ""}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "");
+                  updatePeriod(period.id, { paidWeeks: digits === "" ? null : Number(digits) });
+                }}
               />
             </label>
             <div className={styles.actions}>

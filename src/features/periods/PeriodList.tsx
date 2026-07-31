@@ -9,7 +9,7 @@ export function PeriodList() {
   const addPeriod = useAppStore((s) => s.addPeriod);
 
   const periods = useMemo(
-    () => allPeriods.filter((p) => p.groupId === activeGroupId && !p.archived),
+    () => allPeriods.filter((p) => p.groupId === activeGroupId),
     [allPeriods, activeGroupId]
   );
 

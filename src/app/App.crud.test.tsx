@@ -62,7 +62,9 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
 
     const periodsAfter = await db.periods.toArray();
     expect(periodsAfter).toHaveLength(1);
-    expect(periodsAfter[0].defaultRate).toBe(13.5);
+
+    const groupsAfter = await db.groups.toArray();
+    expect(groupsAfter[0].defaultRate).toBe(13.5); // rate now lives on the group
 
     // Expected My€ = gross (1000) * 13.5% = 135, since Net is not entered.
     await screen.findByTestId("period-total-my-eur");

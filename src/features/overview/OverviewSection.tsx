@@ -1,27 +1,53 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "../../app/store";
-import { computePeriodTotals, formatMoney } from "../../shared/lib/calc";
-import { monthKey, monthLabel, periodMonthKey } from "../../shared/lib/month";
-import type { DoneStatus } from "../../shared/types/domain";
+import {
+  computeGrandTotals,
+  computeMarkedClientsCount,
+  computeMonthlyTotals,
+  computeStatusCounts,
+  formatMoney,
+} from "../../shared/lib/calc";
+import {
+  formatDateForRange,
+  formatMonthKey,
+  getAllMonthKeys,
+  getDurationMonthsDays,
+  getPeriodsDateRange,
+} from "../../shared/lib/dates";
+import type { Group } from "../../shared/types/domain";
 import styles from "./OverviewSection.module.css";
 
 type Scope = "current" | "all";
 
 export function OverviewSection() {
+  const workspace = useAppStore((s) => s.workspace);
   const activeGroupId = useAppStore((s) => s.activeGroupId);
+  const allGroups = useAppStore((s) => s.groups);
   const allPeriods = useAppStore((s) => s.periods);
   const clientRows = useAppStore((s) => s.clientRows);
 
   const [scope, setScope] = useState<Scope>("current");
-  const [monthOffset, setMonthOffset] = useState(0);
+  const [monthIndex, setMonthIndex] = useState<number | null>(null);
+
+  // Groups visible in the current workspace tab (Active / Archive).
+  const workspaceGroups = useMemo(
+    () => allGroups.filter((g) => (workspace === "archive" ? g.archived : !g.archived)),
+    [allGroups, workspace]
+  );
+
+  // Groups this Overview actually reports on: just the active one ("Current"),
+  // or every group in this workspace tab ("All") — matches getGroupsByMode().
+  const scopedGroups: Group[] = useMemo(() => {
+    if (scope === "all") return workspaceGroups;
+    const current = workspaceGroups.find((g) => g.id === activeGroupId);
+    return current ? [current] : [];
+  }, [scope, workspaceGroups, activeGroupId]);
+
+  const scopedGroupIds = useMemo(() => new Set(scopedGroups.map((g) => g.id)), [scopedGroups]);
 
   const scopedPeriods = useMemo(
-    () =>
-      allPeriods.filter((p) => {
-        if (p.archived) return false;
-        return scope === "current" ? p.groupId === activeGroupId : true;
-      }),
-    [allPeriods, scope, activeGroupId]
+    () => allPeriods.filter((p) => scopedGroupIds.has(p.groupId)),
+    [allPeriods, scopedGroupIds]
   );
 
   const scopedPeriodIds = useMemo(
@@ -34,50 +60,42 @@ export function OverviewSection() {
     [clientRows, scopedPeriodIds]
   );
 
-  const totals = useMemo(
-    () =>
-      scopedPeriods.reduce(
-        (acc, p) => {
-          const t = computePeriodTotals(p, clientRows);
-          acc.gross += t.gross;
-          acc.net += t.net;
-          acc.myEur += t.myEur;
-          return acc;
-        },
-        { gross: 0, net: 0, myEur: 0 }
-      ),
-    [scopedPeriods, clientRows]
+  // --- Grand totals (Gross / Net / My€ / Unpaid / Income) ---
+  const grand = useMemo(
+    () => computeGrandTotals(scopedGroups, scopedPeriods, clientRows),
+    [scopedGroups, scopedPeriods, clientRows]
   );
 
-  const statusCounts = useMemo(() => {
-    const counts: Record<DoneStatus, number> = {
-      none: 0,
-      done: 0,
-      fail: 0,
-      fixed: 0,
-      wrong: 0,
-    };
-    for (const row of scopedRows) counts[row.status]++;
-    return counts;
-  }, [scopedRows]);
+  // --- Status badges: plain counts over the scope, NOT month-filtered
+  // (this matches the old app's actual render behavior exactly). ---
+  const statusCounts = useMemo(() => computeStatusCounts(scopedRows), [scopedRows]);
 
-  const now = new Date();
-  const targetDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
-  const targetKey = monthKey(targetDate.getFullYear(), targetDate.getMonth());
+  // --- Date range / duration / marked-clients widget ---
+  const { min, max } = useMemo(() => getPeriodsDateRange(scopedPeriods), [scopedPeriods]);
+  const clientsCount = useMemo(() => computeMarkedClientsCount(scopedRows), [scopedRows]);
+  const duration = min && max ? getDurationMonthsDays(min, max) : null;
 
-  const monthTotals = useMemo(() => {
-    const monthPeriods = scopedPeriods.filter((p) => periodMonthKey(p) === targetKey);
-    return monthPeriods.reduce(
-      (acc, p) => {
-        const t = computePeriodTotals(p, clientRows);
-        acc.gross += t.gross;
-        acc.net += t.net;
-        acc.myEur += t.myEur;
-        return acc;
-      },
-      { gross: 0, net: 0, myEur: 0 }
-    );
-  }, [scopedPeriods, clientRows, targetKey]);
+  // --- Monthly stats: month navigation over the months that actually have
+  // period data in this scope, defaulting to the most recent one. ---
+  const monthKeys = useMemo(() => getAllMonthKeys(scopedPeriods), [scopedPeriods]);
+
+  useEffect(() => {
+    // Keep the cursor valid whenever the available months change (scope
+    // switch, workspace switch, or a period's dates changing) — snap to the
+    // last month, exactly like the old app's getCurrentMonthKey() default.
+    setMonthIndex(monthKeys.length ? monthKeys.length - 1 : null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [monthKeys.join(",")]);
+
+  const currentMonthKey = monthIndex !== null ? monthKeys[monthIndex] ?? null : null;
+
+  const monthTotals = useMemo(
+    () => computeMonthlyTotals(currentMonthKey, scopedGroups, scopedPeriods, clientRows),
+    [currentMonthKey, scopedGroups, scopedPeriods, clientRows]
+  );
+
+  const canGoPrev = monthIndex !== null && monthIndex > 0;
+  const canGoNext = monthIndex !== null && monthIndex < monthKeys.length - 1;
 
   return (
     <section className={styles.card}>
@@ -102,16 +120,27 @@ export function OverviewSection() {
       <div className={styles.grid}>
         <div className={styles.kpi}>
           <div className={styles.label}>Gross</div>
-          <div className={styles.value}>{formatMoney(totals.gross)}</div>
+          <div className={styles.value}>{formatMoney(grand.gross)}</div>
         </div>
         <div className={styles.kpi}>
           <div className={styles.label}>Net</div>
-          <div className={styles.value}>{formatMoney(totals.net)}</div>
+          <div className={styles.value}>{formatMoney(grand.net)}</div>
         </div>
         <div className={styles.kpi}>
           <div className={styles.label}>My €</div>
-          <div className={styles.value}>{formatMoney(totals.myEur)}</div>
+          <div className={styles.value}>{formatMoney(grand.myEur)}</div>
         </div>
+      </div>
+
+      <div className={styles.pillRow}>
+        <span className={styles.pill}>
+          <span>Unpaid</span>
+          <b>{formatMoney(grand.unpaid)}</b>
+        </span>
+        <span className={styles.pill}>
+          <span>Income</span>
+          <b>{formatMoney(grand.income)}</b>
+        </span>
       </div>
 
       <div className={styles.statusRow}>
@@ -124,13 +153,36 @@ export function OverviewSection() {
         </div>
       </div>
 
+      <div className={styles.dateBox}>
+        <div className={styles.dateRow}>
+          <span className={styles.dateLabel}>Working period</span>
+          <span className={styles.durationBadge}>
+            {duration ? `${duration.months} Mo ${duration.days} D` : "—"}
+          </span>
+          <span className={styles.durationBadge}>{clientsCount} Clients</span>
+        </div>
+        <div className={styles.dateValue}>
+          {min && max ? `${formatDateForRange(min)} → ${formatDateForRange(max)}` : "—"}
+        </div>
+      </div>
+
       <div className={styles.monthly}>
         <div className={styles.monthlyHead}>
           <span>Monthly · Statistics</span>
           <div className={styles.monthNav}>
-            <button onClick={() => setMonthOffset((v) => v - 1)}>‹</button>
-            <span>{monthLabel(targetDate.getFullYear(), targetDate.getMonth())}</span>
-            <button onClick={() => setMonthOffset((v) => v + 1)}>›</button>
+            <button
+              disabled={!canGoPrev}
+              onClick={() => setMonthIndex((i) => (i !== null ? i - 1 : i))}
+            >
+              ‹
+            </button>
+            <span>{formatMonthKey(currentMonthKey)}</span>
+            <button
+              disabled={!canGoNext}
+              onClick={() => setMonthIndex((i) => (i !== null ? i + 1 : i))}
+            >
+              ›
+            </button>
           </div>
         </div>
         <div className={styles.monthlyGrid}>

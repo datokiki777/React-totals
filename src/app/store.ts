@@ -30,6 +30,7 @@ interface AppState {
   // groups
   addGroup: (name: string) => Promise<Group>;
   renameGroup: (id: string, name: string) => void;
+  updateGroupSettings: (id: string, patch: { defaultRate?: number; defaultSalary?: number }) => void;
   deleteGroup: (id: string) => void;
   toggleArchiveGroup: (id: string) => void;
   setActiveGroup: (id: string | null) => void;
@@ -105,6 +106,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       id: generateId(),
       name: name.trim() || "New group",
       archived: false,
+      defaultRate: 13.5,
+      defaultSalary: 0,
       createdAt: now(),
       updatedAt: now(),
     };
@@ -119,6 +122,14 @@ export const useAppStore = create<AppState>((set, get) => ({
       groups: s.groups.map((g) => (g.id === id ? { ...g, ...patch } : g)),
     }));
     persist("group rename", () => db.groups.update(id, patch));
+  },
+
+  updateGroupSettings: (id, patch) => {
+    const full = { ...patch, updatedAt: now() };
+    set((s) => ({
+      groups: s.groups.map((g) => (g.id === id ? { ...g, ...full } : g)),
+    }));
+    persist("group settings", () => db.groups.update(id, full));
   },
 
   deleteGroup: (id) => {
@@ -159,9 +170,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       fromDate: opts?.fromDate ?? null,
       toDate: opts?.toDate ?? null,
       paidWeeks: opts?.paidWeeks ?? null,
-      defaultRate: opts?.defaultRate ?? 13.5,
-      defaultSalary: opts?.defaultSalary ?? 0,
-      archived: false,
       createdAt: now(),
       updatedAt: now(),
     };

@@ -1,8 +1,43 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
 .row {
   display: flex;
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.settingsRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.settingsField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.settingsField input {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  width: 110px;
+}
+
+.settingsField input:disabled {
+  opacity: 0.4;
 }
 
 .pickerWrap {

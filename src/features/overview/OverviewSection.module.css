@@ -106,6 +106,66 @@
   background: #b892ff;
 }
 
+.pillRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  flex: 1;
+  min-width: 120px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface-3);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.pill b {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.dateBox {
+  background: var(--surface-3);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dateRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.dateLabel {
+  margin-right: auto;
+}
+
+.durationBadge {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.dateValue {
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .monthly {
   background: var(--surface-3);
   border-radius: 10px;
@@ -137,6 +197,11 @@
   cursor: pointer;
 }
 
+.monthNav button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .monthlyGrid {
   display: flex;
   flex-direction: column;
@@ -152,5 +217,18 @@
 @media (max-width: 480px) {
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .pillRow {
+    flex-direction: column;
+  }
+
+  .dateRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dateLabel {
+    margin-right: 0;
   }
 }

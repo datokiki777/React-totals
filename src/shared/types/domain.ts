@@ -6,6 +6,11 @@ export interface Group {
   id: string;
   name: string;
   archived: boolean;
+  // Rate/salary live on the GROUP (exactly like the old app's
+  // defaultRatePercent / defaultSalaryPer28Days) — every period in the
+  // group shares them; individual periods do not have their own rate.
+  defaultRate: number; // %
+  defaultSalary: number; // per 28 days
   createdAt: number;
   updatedAt: number;
 }
@@ -16,9 +21,6 @@ export interface Period {
   fromDate: string | null; // ISO date (YYYY-MM-DD)
   toDate: string | null;
   paidWeeks: number | null;
-  defaultRate: number; // %
-  defaultSalary: number; // per 28d
-  archived: boolean;
   createdAt: number;
   updatedAt: number;
 }
@@ -40,6 +42,23 @@ export interface PeriodTotals {
   gross: number;
   net: number;
   myEur: number;
+  unpaid: number;
+}
+
+export interface StatusCounts {
+  done: number;
+  fail: number;
+  fixed: number;
+  wrong: number;
+}
+
+export interface GroupFinancials extends PeriodTotals {
+  salary: number;
+  salaryAccrued: number;
+  salaryPaid: number;
+  income: number;
+  grossWeeks: number;
+  paidWeeks: number;
 }
 
 export interface AppSettings {
