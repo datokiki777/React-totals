@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useAppStore } from "../../app/store";
 import { formatMoney } from "../../shared/lib/calc";
+import { parseMoney } from "../../shared/lib/money";
 import styles from "./ReviewSearch.module.css";
 
 export function ReviewSearch() {
@@ -55,8 +56,8 @@ export function ReviewSearch() {
                 {row.city && ` · ${row.city}`}
               </div>
               <div className={styles.resultNumbers}>
-                <span>Gross: {formatMoney(row.gross)}</span>
-                <span>Net: {formatMoney(row.net)}</span>
+                <span>Gross: {formatMoney(parseMoney(row.gross) || 0)}</span>
+                <span>Net: {formatMoney(parseMoney(row.net) || 0)}</span>
               </div>
               {row.comment && <div className={styles.comment}>{row.comment}</div>}
             </div>

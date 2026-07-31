@@ -1,0 +1,59 @@
+import { describe, it, expect } from "vitest";
+import { parseMoney, clampRate } from "./money";
+
+describe("parseMoney", () => {
+  it("parses plain integers", () => {
+    expect(parseMoney("100")).toBe(100);
+  });
+
+  it("parses US format (comma thousands, dot decimal)", () => {
+    expect(parseMoney("1,234.56")).toBeCloseTo(1234.56);
+  });
+
+  it("parses European format (dot thousands, comma decimal)", () => {
+    expect(parseMoney("1.234,56")).toBeCloseTo(1234.56);
+  });
+
+  it("parses lone comma as decimal when 1-2 fraction digits", () => {
+    expect(parseMoney("123,45")).toBeCloseTo(123.45);
+  });
+
+  it("parses lone comma as thousands separator otherwise", () => {
+    expect(parseMoney("1,234")).toBe(1234);
+  });
+
+  it("parses lone dot as thousands separator for exactly 3 fraction digits", () => {
+    expect(parseMoney("1.234")).toBe(1234);
+  });
+
+  it("parses lone dot as decimal otherwise", () => {
+    expect(parseMoney("12.5")).toBeCloseTo(12.5);
+  });
+
+  it("strips repeated dots (1.234.567)", () => {
+    expect(parseMoney("1.234.567")).toBe(1234567);
+  });
+
+  it("returns NaN for empty/whitespace/invalid input", () => {
+    expect(parseMoney("")).toBeNaN();
+    expect(parseMoney("   ")).toBeNaN();
+    expect(parseMoney(null)).toBeNaN();
+    expect(parseMoney(undefined)).toBeNaN();
+    expect(parseMoney("abc")).toBeNaN();
+  });
+});
+
+describe("clampRate", () => {
+  it("clamps below 0 to 0", () => {
+    expect(clampRate(-5)).toBe(0);
+  });
+  it("clamps above 100 to 100", () => {
+    expect(clampRate(150)).toBe(100);
+  });
+  it("passes through valid values", () => {
+    expect(clampRate(13.5)).toBe(13.5);
+  });
+  it("treats NaN as 0", () => {
+    expect(clampRate(Number.NaN)).toBe(0);
+  });
+});

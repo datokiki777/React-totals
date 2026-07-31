@@ -29,21 +29,21 @@ interface AppState {
 
   // groups
   addGroup: (name: string) => Promise<Group>;
-  renameGroup: (id: string, name: string) => Promise<void>;
-  deleteGroup: (id: string) => Promise<void>;
-  toggleArchiveGroup: (id: string) => Promise<void>;
+  renameGroup: (id: string, name: string) => void;
+  deleteGroup: (id: string) => void;
+  toggleArchiveGroup: (id: string) => void;
   setActiveGroup: (id: string | null) => void;
 
   // periods
   addPeriod: (groupId: string, opts?: Partial<Period>) => Promise<Period>;
-  updatePeriod: (id: string, patch: Partial<Period>) => Promise<void>;
-  removePeriod: (id: string) => Promise<void>;
+  updatePeriod: (id: string, patch: Partial<Period>) => void;
+  removePeriod: (id: string) => void;
 
   // client rows
   addClientRow: (periodId: string) => Promise<ClientRow>;
-  updateClientRow: (id: string, patch: Partial<ClientRow>) => Promise<void>;
-  removeClientRow: (id: string) => Promise<void>;
-  cycleRowStatus: (id: string) => Promise<void>;
+  updateClientRow: (id: string, patch: Partial<ClientRow>) => void;
+  removeClientRow: (id: string) => void;
+  cycleRowStatus: (id: string) => void;
 
   // ui
   setMode: (mode: ViewMode) => void;
@@ -51,6 +51,16 @@ interface AppState {
 }
 
 const STATUS_CYCLE: DoneStatus[] = ["none", "done", "fail", "fixed", "wrong"];
+
+function persist(label: string, task: () => Promise<unknown>) {
+  // Fire-and-forget persistence: the UI already reflects the change
+  // (optimistic update happened synchronously in `set()` before this runs).
+  // We still await the write internally so real failures are logged instead
+  // of silently disappearing, but we never block/delay the next keystroke.
+  task().catch((error) => {
+    console.error(`Failed to persist ${label} to IndexedDB:`, error);
+  });
+}
 
 export const useAppStore = create<AppState>((set, get) => ({
   groups: [],
@@ -98,44 +108,46 @@ export const useAppStore = create<AppState>((set, get) => ({
       createdAt: now(),
       updatedAt: now(),
     };
-    await db.groups.add(group);
     set((s) => ({ groups: [...s.groups, group], activeGroupId: group.id }));
+    persist("group", () => db.groups.add(group));
     return group;
   },
 
-  renameGroup: async (id, name) => {
+  renameGroup: (id, name) => {
     const patch = { name: name.trim(), updatedAt: now() };
-    await db.groups.update(id, patch);
     set((s) => ({
       groups: s.groups.map((g) => (g.id === id ? { ...g, ...patch } : g)),
     }));
+    persist("group rename", () => db.groups.update(id, patch));
   },
 
-  deleteGroup: async (id) => {
+  deleteGroup: (id) => {
     const periodIds = get()
       .periods.filter((p) => p.groupId === id)
       .map((p) => p.id);
-    await db.transaction("rw", db.groups, db.periods, db.clientRows, async () => {
-      await db.clientRows.where("periodId").anyOf(periodIds).delete();
-      await db.periods.where("groupId").equals(id).delete();
-      await db.groups.delete(id);
-    });
     set((s) => ({
       groups: s.groups.filter((g) => g.id !== id),
       periods: s.periods.filter((p) => p.groupId !== id),
       clientRows: s.clientRows.filter((r) => !periodIds.includes(r.periodId)),
       activeGroupId: s.activeGroupId === id ? null : s.activeGroupId,
     }));
+    persist("group deletion", () =>
+      db.transaction("rw", db.groups, db.periods, db.clientRows, async () => {
+        await db.clientRows.where("periodId").anyOf(periodIds).delete();
+        await db.periods.where("groupId").equals(id).delete();
+        await db.groups.delete(id);
+      })
+    );
   },
 
-  toggleArchiveGroup: async (id) => {
+  toggleArchiveGroup: (id) => {
     const group = get().groups.find((g) => g.id === id);
     if (!group) return;
     const patch = { archived: !group.archived, updatedAt: now() };
-    await db.groups.update(id, patch);
     set((s) => ({
       groups: s.groups.map((g) => (g.id === id ? { ...g, ...patch } : g)),
     }));
+    persist("group archive toggle", () => db.groups.update(id, patch));
   },
 
   setActiveGroup: (id) => set({ activeGroupId: id }),
@@ -153,28 +165,30 @@ export const useAppStore = create<AppState>((set, get) => ({
       createdAt: now(),
       updatedAt: now(),
     };
-    await db.periods.add(period);
     set((s) => ({ periods: [...s.periods, period] }));
+    persist("period", () => db.periods.add(period));
     return period;
   },
 
-  updatePeriod: async (id, patch) => {
+  updatePeriod: (id, patch) => {
     const full = { ...patch, updatedAt: now() };
-    await db.periods.update(id, full);
     set((s) => ({
       periods: s.periods.map((p) => (p.id === id ? { ...p, ...full } : p)),
     }));
+    persist("period update", () => db.periods.update(id, full));
   },
 
-  removePeriod: async (id) => {
-    await db.transaction("rw", db.periods, db.clientRows, async () => {
-      await db.clientRows.where("periodId").equals(id).delete();
-      await db.periods.delete(id);
-    });
+  removePeriod: (id) => {
     set((s) => ({
       periods: s.periods.filter((p) => p.id !== id),
       clientRows: s.clientRows.filter((r) => r.periodId !== id),
     }));
+    persist("period deletion", () =>
+      db.transaction("rw", db.periods, db.clientRows, async () => {
+        await db.clientRows.where("periodId").equals(id).delete();
+        await db.periods.delete(id);
+      })
+    );
   },
 
   addClientRow: async (periodId) => {
@@ -182,38 +196,38 @@ export const useAppStore = create<AppState>((set, get) => ({
       id: generateId(),
       periodId,
       customer: "",
-      gross: 0,
-      net: 0,
+      gross: "",
+      net: "",
       city: "",
       status: "none",
       comment: "",
       createdAt: now(),
       updatedAt: now(),
     };
-    await db.clientRows.add(row);
     set((s) => ({ clientRows: [...s.clientRows, row] }));
+    persist("client row", () => db.clientRows.add(row));
     return row;
   },
 
-  updateClientRow: async (id, patch) => {
+  updateClientRow: (id, patch) => {
     const full = { ...patch, updatedAt: now() };
-    await db.clientRows.update(id, full);
     set((s) => ({
       clientRows: s.clientRows.map((r) => (r.id === id ? { ...r, ...full } : r)),
     }));
+    persist("client row update", () => db.clientRows.update(id, full));
   },
 
-  removeClientRow: async (id) => {
-    await db.clientRows.delete(id);
+  removeClientRow: (id) => {
     set((s) => ({ clientRows: s.clientRows.filter((r) => r.id !== id) }));
+    persist("client row deletion", () => db.clientRows.delete(id));
   },
 
-  cycleRowStatus: async (id) => {
+  cycleRowStatus: (id) => {
     const row = get().clientRows.find((r) => r.id === id);
     if (!row) return;
     const idx = STATUS_CYCLE.indexOf(row.status);
     const nextStatus = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
-    await get().updateClientRow(id, { status: nextStatus });
+    get().updateClientRow(id, { status: nextStatus });
   },
 
   setMode: (mode) => set({ mode }),

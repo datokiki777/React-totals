@@ -103,3 +103,53 @@
 .totalLabel {
   font-weight: 700;
 }
+
+/* Mobile-first: below 640px the table body becomes stacked cards
+   (thead hidden, each row a bordered block; see ClientRowItem.module.css
+   for the per-cell label rendering). Header controls also wrap/stack. */
+@media (max-width: 640px) {
+  .head {
+    align-items: stretch;
+  }
+
+  .actions {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .actions button {
+    flex: 1;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .table tbody tr {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    padding: 8px;
+    background: var(--surface-1);
+  }
+
+  .table tfoot tr {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+  }
+
+  .table tfoot td {
+    border-bottom: none;
+    padding: 2px 0;
+  }
+}

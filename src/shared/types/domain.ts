@@ -27,8 +27,8 @@ export interface ClientRow {
   id: string;
   periodId: string;
   customer: string;
-  gross: number;
-  net: number;
+  gross: string; // raw text, exactly like the old app — "" means not entered
+  net: string; // raw text — "" means not entered
   city: string;
   status: DoneStatus;
   comment: string;

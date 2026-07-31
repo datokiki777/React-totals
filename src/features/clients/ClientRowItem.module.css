@@ -72,3 +72,35 @@
 .status_wrong {
   background: #b892ff;
 }
+
+.wrongRow {
+  opacity: 0.55;
+}
+
+.wrongRow .input,
+.wrongRow .status_wrong {
+  text-decoration: line-through;
+}
+
+/* Mobile-first: each row becomes a stacked card below 640px (table layout
+   only makes sense once there's enough width for six columns). */
+@media (max-width: 640px) {
+  td[data-label] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px;
+    border-bottom: none !important;
+  }
+
+  td[data-label]:not([data-label=""])::before {
+    content: attr(data-label);
+    flex: 0 0 72px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  td[data-label=""] {
+    justify-content: flex-end;
+  }
+}

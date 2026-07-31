@@ -20,13 +20,28 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
 
   if (!row) return null;
 
+  function handleRemove() {
+    if (!row) return;
+    if (
+      (row.customer || row.gross || row.net || row.city || row.comment) &&
+      !window.confirm(`წაიშალოს კლიენტი "${row.customer || "უსახელო"}"?`)
+    ) {
+      return;
+    }
+    removeRow(row.id);
+  }
+
   return (
-    <tr>
-      <td>
+    <tr className={row.status === "wrong" ? styles.wrongRow : undefined}>
+      <td data-label="კლიენტი">
         <input
           className={styles.input}
           value={row.customer}
           placeholder="კლიენტის სახელი"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="words"
+          spellCheck={false}
           onChange={(e) => updateRow(row.id, { customer: e.target.value })}
         />
         <button
@@ -47,33 +62,47 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           />
         )}
       </td>
-      <td>
+      <td data-label="Gross">
         <input
           className={styles.input}
-          type="number"
-          value={row.gross || ""}
+          type="text"
+          inputMode="decimal"
+          value={row.gross}
           placeholder="0"
-          onChange={(e) => updateRow(row.id, { gross: Number(e.target.value) })}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          onChange={(e) => updateRow(row.id, { gross: e.target.value })}
         />
       </td>
-      <td>
+      <td data-label="Net">
         <input
           className={styles.input}
-          type="number"
-          value={row.net || ""}
+          type="text"
+          inputMode="decimal"
+          value={row.net}
           placeholder="0"
-          onChange={(e) => updateRow(row.id, { net: Number(e.target.value) })}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          onChange={(e) => updateRow(row.id, { net: e.target.value })}
         />
       </td>
-      <td>
+      <td data-label="ქალაქი">
         <input
           className={styles.input}
           value={row.city}
           placeholder="ქალაქი"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="words"
+          spellCheck={false}
           onChange={(e) => updateRow(row.id, { city: e.target.value })}
         />
       </td>
-      <td>
+      <td data-label="სტატუსი">
         <button
           className={styles[`status_${row.status}`]}
           type="button"
@@ -82,8 +111,8 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           {STATUS_LABEL[row.status]}
         </button>
       </td>
-      <td>
-        <button className={styles.removeBtn} type="button" onClick={() => removeRow(row.id)}>
+      <td data-label="">
+        <button className={styles.removeBtn} type="button" onClick={handleRemove}>
           წაშლა
         </button>
       </td>

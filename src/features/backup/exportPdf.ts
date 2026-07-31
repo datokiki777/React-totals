@@ -1,7 +1,6 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { db } from "../../db/database";
-import { formatMoney } from "../../shared/lib/calc";
 
 export async function exportToPdf() {
   const [groups, periods, clientRows] = await Promise.all([
@@ -20,8 +19,8 @@ export async function exportToPdf() {
       group?.name ?? "",
       `${period?.fromDate ?? "—"} → ${period?.toDate ?? "—"}`,
       r.customer,
-      formatMoney(r.gross),
-      formatMoney(r.net),
+      r.gross || "—",
+      r.net || "—",
       r.city,
       r.status,
     ];
