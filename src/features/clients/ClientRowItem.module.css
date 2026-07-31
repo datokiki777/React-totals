@@ -1,0 +1,74 @@
+.commentToggle {
+  display: block;
+  margin-top: 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.commentInput {
+  width: 100%;
+  margin-top: 4px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+  resize: vertical;
+}
+
+.input {
+  width: 100%;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.removeBtn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.status_none,
+.status_done,
+.status_fail,
+.status_fixed,
+.status_wrong {
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  color: #071633;
+}
+
+.status_none {
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+.status_done {
+  background: #35d07f;
+}
+.status_fail {
+  background: #ff6b6b;
+}
+.status_fixed {
+  background: #ffc440;
+}
+.status_wrong {
+  background: #b892ff;
+}
