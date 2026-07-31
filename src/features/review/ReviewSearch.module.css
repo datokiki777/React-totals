@@ -2,23 +2,24 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-3);
 }
 
 .searchInput {
   width: 100%;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  background: var(--surface-glass);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-soft);
   color: var(--text);
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 14px;
+  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-base);
 }
 
 .results {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-3);
   max-height: 60vh;
   overflow-y: auto;
 }
@@ -33,9 +34,10 @@
   width: 100%;
   text-align: left;
   background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 14px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+  box-shadow: var(--shadow-card);
   cursor: pointer;
   color: var(--text);
   font: inherit;
@@ -60,7 +62,7 @@
 .mark {
   background: var(--accent);
   color: #071633;
-  border-radius: 3px;
+  border-radius: 4px;
   padding: 0 2px;
 }
 
@@ -68,22 +70,22 @@
 .status_fail,
 .status_fixed,
 .status_wrong {
-  font-size: 11px;
+  font-size: var(--font-xs);
   font-weight: 700;
-  border-radius: 6px;
-  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  padding: 2px 9px;
   white-space: nowrap;
   color: #071633;
 }
 
 .status_done {
-  background: #35d07f;
+  background: var(--success);
 }
 .status_fail {
-  background: #ff6b6b;
+  background: var(--danger);
 }
 .status_fixed {
-  background: #ffc440;
+  background: var(--accent);
 }
 .status_wrong {
   background: #b892ff;
@@ -92,15 +94,15 @@
 .resultMeta {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 14px;
-  font-size: 12px;
+  gap: 4px var(--space-5);
+  font-size: var(--font-sm);
   color: var(--text-muted);
   margin-top: 4px;
 }
 
 .comment {
-  margin-top: 6px;
-  font-size: 12px;
+  margin-top: var(--space-2);
+  font-size: var(--font-sm);
   color: var(--text-muted);
   font-style: italic;
 }

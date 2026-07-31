@@ -1,39 +1,42 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-4);
 }
 
 .emptyCard {
   padding: 50px 20px;
   text-align: center;
   background: var(--surface-2);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
 }
 
 .emptyIcon {
   font-size: 48px;
   opacity: 0.6;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-5);
 }
 
 .emptyTitle {
-  font-size: 16px;
+  font-size: var(--font-lg);
   font-weight: 600;
   opacity: 0.85;
 }
 
 .emptyHint {
-  font-size: 13px;
+  font-size: var(--font-md);
   opacity: 0.55;
-  margin-top: 8px;
+  margin-top: var(--space-3);
 }
 
+/* Green accent line on the left, matching the old app's group cards. */
 .groupCard {
   background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  border-left: 3px solid var(--success);
+  border-radius: var(--radius-md);
   overflow: hidden;
+  box-shadow: var(--shadow-card);
 }
 
 .groupToggle {
@@ -41,10 +44,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
-  background: var(--surface-3);
+  gap: var(--space-4);
+  background: transparent;
   border: none;
-  padding: 14px 16px;
+  padding: var(--space-4) var(--space-5);
   cursor: pointer;
   text-align: left;
 }
@@ -55,12 +58,13 @@
 
 .groupTitle {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--font-lg);
+  font-weight: 700;
   color: var(--text);
 }
 
 .groupMeta {
-  font-size: 12px;
+  font-size: var(--font-sm);
   color: var(--text-muted);
   margin-top: 2px;
 }
@@ -68,8 +72,21 @@
 .groupBadges {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
   flex-shrink: 0;
+}
+
+.countBadge {
+  min-width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: var(--success);
+  color: #071633;
+  font-weight: 700;
+  font-size: var(--font-md);
 }
 
 .badgeDone,
@@ -78,15 +95,15 @@
 .badgeWrong {
   min-width: 20px;
   text-align: center;
-  border-radius: 6px;
+  border-radius: var(--radius-pill);
   padding: 2px 6px;
-  font-size: 12px;
+  font-size: var(--font-sm);
   font-weight: 700;
   color: #071633;
 }
-.badgeDone { background: #35d07f; }
-.badgeFail { background: #ff6b6b; }
-.badgeFixed { background: #ffc440; }
+.badgeDone { background: var(--success); }
+.badgeFail { background: var(--danger); }
+.badgeFixed { background: var(--accent); }
 .badgeWrong { background: #b892ff; }
 
 .chevron {
@@ -94,45 +111,62 @@
 }
 
 .groupBody {
-  padding: 14px 16px;
+  padding: 0 var(--space-5) var(--space-5);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
+/* Compact horizontal rows (label left, value right, thin colored
+   underline) instead of boxed KPI tiles — matches the old app. */
 .groupKpis {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
 .kpi {
-  background: var(--surface-3);
-  border-radius: 10px;
-  padding: 10px;
-  text-align: center;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 2px solid var(--kpi-accent, var(--border-soft));
+}
+
+.kpiGross {
+  --kpi-accent: var(--info);
+}
+.kpiNet {
+  --kpi-accent: var(--success);
+}
+.kpiMy {
+  --kpi-accent: var(--accent);
 }
 
 .kpiLabel {
-  font-size: 11px;
+  font-size: var(--font-sm);
   color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .kpiValue {
-  font-size: 16px;
+  font-size: var(--font-lg);
   font-weight: 700;
 }
 
 .hint {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--font-md);
   text-align: center;
-  padding: 10px;
+  padding: var(--space-4);
 }
 
 .periodCard {
   background: var(--surface-3);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -140,8 +174,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   cursor: pointer;
   list-style: none;
   flex-wrap: wrap;
@@ -152,45 +186,45 @@
 }
 
 .periodRange {
-  font-size: 13px;
+  font-size: var(--font-md);
   font-weight: 600;
 }
 
 .periodMini {
-  font-size: 11px;
+  font-size: var(--font-xs);
   color: var(--text-muted);
 }
 
 .periodSums {
   display: flex;
-  gap: 6px;
+  gap: var(--space-2);
   flex-wrap: wrap;
 }
 
 .badge {
-  background: var(--surface-1);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 2px 8px;
-  font-size: 11px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-pill);
+  padding: 2px 9px;
+  font-size: var(--font-xs);
   white-space: nowrap;
 }
 
 .clientList {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 0 12px 12px;
+  gap: var(--space-3);
+  padding: 0 var(--space-4) var(--space-4);
 }
 
 .clientItem {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 10px;
-  background: var(--surface-1);
-  border-radius: 8px;
-  padding: 8px 10px;
+  gap: var(--space-3);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
   flex-wrap: wrap;
 }
 
@@ -202,32 +236,32 @@
 .clientNameRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-3);
 }
 
 .clientName {
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--font-md);
 }
 
 .clientCity {
-  font-size: 12px;
+  font-size: var(--font-sm);
   color: var(--text-muted);
   margin-top: 2px;
 }
 
 .clientComment {
-  font-size: 12px;
+  font-size: var(--font-sm);
   color: var(--text-muted);
   font-style: italic;
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 
 .clientValues {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 12px;
+  font-size: var(--font-sm);
   text-align: right;
   white-space: nowrap;
 }
@@ -236,29 +270,25 @@
 .status_fail,
 .status_fixed,
 .status_wrong {
-  font-size: 10px;
+  font-size: var(--font-xs);
   font-weight: 700;
-  border-radius: 6px;
-  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  padding: 1px 7px;
   color: #071633;
 }
-.status_done { background: #35d07f; }
-.status_fail { background: #ff6b6b; }
-.status_fixed { background: #ffc440; }
+.status_done { background: var(--success); }
+.status_fail { background: var(--danger); }
+.status_fixed { background: var(--accent); }
 .status_wrong { background: #b892ff; }
 
 @media (max-width: 480px) {
-  .groupKpis {
-    grid-template-columns: 1fr;
-  }
-
   .clientItem {
     flex-direction: column;
   }
 
   .clientValues {
     flex-direction: row;
-    gap: 12px;
+    gap: var(--space-5);
     text-align: left;
   }
 }

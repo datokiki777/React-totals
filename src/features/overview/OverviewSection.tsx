@@ -100,10 +100,20 @@ export function OverviewSection() {
   const canGoPrev = monthIndex !== null && monthIndex > 0;
   const canGoNext = monthIndex !== null && monthIndex < monthKeys.length - 1;
 
+  const [collapsed, setCollapsed] = useState(false);
+
   return (
     <section className={styles.card}>
       <div className={styles.head}>
-        <div className={styles.title}>📊 Overview</div>
+        <button
+          type="button"
+          className={styles.titleBtn}
+          onClick={() => setCollapsed((v) => !v)}
+          aria-expanded={!collapsed}
+        >
+          <span className={styles.chevron}>{collapsed ? "▸" : "▾"}</span>
+          <span className={styles.title}>📊 Overview</span>
+        </button>
         <div className={styles.toggle}>
           <button
             className={scope === "current" ? styles.toggleBtnActive : styles.toggleBtn}
@@ -120,6 +130,8 @@ export function OverviewSection() {
         </div>
       </div>
 
+      {!collapsed && (
+        <>
       <div className={styles.grid}>
         <div className={styles.kpi}>
           <div className={styles.label}>Gross</div>
@@ -205,6 +217,8 @@ export function OverviewSection() {
           </div>
         </div>
       </div>
+        </>
+      )}
     </section>
   );
 }

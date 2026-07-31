@@ -1,14 +1,48 @@
 :root {
   color-scheme: dark;
 
+  /* Colors — unchanged from the current app, per explicit request */
   --surface-1: #050f24;
   --surface-2: #0b1d3f;
   --surface-3: #132a55;
+  --surface-glass: rgba(11, 29, 63, 0.72);
   --border: rgba(255, 255, 255, 0.1);
+  --border-soft: rgba(255, 255, 255, 0.06);
   --text: #f5f7fb;
   --text-muted: rgba(245, 247, 251, 0.6);
+  --text-faint: rgba(245, 247, 251, 0.4);
   --accent: #ffc440;
+  --accent-soft: rgba(255, 196, 64, 0.15);
   --danger: #ff6b6b;
+  --success: #35d07f;
+  --info: #7aa2ff;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 6px;
+  --space-3: 8px;
+  --space-4: 10px;
+  --space-5: 12px;
+  --space-6: 16px;
+  --space-7: 20px;
+
+  /* Radius scale — old app leans pill/rounded everywhere */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 6px 18px rgba(0, 0, 0, 0.28);
+  --shadow-pop: 0 10px 30px rgba(0, 0, 0, 0.4);
+
+  /* Typography */
+  --font-xs: 11px;
+  --font-sm: 12px;
+  --font-md: 13px;
+  --font-base: 14px;
+  --font-lg: 16px;
+  --font-xl: 20px;
 }
 
 * {
@@ -32,6 +66,8 @@ button {
   font-family: inherit;
 }
 
-input {
+input,
+select,
+textarea {
   font-family: inherit;
 }

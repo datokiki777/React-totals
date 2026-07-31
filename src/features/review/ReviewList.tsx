@@ -109,26 +109,38 @@ function ReviewGroupCard({
           </div>
         </div>
         <div className={styles.groupBadges}>
-          {statusCounts.done > 0 && <span className={styles.badgeDone}>{statusCounts.done}</span>}
-          {statusCounts.fail > 0 && <span className={styles.badgeFail}>{statusCounts.fail}</span>}
-          {statusCounts.fixed > 0 && <span className={styles.badgeFixed}>{statusCounts.fixed}</span>}
-          {statusCounts.wrong > 0 && <span className={styles.badgeWrong}>{statusCounts.wrong}</span>}
+          {statusCounts.done + statusCounts.fail + statusCounts.fixed + statusCounts.wrong > 0 && (
+            <span className={styles.countBadge}>
+              {statusCounts.done + statusCounts.fail + statusCounts.fixed + statusCounts.wrong}
+            </span>
+          )}
           <span className={styles.chevron}>{expanded ? "▾" : "▸"}</span>
         </div>
       </button>
 
       {expanded && (
         <div className={styles.groupBody}>
+          {(statusCounts.done > 0 ||
+            statusCounts.fail > 0 ||
+            statusCounts.fixed > 0 ||
+            statusCounts.wrong > 0) && (
+            <div className={styles.groupBadges}>
+              {statusCounts.done > 0 && <span className={styles.badgeDone}>{statusCounts.done}</span>}
+              {statusCounts.fail > 0 && <span className={styles.badgeFail}>{statusCounts.fail}</span>}
+              {statusCounts.fixed > 0 && <span className={styles.badgeFixed}>{statusCounts.fixed}</span>}
+              {statusCounts.wrong > 0 && <span className={styles.badgeWrong}>{statusCounts.wrong}</span>}
+            </div>
+          )}
           <div className={styles.groupKpis}>
-            <div className={styles.kpi}>
+            <div className={`${styles.kpi} ${styles.kpiGross}`}>
               <div className={styles.kpiLabel}>Gross</div>
               <div className={styles.kpiValue}>{formatMoney(financials.gross)}</div>
             </div>
-            <div className={styles.kpi}>
+            <div className={`${styles.kpi} ${styles.kpiNet}`}>
               <div className={styles.kpiLabel}>Net</div>
               <div className={styles.kpiValue}>{formatMoney(financials.net)}</div>
             </div>
-            <div className={styles.kpi}>
+            <div className={`${styles.kpi} ${styles.kpiMy}`}>
               <div className={styles.kpiLabel}>My €</div>
               <div className={styles.kpiValue}>{formatMoney(financials.myEur)}</div>
             </div>

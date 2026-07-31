@@ -1,39 +1,39 @@
 .wrap {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-3);
   width: 100%;
 }
 
 .row {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
   flex-wrap: wrap;
 }
 
 .settingsRow {
   display: flex;
-  gap: 12px;
+  gap: var(--space-4);
   flex-wrap: wrap;
 }
 
 .settingsField {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 11px;
+  gap: 3px;
+  font-size: var(--font-xs);
   color: var(--text-muted);
 }
 
 .settingsField input {
-  background: var(--surface-1);
-  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--border-soft);
   color: var(--text);
-  padding: 6px 8px;
-  border-radius: 6px;
-  font-size: 13px;
-  width: 110px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-md);
+  width: 108px;
 }
 
 .settingsField input:disabled {
@@ -45,24 +45,26 @@
 }
 
 .pickerBtn {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  background: var(--surface-3);
+  border: 1px solid var(--border-soft);
   color: var(--text);
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--font-base);
+  font-weight: 600;
+  box-shadow: var(--shadow-card);
 }
 
 .pickerList {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 6px);
   left: 0;
   min-width: 180px;
   background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-pop);
   z-index: 20;
   overflow: hidden;
 }
@@ -76,6 +78,7 @@
   border: none;
   color: var(--text);
   cursor: pointer;
+  font-size: var(--font-base);
 }
 
 .pickerItem:hover {
@@ -85,17 +88,17 @@
 .empty {
   padding: 10px 14px;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--font-md);
 }
 
 .btn {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  background: var(--surface-3);
+  border: 1px solid var(--border-soft);
   color: var(--text);
-  padding: 8px 12px;
-  border-radius: 8px;
+  padding: 7px 12px;
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--font-md);
 }
 
 .btn:disabled {
@@ -105,6 +108,6 @@
 
 .btnDanger {
   composes: btn;
-  border-color: var(--danger);
+  border-color: rgba(255, 107, 107, 0.4);
   color: var(--danger);
 }

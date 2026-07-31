@@ -1,8 +1,9 @@
 .card {
   background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
   overflow: hidden;
+  box-shadow: var(--shadow-card);
 }
 
 .collapseBtn {
@@ -13,91 +14,94 @@
   background: var(--surface-3);
   border: none;
   color: var(--text);
-  padding: 12px 16px;
+  padding: var(--space-4) var(--space-5);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--font-base);
   font-weight: 600;
 }
 
 .meta {
   font-weight: 400;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--font-md);
 }
 
 .head {
   display: flex;
-  gap: 12px;
+  gap: var(--space-4);
   flex-wrap: wrap;
   align-items: end;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 12px;
+  gap: 3px;
+  font-size: var(--font-sm);
   color: var(--text-muted);
 }
 
 .field input {
-  background: var(--surface-1);
-  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--border-soft);
   color: var(--text);
-  padding: 6px 8px;
-  border-radius: 6px;
-  font-size: 13px;
+  padding: 6px 9px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-md);
 }
 
 .actions {
   margin-left: auto;
   display: flex;
-  gap: 8px;
+  gap: var(--space-3);
 }
 
 .btnPrimary {
   background: var(--accent);
   color: #071633;
   border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: var(--font-md);
   cursor: pointer;
 }
 
 .btnDanger {
   background: transparent;
-  border: 1px solid var(--danger);
+  border: 1px solid rgba(255, 107, 107, 0.4);
   color: var(--danger);
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-md);
   cursor: pointer;
 }
 
 .tableWrap {
   overflow-x: auto;
-  padding: 0 16px 16px;
+  padding: 0 var(--space-5) var(--space-5);
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--font-md);
 }
 
 .table th {
   text-align: left;
-  padding: 8px;
+  padding: var(--space-3);
   color: var(--text-muted);
   font-weight: 500;
-  border-bottom: 1px solid var(--border);
+  font-size: var(--font-sm);
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .table td {
-  padding: 6px 8px;
-  border-bottom: 1px solid var(--border);
+  padding: 5px var(--space-3);
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .totalLabel {
@@ -133,19 +137,19 @@
   }
 
   .table tbody tr {
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    margin-bottom: 10px;
-    padding: 8px;
-    background: var(--surface-1);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-3);
+    padding: var(--space-3);
+    background: rgba(0, 0, 0, 0.18);
   }
 
   .table tfoot tr {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    border-top: 1px solid var(--border);
-    padding-top: 8px;
+    border-top: 1px solid var(--border-soft);
+    padding-top: var(--space-3);
   }
 
   .table tfoot td {

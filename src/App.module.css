@@ -11,9 +11,10 @@
   max-width: 420px;
   background: var(--surface-2);
   border: 1px solid var(--danger);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   padding: 20px;
   text-align: center;
+  box-shadow: var(--shadow-card);
 }
 
 .errorTitle {
@@ -23,14 +24,14 @@
 }
 
 .errorText {
-  font-size: 13px;
+  font-size: var(--font-md);
   color: var(--text-muted);
   word-break: break-word;
   margin-bottom: 10px;
 }
 
 .errorHint {
-  font-size: 12px;
+  font-size: var(--font-sm);
   color: var(--text-muted);
   margin-bottom: 14px;
 }
@@ -40,7 +41,7 @@
   color: #071633;
   border: none;
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: var(--radius-pill);
   font-weight: 600;
   cursor: pointer;
 }
@@ -52,46 +53,58 @@
 }
 
 .topbar {
-  background: var(--surface-2);
-  border-bottom: 1px solid var(--border);
-  padding: 10px 16px;
+  background: var(--surface-glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-soft);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  padding: var(--space-4) var(--space-5) var(--space-5);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-3);
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: var(--shadow-card);
 }
 
 .topRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: var(--space-3);
 }
 
+/* Segmented-capsule look: a rounded track holding pill tabs, matching the
+   old app's compact glass segmented controls. */
 .workspaceSwitch,
 .modeSwitch {
   display: flex;
-  gap: 6px;
+  gap: 3px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-pill);
+  padding: 3px;
 }
 
 .tab,
 .tabActive {
-  border: 1px solid var(--border);
-  background: var(--surface-1);
+  border: none;
+  background: transparent;
   color: var(--text-muted);
   padding: 6px 14px;
-  border-radius: 8px;
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--font-md);
+  line-height: 1.2;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .tabActive {
   background: var(--accent);
   color: #071633;
-  font-weight: 600;
-  border-color: var(--accent);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(255, 196, 64, 0.35);
 }
 
 .main {
@@ -99,10 +112,10 @@
   max-width: 900px;
   width: 100%;
   margin: 0 auto;
-  padding: 16px;
+  padding: var(--space-5);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-5);
 }
 
 .reviewPlaceholder {
@@ -110,12 +123,12 @@
   text-align: center;
   color: var(--text-muted);
   background: var(--surface-2);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
 }
 
 .footer {
   text-align: center;
-  padding: 14px;
-  color: var(--text-muted);
-  font-size: 12px;
+  padding: var(--space-4);
+  color: var(--text-faint);
+  font-size: var(--font-xs);
 }

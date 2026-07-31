@@ -1,32 +1,29 @@
 .panel {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 16px;
+  background: transparent;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-4);
 }
 
 .stats {
   display: flex;
-  gap: 14px;
-  font-size: 12px;
+  gap: var(--space-5);
+  font-size: var(--font-sm);
   color: var(--text-muted);
   flex-wrap: wrap;
 }
 
 .messageSuccess,
 .messageError {
-  font-size: 13px;
+  font-size: var(--font-md);
   padding: 8px 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: 1px solid;
 }
 
 .messageSuccess {
-  color: #35d07f;
-  border-color: #35d07f;
+  color: var(--success);
+  border-color: var(--success);
   background: rgba(53, 208, 127, 0.1);
 }
 
@@ -38,7 +35,7 @@
 
 .actions {
   display: flex;
-  gap: 10px;
+  gap: var(--space-3);
   flex-wrap: wrap;
 }
 
@@ -59,16 +56,16 @@
   color: #071633;
   border: none;
   padding: 8px 14px;
-  border-radius: 8px;
-  font-weight: 600;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
   cursor: pointer;
 }
 
 .btn {
   background: var(--surface-3);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-soft);
   color: var(--text);
   padding: 8px 14px;
-  border-radius: 8px;
+  border-radius: var(--radius-pill);
   cursor: pointer;
 }
