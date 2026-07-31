@@ -1,15 +1,10 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { db } from "../../db/database";
 import { useAppStore } from "../../app/store";
+import { buildBackupPayload, validateBackupPayload } from "../../shared/lib/backup";
 import styles from "./BackupPanel.module.css";
 
-interface BackupPayload {
-  version: 1;
-  exportedAt: number;
-  groups: unknown[];
-  periods: unknown[];
-  clientRows: unknown[];
-}
+type Message = { type: "success" | "error"; text: string } | null;
 
 export function BackupPanel() {
   const init = useAppStore((s) => s.init);
@@ -17,20 +12,17 @@ export function BackupPanel() {
   const periodsCount = useAppStore((s) => s.periods.length);
   const rowsCount = useAppStore((s) => s.clientRows.length);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [message, setMessage] = useState<Message>(null);
+  const [busy, setBusy] = useState(false);
 
-  async function handleExport() {
+  async function handleExportJson() {
     const [groups, periods, clientRows] = await Promise.all([
       db.groups.toArray(),
       db.periods.toArray(),
       db.clientRows.toArray(),
     ]);
-    const payload: BackupPayload = {
-      version: 1,
-      exportedAt: Date.now(),
-      groups,
-      periods,
-      clientRows,
-    };
+    const payload = buildBackupPayload(groups, periods, clientRows);
+
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: "application/json",
     });
@@ -41,9 +33,12 @@ export function BackupPanel() {
     a.download = `client-totals-backup-${dateStr}.json`;
     a.click();
     URL.revokeObjectURL(url);
+
+    setMessage({ type: "success", text: "JSON ბექაფი წარმატებით შეიქმნა." });
   }
 
   function handleImportClick() {
+    setMessage(null);
     fileInputRef.current?.click();
   }
 
@@ -52,38 +47,85 @@ export function BackupPanel() {
     e.target.value = "";
     if (!file) return;
 
-    const text = await file.text();
-    let payload: BackupPayload;
+    setMessage(null);
+
+    let parsed: unknown;
     try {
-      payload = JSON.parse(text);
+      const text = await file.text();
+      parsed = JSON.parse(text);
     } catch {
-      window.alert("ფაილი არასწორია — JSON ვერ წაიკითხა.");
+      setMessage({ type: "error", text: "ფაილი არასწორია — JSON ვერ წაიკითხა." });
       return;
     }
-    if (!payload.groups || !payload.periods || !payload.clientRows) {
-      window.alert("ბექაფის ფორმატი არასწორია.");
+
+    const result = validateBackupPayload(parsed);
+    if (!result.ok) {
+      setMessage({ type: "error", text: `ბექაფის ფორმატი არასწორია: ${result.error}` });
       return;
     }
+
+    const { groups, periods, clientRows } = result.data;
+
     if (
       !window.confirm(
-        "იმპორტი ჩაანაცვლებს ამჟამინდელ ყველა მონაცემს. გავაგრძელოთ?"
+        `იმპორტი ჩაანაცვლებს ამჟამინდელ ყველა მონაცემს ფაილით "${file.name}" ` +
+          `(${groups.length} ჯგუფი, ${periods.length} პერიოდი, ${clientRows.length} კლიენტი).\n\n` +
+          "ეს ქმედება შეუქცევადია. გავაგრძელოთ?"
       )
     ) {
       return;
     }
 
-    await db.transaction("rw", db.groups, db.periods, db.clientRows, async () => {
-      await Promise.all([
-        db.groups.clear(),
-        db.periods.clear(),
-        db.clientRows.clear(),
-      ]);
-      await db.groups.bulkAdd(payload.groups as never[]);
-      await db.periods.bulkAdd(payload.periods as never[]);
-      await db.clientRows.bulkAdd(payload.clientRows as never[]);
-    });
-    await init();
-    window.alert("იმპორტი დასრულდა.");
+    setBusy(true);
+    try {
+      await db.transaction("rw", db.groups, db.periods, db.clientRows, async () => {
+        await Promise.all([db.groups.clear(), db.periods.clear(), db.clientRows.clear()]);
+        if (groups.length) await db.groups.bulkAdd(groups);
+        if (periods.length) await db.periods.bulkAdd(periods);
+        if (clientRows.length) await db.clientRows.bulkAdd(clientRows);
+      });
+
+      // Refresh all Zustand state from IndexedDB — no page reload needed.
+      await init();
+
+      setMessage({ type: "success", text: "იმპორტი წარმატებით დასრულდა." });
+    } catch (error) {
+      console.error("Import failed:", error);
+      setMessage({
+        type: "error",
+        text: "იმპორტი ვერ შესრულდა — მონაცემთა ბაზაში ჩაწერა ვერ მოხერხდა.",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleExportExcel() {
+    setBusy(true);
+    try {
+      const { exportToExcel } = await import("./exportExcel");
+      await exportToExcel();
+      setMessage({ type: "success", text: "Excel ფაილი წარმატებით შეიქმნა." });
+    } catch (error) {
+      console.error("Excel export failed:", error);
+      setMessage({ type: "error", text: "Excel ექსპორტი ვერ შესრულდა." });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleExportPdf() {
+    setBusy(true);
+    try {
+      const { exportToPdf } = await import("./exportPdf");
+      await exportToPdf();
+      setMessage({ type: "success", text: "PDF ფაილი წარმატებით შეიქმნა." });
+    } catch (error) {
+      console.error("PDF export failed:", error);
+      setMessage({ type: "error", text: "PDF ექსპორტი ვერ შესრულდა." });
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -93,25 +135,27 @@ export function BackupPanel() {
         <span>პერიოდები: {periodsCount}</span>
         <span>კლიენტები: {rowsCount}</span>
       </div>
+
+      {message && (
+        <div
+          role="status"
+          className={message.type === "error" ? styles.messageError : styles.messageSuccess}
+        >
+          {message.text}
+        </div>
+      )}
+
       <div className={styles.actions}>
-        <button className={styles.btnPrimary} type="button" onClick={handleExport}>
+        <button className={styles.btnPrimary} type="button" onClick={handleExportJson} disabled={busy}>
           💾 Export JSON
         </button>
-        <button className={styles.btn} type="button" onClick={handleImportClick}>
+        <button className={styles.btn} type="button" onClick={handleImportClick} disabled={busy}>
           ♻️ Import JSON
         </button>
-        <button
-          className={styles.btn}
-          type="button"
-          onClick={() => import("./exportExcel").then((m) => m.exportToExcel())}
-        >
+        <button className={styles.btn} type="button" onClick={handleExportExcel} disabled={busy}>
           📊 Export Excel
         </button>
-        <button
-          className={styles.btn}
-          type="button"
-          onClick={() => import("./exportPdf").then((m) => m.exportToPdf())}
-        >
+        <button className={styles.btn} type="button" onClick={handleExportPdf} disabled={busy}>
           📄 Export PDF
         </button>
         <input

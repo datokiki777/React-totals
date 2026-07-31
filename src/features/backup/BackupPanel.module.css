@@ -16,10 +16,42 @@
   flex-wrap: wrap;
 }
 
+.messageSuccess,
+.messageError {
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid;
+}
+
+.messageSuccess {
+  color: #35d07f;
+  border-color: #35d07f;
+  background: rgba(53, 208, 127, 0.1);
+}
+
+.messageError {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: rgba(255, 107, 107, 0.1);
+}
+
 .actions {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.btnPrimary,
+.btn {
+  flex: 1;
+  min-width: 130px;
+}
+
+.btnPrimary:disabled,
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btnPrimary {
