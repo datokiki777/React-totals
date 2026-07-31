@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import { db } from "../../db/database";
 import { useAppStore } from "../../app/store";
-import { buildBackupPayload, validateBackupPayload } from "../../shared/lib/backup";
+import { buildBackupPayload } from "../../shared/lib/backup";
+import { parseAnyBackupFormat } from "../../shared/lib/legacyMigration";
 import styles from "./BackupPanel.module.css";
 
 type Message = { type: "success" | "error"; text: string } | null;
@@ -58,17 +59,21 @@ export function BackupPanel() {
       return;
     }
 
-    const result = validateBackupPayload(parsed);
+    const result = parseAnyBackupFormat(parsed);
     if (!result.ok) {
       setMessage({ type: "error", text: `ბექაფის ფორმატი არასწორია: ${result.error}` });
       return;
     }
 
     const { groups, periods, clientRows } = result.data;
+    const migratedFromLegacy = result.migratedFromLegacy;
 
     if (
       !window.confirm(
-        `იმპორტი ჩაანაცვლებს ამჟამინდელ ყველა მონაცემს ფაილით "${file.name}" ` +
+        (migratedFromLegacy
+          ? `ეს ძველი (Vanilla JS) აპლიკაციის ფაილია — ავტომატურად გადაკონვერტირდება ახალ ფორმატში.\n\n`
+          : "") +
+          `იმპორტი ჩაანაცვლებს ამჟამინდელ ყველა მონაცემს ფაილით "${file.name}" ` +
           `(${groups.length} ჯგუფი, ${periods.length} პერიოდი, ${clientRows.length} კლიენტი).\n\n` +
           "ეს ქმედება შეუქცევადია. გავაგრძელოთ?"
       )
@@ -88,7 +93,12 @@ export function BackupPanel() {
       // Refresh all Zustand state from IndexedDB — no page reload needed.
       await init();
 
-      setMessage({ type: "success", text: "იმპორტი წარმატებით დასრულდა." });
+      setMessage({
+        type: "success",
+        text: migratedFromLegacy
+          ? "ძველი ვერსიის ფაილი წარმატებით გადაკონვერტირდა და აიტვირთა."
+          : "იმპორტი წარმატებით დასრულდა.",
+      });
     } catch (error) {
       console.error("Import failed:", error);
       setMessage({
