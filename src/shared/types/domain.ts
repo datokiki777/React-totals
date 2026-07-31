@@ -65,4 +65,8 @@ export interface AppSettings {
   id: "app"; // singleton row
   defaultRate: number;
   defaultSalary: number;
+  /** Display-only currency symbol — never affects stored numeric values. */
+  currencySymbol: string;
+  /** Whether destructive actions (delete group/period/row) ask for confirmation. */
+  confirmDestructiveActions: boolean;
 }

@@ -36,7 +36,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     await screen.findByText("აირჩიე ჯგუფი ▾");
     await setupOneClient(user);
 
-    await user.click(screen.getByRole("button", { name: "მიმოხილვა" }));
+    await user.click(screen.getByRole("tab", { name: "მიმოხილვა" }));
 
     const searchInput = screen.getByPlaceholderText(/მოძებნე კლიენტი/);
     await user.type(searchInput, "acme"); // partial + lowercase
@@ -52,7 +52,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     await screen.findByText("აირჩიე ჯგუფი ▾");
     await setupOneClient(user);
 
-    await user.click(screen.getByRole("button", { name: "მიმოხილვა" }));
+    await user.click(screen.getByRole("tab", { name: "მიმოხილვა" }));
     await user.type(screen.getByPlaceholderText(/მოძებნე კლიენტი/), "bilis");
 
     expect(await screen.findByText("Acme Corp")).toBeInTheDocument();
@@ -66,7 +66,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     await screen.findByText("აირჩიე ჯგუფი ▾");
     await setupOneClient(user);
 
-    await user.click(screen.getByRole("button", { name: "მიმოხილვა" }));
+    await user.click(screen.getByRole("tab", { name: "მიმოხილვა" }));
     await user.type(screen.getByPlaceholderText(/მოძებნე კლიენტი/), "discount");
 
     expect(await screen.findByText("Acme Corp")).toBeInTheDocument();
@@ -80,7 +80,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     await screen.findByText("აირჩიე ჯგუფი ▾");
     await setupOneClient(user);
 
-    await user.click(screen.getByRole("button", { name: "მიმოხილვა" }));
+    await user.click(screen.getByRole("tab", { name: "მიმოხილვა" }));
     const searchInput = screen.getByPlaceholderText(/მოძებნე კლიენტი/);
 
     await user.type(searchInput, "zzz-nomatch");
@@ -100,7 +100,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     await screen.findByText("აირჩიე ჯგუფი ▾");
     await setupOneClient(user);
 
-    await user.click(screen.getByRole("button", { name: "მიმოხილვა" }));
+    await user.click(screen.getByRole("tab", { name: "მიმოხილვა" }));
     await user.type(screen.getByPlaceholderText(/მოძებნე კლიენტი/), "acme");
 
     const resultButton = (await screen.findByText("Corp")).closest("button")!;
@@ -119,7 +119,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     await screen.findByText("აირჩიე ჯგუფი ▾");
     await setupOneClient(user);
 
-    await user.click(screen.getByRole("button", { name: "მიმოხილვა" }));
+    await user.click(screen.getByRole("tab", { name: "მიმოხილვა" }));
 
     // Group card starts collapsed; expand it. (The GroupSwitcher picker
     // button also contains the group name, so disambiguate via aria-expanded,

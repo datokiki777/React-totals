@@ -28,7 +28,7 @@ describe("Overview page — matches the old app's business logic", () => {
     const overviewCard = screen.getByText("📊 Overview").closest("section")!;
 
     // Initially everything is zero.
-    expect(within(overviewCard).getAllByText("0.00").length).toBeGreaterThan(0);
+    expect(within(overviewCard).getAllByText(/0\.00/).length).toBeGreaterThan(0);
 
     const table = screen.getByRole("table");
     const grossInput = within(table).getAllByPlaceholderText("0")[0];

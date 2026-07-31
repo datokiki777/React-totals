@@ -6,11 +6,20 @@ import type {
   Period,
   ClientRow,
   DoneStatus,
+  AppSettings,
 } from "../shared/types/domain";
 
-export type ViewMode = "edit" | "review";
+export type ViewMode = "edit" | "review" | "settings";
 export type WorkspaceTab = "active" | "archive";
 export type TotalsScope = "current" | "all";
+
+const DEFAULT_SETTINGS: AppSettings = {
+  id: "app",
+  defaultRate: 13.5,
+  defaultSalary: 0,
+  currencySymbol: "€",
+  confirmDestructiveActions: true,
+};
 
 interface AppState {
   // data
@@ -26,6 +35,7 @@ interface AppState {
   workspace: WorkspaceTab;
   highlightedRowId: string | null;
   totalsScope: TotalsScope;
+  settings: AppSettings;
 
   // lifecycle
   init: () => Promise<void>;
@@ -54,6 +64,8 @@ interface AppState {
   setWorkspace: (ws: WorkspaceTab) => void;
   setTotalsScope: (scope: TotalsScope) => void;
   highlightRow: (id: string) => void;
+  updateSettings: (patch: Partial<Omit<AppSettings, "id">>) => void;
+  clearAllData: () => Promise<void>;
 }
 
 const STATUS_CYCLE: DoneStatus[] = ["none", "done", "fail", "fixed", "wrong"];
@@ -79,13 +91,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   workspace: "active",
   highlightedRowId: null,
   totalsScope: "current",
+  settings: DEFAULT_SETTINGS,
 
   init: async () => {
     try {
-      const [groups, periods, clientRows] = await Promise.all([
+      const [groups, periods, clientRows, storedSettings] = await Promise.all([
         db.groups.toArray(),
         db.periods.toArray(),
         db.clientRows.toArray(),
+        db.settings.get("app"),
       ]);
       const firstActive = groups.find((g) => !g.archived)?.id ?? null;
       set({
@@ -93,6 +107,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         periods,
         clientRows,
         activeGroupId: firstActive,
+        settings: storedSettings ? { ...DEFAULT_SETTINGS, ...storedSettings } : DEFAULT_SETTINGS,
         initError: null,
       });
     } catch (error) {
@@ -109,12 +124,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   addGroup: async (name) => {
+    const { defaultRate, defaultSalary } = get().settings;
     const group: Group = {
       id: generateId(),
       name: name.trim() || "New group",
       archived: false,
-      defaultRate: 13.5,
-      defaultSalary: 0,
+      defaultRate,
+      defaultSalary,
       createdAt: now(),
       updatedAt: now(),
     };
@@ -255,5 +271,24 @@ export const useAppStore = create<AppState>((set, get) => ({
       // Only clear if nothing else re-triggered a highlight in the meantime.
       if (get().highlightedRowId === id) set({ highlightedRowId: null });
     }, 1800);
+  },
+
+  updateSettings: (patch) => {
+    const full = { ...get().settings, ...patch };
+    set({ settings: full });
+    persist("settings", () => db.settings.put(full));
+  },
+
+  clearAllData: async () => {
+    await db.transaction("rw", db.groups, db.periods, db.clientRows, async () => {
+      await Promise.all([db.groups.clear(), db.periods.clear(), db.clientRows.clear()]);
+    });
+    set({
+      groups: [],
+      periods: [],
+      clientRows: [],
+      activeGroupId: null,
+      highlightedRowId: null,
+    });
   },
 }));

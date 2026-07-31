@@ -10,6 +10,11 @@ function makeFile(content: string, name = "backup.json", type = "application/jso
   return new File([content], name, { type });
 }
 
+async function openSettings(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("tab", { name: /პარამეტრები/ }));
+  await screen.findByRole("heading", { name: "ბექაფი და აღდგენა" });
+}
+
 describe("Import/Export — JSON backup validation, confirmation, and state refresh", () => {
   beforeEach(async () => {
     await resetAppForTest();
@@ -24,6 +29,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     const user = userEvent.setup();
     render(<App />);
     await screen.findByText("აირჩიე ჯგუფი ▾");
+    await openSettings(user);
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(fileInput, makeFile("{ not valid json", "broken.json"));
@@ -35,6 +41,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     const user = userEvent.setup();
     render(<App />);
     await screen.findByText("აირჩიე ჯგუფი ▾");
+    await openSettings(user);
 
     const badPayload = JSON.stringify({ groups: [{ id: "g1" }], periods: [], clientRows: [] });
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -48,6 +55,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     const user = userEvent.setup();
     render(<App />);
     await screen.findByText("აირჩიე ჯგუფი ▾");
+    await openSettings(user);
 
     const payload = buildBackupPayload(
       [{ id: "g1", name: "G", archived: false, defaultRate: 10, defaultSalary: 0, createdAt: 0, updatedAt: 0 }],
@@ -80,6 +88,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
 
     render(<App />);
     await screen.findByText("აირჩიე ჯგუფი ▾");
+    await openSettings(user);
 
     const payload = buildBackupPayload(
       [{ id: "g1", name: "Imported Group", archived: false, defaultRate: 10, defaultSalary: 0, createdAt: 0, updatedAt: 0 }],
@@ -104,6 +113,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
 
     render(<App />);
     await screen.findByText("აირჩიე ჯგუფი ▾");
+    await openSettings(user);
 
     const payload = buildBackupPayload(
       [{ id: "g1", name: "Imported Group", archived: false, defaultRate: 20, defaultSalary: 0, createdAt: 0, updatedAt: 0 }],

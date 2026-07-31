@@ -52,3 +52,12 @@ export function clampRate(percent: number): number {
   if (p > 100) p = 100;
   return p;
 }
+
+/**
+ * Formats an already-computed amount with a display currency symbol.
+ * Purely presentational — the underlying stored/calculated number is never
+ * changed by this; only how it's shown changes.
+ */
+export function formatCurrency(formattedAmount: string, symbol: string): string {
+  return `${symbol}${formattedAmount}`;
+}

@@ -12,6 +12,7 @@ export function GroupSwitcher() {
   const deleteGroup = useAppStore((s) => s.deleteGroup);
   const toggleArchiveGroup = useAppStore((s) => s.toggleArchiveGroup);
   const updateGroupSettings = useAppStore((s) => s.updateGroupSettings);
+  const confirmDestructive = useAppStore((s) => s.settings.confirmDestructiveActions);
 
   const [isPickerOpen, setPickerOpen] = useState(false);
 
@@ -35,7 +36,12 @@ export function GroupSwitcher() {
 
   async function handleDelete() {
     if (!activeGroup) return;
-    if (!window.confirm(`წაიშალოს ჯგუფი "${activeGroup.name}" ყველა პერიოდით?`)) return;
+    if (
+      confirmDestructive &&
+      !window.confirm(`წაიშალოს ჯგუფი "${activeGroup.name}" ყველა პერიოდით?`)
+    ) {
+      return;
+    }
     await deleteGroup(activeGroup.id);
   }
 
@@ -90,6 +96,7 @@ export function GroupSwitcher() {
           type="button"
           disabled={!activeGroup}
           title="არქივი / დაბრუნება"
+          aria-label="არქივი / დაბრუნება"
         >
           📦
         </button>

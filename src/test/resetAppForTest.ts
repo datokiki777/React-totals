@@ -14,6 +14,7 @@ export async function resetAppForTest(): Promise<void> {
   await db.groups.clear();
   await db.periods.clear();
   await db.clientRows.clear();
+  await db.settings.clear();
   await new Promise((r) => setTimeout(r, 30));
 
   useAppStore.setState({
@@ -25,6 +26,13 @@ export async function resetAppForTest(): Promise<void> {
     workspace: "active",
     totalsScope: "current",
     highlightedRowId: null,
+    settings: {
+      id: "app",
+      defaultRate: 13.5,
+      defaultSalary: 0,
+      currencySymbol: "€",
+      confirmDestructiveActions: true,
+    },
     loaded: false,
     initError: null,
   });

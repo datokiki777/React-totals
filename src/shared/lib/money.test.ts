@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseMoney, clampRate } from "./money";
+import { parseMoney, clampRate, formatCurrency } from "./money";
 
 describe("parseMoney", () => {
   it("parses plain integers", () => {
@@ -55,5 +55,16 @@ describe("clampRate", () => {
   });
   it("treats NaN as 0", () => {
     expect(clampRate(Number.NaN)).toBe(0);
+  });
+});
+
+describe("formatCurrency", () => {
+  it("prefixes the already-formatted amount with the given symbol", () => {
+    expect(formatCurrency("135.00", "€")).toBe("€135.00");
+    expect(formatCurrency("135.00", "$")).toBe("$135.00");
+  });
+
+  it("never touches the numeric formatting itself", () => {
+    expect(formatCurrency("0.00", "₾")).toBe("₾0.00");
   });
 });

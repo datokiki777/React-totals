@@ -17,6 +17,7 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
   const removeRow = useAppStore((s) => s.removeClientRow);
   const cycleStatus = useAppStore((s) => s.cycleRowStatus);
   const isHighlighted = useAppStore((s) => s.highlightedRowId === rowId);
+  const confirmDestructive = useAppStore((s) => s.settings.confirmDestructiveActions);
   const [commentOpen, setCommentOpen] = useState(false);
 
   if (!row) return null;
@@ -24,6 +25,7 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
   function handleRemove() {
     if (!row) return;
     if (
+      confirmDestructive &&
       (row.customer || row.gross || row.net || row.city || row.comment) &&
       !window.confirm(`წაიშალოს კლიენტი "${row.customer || "უსახელო"}"?`)
     ) {

@@ -13,6 +13,7 @@ export function PeriodCard({ periodId }: { periodId: string }) {
   const updatePeriod = useAppStore((s) => s.updatePeriod);
   const removePeriod = useAppStore((s) => s.removePeriod);
   const addClientRow = useAppStore((s) => s.addClientRow);
+  const confirmDestructive = useAppStore((s) => s.settings.confirmDestructiveActions);
   const [collapsed, setCollapsed] = useState(false);
 
   const rows = useMemo(
@@ -23,6 +24,11 @@ export function PeriodCard({ periodId }: { periodId: string }) {
   if (!period || !group) return null;
 
   const totals = computePeriodTotals(period, rows, group.defaultRate);
+
+  function handleRemovePeriod() {
+    if (confirmDestructive && !window.confirm("წაიშალოს ეს პერიოდი ყველა კლიენტით?")) return;
+    removePeriod(periodId);
+  }
 
   return (
     <section className={styles.card}>
@@ -70,7 +76,7 @@ export function PeriodCard({ periodId }: { periodId: string }) {
               <button className={styles.btnPrimary} type="button" onClick={() => addClientRow(period.id)}>
                 + კლიენტი
               </button>
-              <button className={styles.btnDanger} type="button" onClick={() => removePeriod(period.id)}>
+              <button className={styles.btnDanger} type="button" onClick={handleRemovePeriod}>
                 პერიოდის წაშლა
               </button>
             </div>

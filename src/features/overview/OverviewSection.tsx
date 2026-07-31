@@ -7,6 +7,7 @@ import {
   computeStatusCounts,
   formatMoney,
 } from "../../shared/lib/calc";
+import { formatCurrency } from "../../shared/lib/money";
 import {
   formatDateForRange,
   formatMonthKey,
@@ -25,6 +26,9 @@ export function OverviewSection() {
   const clientRows = useAppStore((s) => s.clientRows);
   const scope = useAppStore((s) => s.totalsScope);
   const setScope = useAppStore((s) => s.setTotalsScope);
+  const currencySymbol = useAppStore((s) => s.settings.currencySymbol);
+
+  const money = (n: number) => formatCurrency(formatMoney(n), currencySymbol);
 
   const [monthIndex, setMonthIndex] = useState<number | null>(null);
 
@@ -119,26 +123,26 @@ export function OverviewSection() {
       <div className={styles.grid}>
         <div className={styles.kpi}>
           <div className={styles.label}>Gross</div>
-          <div className={styles.value}>{formatMoney(grand.gross)}</div>
+          <div className={styles.value}>{money(grand.gross)}</div>
         </div>
         <div className={styles.kpi}>
           <div className={styles.label}>Net</div>
-          <div className={styles.value}>{formatMoney(grand.net)}</div>
+          <div className={styles.value}>{money(grand.net)}</div>
         </div>
         <div className={styles.kpi}>
           <div className={styles.label}>My €</div>
-          <div className={styles.value}>{formatMoney(grand.myEur)}</div>
+          <div className={styles.value}>{money(grand.myEur)}</div>
         </div>
       </div>
 
       <div className={styles.pillRow}>
         <span className={styles.pill}>
           <span>Unpaid</span>
-          <b>{formatMoney(grand.unpaid)}</b>
+          <b>{money(grand.unpaid)}</b>
         </span>
         <span className={styles.pill}>
           <span>Income</span>
-          <b>{formatMoney(grand.income)}</b>
+          <b>{money(grand.income)}</b>
         </span>
       </div>
 
@@ -172,6 +176,7 @@ export function OverviewSection() {
             <button
               disabled={!canGoPrev}
               onClick={() => setMonthIndex((i) => (i !== null ? i - 1 : i))}
+              aria-label="წინა თვე"
             >
               ‹
             </button>
@@ -179,6 +184,7 @@ export function OverviewSection() {
             <button
               disabled={!canGoNext}
               onClick={() => setMonthIndex((i) => (i !== null ? i + 1 : i))}
+              aria-label="შემდეგი თვე"
             >
               ›
             </button>
@@ -187,15 +193,15 @@ export function OverviewSection() {
         <div className={styles.monthlyGrid}>
           <div className={styles.monthRow}>
             <span>Month Gross</span>
-            <b>{formatMoney(monthTotals.gross)}</b>
+            <b>{money(monthTotals.gross)}</b>
           </div>
           <div className={styles.monthRow}>
             <span>Month Net</span>
-            <b>{formatMoney(monthTotals.net)}</b>
+            <b>{money(monthTotals.net)}</b>
           </div>
           <div className={styles.monthRow}>
             <span>Month My €</span>
-            <b>{formatMoney(monthTotals.myEur)}</b>
+            <b>{money(monthTotals.myEur)}</b>
           </div>
         </div>
       </div>

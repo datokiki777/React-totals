@@ -3,9 +3,10 @@ import { useAppStore } from "./app/store";
 import { GroupSwitcher } from "./features/groups/GroupSwitcher";
 import { PeriodList } from "./features/periods/PeriodList";
 import { OverviewSection } from "./features/overview/OverviewSection";
-import { BackupPanel } from "./features/backup/BackupPanel";
 import { ReviewSearch } from "./features/review/ReviewSearch";
 import { ReviewList } from "./features/review/ReviewList";
+import { SettingsPanel } from "./features/settings/SettingsPanel";
+import { UpdatePrompt } from "./pwa/UpdatePrompt";
 import styles from "./App.module.css";
 
 function App() {
@@ -22,13 +23,17 @@ function App() {
   }, [init]);
 
   if (!loaded) {
-    return <div className={styles.splash}>იტვირთება…</div>;
+    return (
+      <div className={styles.splash} role="status" aria-live="polite">
+        იტვირთება…
+      </div>
+    );
   }
 
   if (initError) {
     return (
       <div className={styles.splash}>
-        <div className={styles.errorBox}>
+        <div className={styles.errorBox} role="alert">
           <div className={styles.errorTitle}>⚠️ ლოკალური მონაცემების ჩატვირთვა ვერ მოხერხდა</div>
           <div className={styles.errorText}>{initError}</div>
           <div className={styles.errorHint}>
@@ -47,16 +52,20 @@ function App() {
     <div className={styles.app}>
       <header className={styles.topbar}>
         <div className={styles.topRow}>
-          <div className={styles.workspaceSwitch}>
+          <div className={styles.workspaceSwitch} role="tablist" aria-label="სამუშაო სივრცე">
             <button
               className={workspace === "active" ? styles.tabActive : styles.tab}
               onClick={() => setWorkspace("active")}
+              role="tab"
+              aria-selected={workspace === "active"}
             >
               აქტიური
             </button>
             <button
               className={workspace === "archive" ? styles.tabActive : styles.tab}
               onClick={() => setWorkspace("archive")}
+              role="tab"
+              aria-selected={workspace === "archive"}
             >
               არქივი
             </button>
@@ -66,39 +75,59 @@ function App() {
           <GroupSwitcher />
         </div>
         <div className={styles.topRow}>
-          <div className={styles.modeSwitch}>
+          <div className={styles.modeSwitch} role="tablist" aria-label="რეჟიმი">
             <button
               className={mode === "edit" ? styles.tabActive : styles.tab}
               onClick={() => setMode("edit")}
+              role="tab"
+              aria-selected={mode === "edit"}
             >
               რედაქტირება
             </button>
             <button
               className={mode === "review" ? styles.tabActive : styles.tab}
               onClick={() => setMode("review")}
+              role="tab"
+              aria-selected={mode === "review"}
             >
               მიმოხილვა
+            </button>
+            <button
+              className={mode === "settings" ? styles.tabActive : styles.tab}
+              onClick={() => setMode("settings")}
+              role="tab"
+              aria-selected={mode === "settings"}
+              aria-label="პარამეტრები"
+            >
+              ⚙️ პარამეტრები
             </button>
           </div>
         </div>
       </header>
 
       <main className={styles.main}>
-        <OverviewSection />
-        <BackupPanel />
-        {mode === "edit" ? (
-          <PeriodList />
+        {mode === "settings" ? (
+          <SettingsPanel />
         ) : (
           <>
-            <ReviewSearch />
-            <ReviewList />
+            <OverviewSection />
+            {mode === "edit" ? (
+              <PeriodList />
+            ) : (
+              <>
+                <ReviewSearch />
+                <ReviewList />
+              </>
+            )}
           </>
         )}
       </main>
 
       <footer className={styles.footer}>
-        მონაცემები ინახება ამ მოწყობილობაზე (IndexedDB). Export/Import მალე დაემატება.
+        მონაცემები ინახება ამ მოწყობილობაზე (IndexedDB). ბექაფი/აღდგენა — პარამეტრების ჩანართში.
       </footer>
+
+      <UpdatePrompt />
     </div>
   );
 }
