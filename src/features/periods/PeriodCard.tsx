@@ -13,6 +13,7 @@ export function PeriodCard({ periodId }: { periodId: string }) {
   const allClientRows = useAppStore((s) => s.clientRows);
   const updatePeriod = useAppStore((s) => s.updatePeriod);
   const removePeriod = useAppStore((s) => s.removePeriod);
+  const addPeriod = useAppStore((s) => s.addPeriod);
   const addClientRow = useAppStore((s) => s.addClientRow);
   const confirmDestructive = useAppStore((s) => s.settings.confirmDestructiveActions);
   const expandPeriodId = useAppStore((s) => s.expandPeriodId);
@@ -47,52 +48,71 @@ export function PeriodCard({ periodId }: { periodId: string }) {
 
   return (
     <section className={styles.card}>
-      <button className={styles.collapseBtn} type="button" onClick={() => setCollapsed((v) => !v)}>
-        <span>Period</span>
+      <button className={styles.collapseBtn} type="button" data-testid="period-collapse-btn" onClick={() => setCollapsed((v) => !v)}>
+        <span className={styles.collapseBtnLead}>
+          <span className={styles.collapseBtnTitle}>Period</span>
+          <span className={styles.groupTag}>{group.name}</span>
+        </span>
         <span className={styles.meta}>
           {formatPeriodDate(period.fromDate)} → {formatPeriodDate(period.toDate)}
         </span>
-        <span>{collapsed ? "▸" : "▾"}</span>
+        <span className={styles.chevron}>{collapsed ? "▸" : "▾"}</span>
       </button>
 
       {!collapsed && (
         <>
-          <div className={styles.head}>
-            <label className={styles.field}>
-              <span>From</span>
-              <input
-                type="date"
-                value={period.fromDate ?? ""}
-                onChange={(e) => updatePeriod(period.id, { fromDate: e.target.value || null })}
-              />
-            </label>
-            <label className={styles.field}>
-              <span>To</span>
-              <input
-                type="date"
-                value={period.toDate ?? ""}
-                onChange={(e) => updatePeriod(period.id, { toDate: e.target.value || null })}
-              />
-            </label>
-            <label className={styles.field}>
-              <span>Paid weeks</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="0"
-                value={period.paidWeeks ?? ""}
-                onChange={(e) => {
-                  const digits = e.target.value.replace(/\D/g, "");
-                  updatePeriod(period.id, { paidWeeks: digits === "" ? null : Number(digits) });
-                }}
-              />
-            </label>
+          <div className={styles.body}>
+            <h3 className={styles.sectionTitle}>Period</h3>
+
+            <div className={styles.topFields}>
+              <span className={styles.groupPill}>Group: {group.name}</span>
+              <label className={styles.field}>
+                <span>Paid Weeks</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={period.paidWeeks ?? ""}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "");
+                    updatePeriod(period.id, { paidWeeks: digits === "" ? null : Number(digits) });
+                  }}
+                />
+              </label>
+            </div>
+
+            <div className={styles.dateFields}>
+              <label className={styles.field}>
+                <span>From</span>
+                <input
+                  type="date"
+                  value={period.fromDate ?? ""}
+                  onChange={(e) => updatePeriod(period.id, { fromDate: e.target.value || null })}
+                />
+              </label>
+              <label className={styles.field}>
+                <span>To</span>
+                <input
+                  type="date"
+                  value={period.toDate ?? ""}
+                  onChange={(e) => updatePeriod(period.id, { toDate: e.target.value || null })}
+                />
+              </label>
+            </div>
+
             <div className={styles.actions}>
               <button className={styles.btnPrimary} type="button" onClick={() => addClientRow(period.id)}>
-                + Client
+                + Add client
               </button>
               <button className={styles.btnDanger} type="button" onClick={handleRemovePeriod}>
-                Delete period
+                Remove period
+              </button>
+              <button
+                className={styles.btnSecondary}
+                type="button"
+                onClick={() => addPeriod(period.groupId)}
+              >
+                + Add period
               </button>
             </div>
           </div>
@@ -101,12 +121,12 @@ export function PeriodCard({ periodId }: { periodId: string }) {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Client</th>
+                  <th>Customer</th>
                   <th>Gross</th>
                   <th>Net</th>
                   <th>City</th>
-                  <th>Status</th>
-                  <th></th>
+                  <th>Done</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>

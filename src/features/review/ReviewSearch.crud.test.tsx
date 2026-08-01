@@ -10,13 +10,13 @@ async function setupOneClient(user: ReturnType<typeof userEvent.setup>) {
   await screen.findByRole("button", { name: "+ New period" });
   await user.click(screen.getByRole("button", { name: "+ New period" }));
     await expandFirstPeriod(user);
-  await screen.findByRole("button", { name: "+ Client" });
-  await user.click(screen.getByRole("button", { name: "+ Client" }));
+  await screen.findByRole("button", { name: "+ Add client" });
+  await user.click(screen.getByRole("button", { name: "+ Add client" }));
 
   const table = screen.getByRole("table");
   await user.type(within(table).getByPlaceholderText("Client name"), "Acme Corp");
   await user.type(within(table).getByPlaceholderText("City"), "Tbilisi");
-  await user.click(within(table).getByRole("button", { name: /Add note|Note/ }));
+  await user.click(within(table).getByRole("button", { name: /Add note|Saved/ }));
   await user.type(screen.getByPlaceholderText("Private note for this client..."), "wants a discount");
 }
 

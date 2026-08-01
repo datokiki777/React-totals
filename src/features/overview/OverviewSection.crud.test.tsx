@@ -25,7 +25,7 @@ describe("Overview page — matches the old app's business logic", () => {
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await user.click(screen.getByRole("button", { name: "+ New period" }));
     await expandFirstPeriod(user);
-    await user.click(screen.getByRole("button", { name: "+ Client" }));
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
 
     const overviewCard = screen.getByText("📊 Overview").closest("section")!;
 
@@ -86,7 +86,7 @@ describe("Overview page — matches the old app's business logic", () => {
     await user.type(fromInput, "2026-01-01");
     await user.type(toInput, "2026-01-07");
 
-    await user.click(screen.getByRole("button", { name: "+ Client" }));
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
     const table = screen.getByRole("table");
     const grossInput = within(table).getAllByPlaceholderText("0")[0];
     await user.type(grossInput, "1000"); // unpaid = 1000 * 13.5% = 135
@@ -116,7 +116,7 @@ describe("Overview page — matches the old app's business logic", () => {
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await user.click(screen.getByRole("button", { name: "+ New period" }));
     await expandFirstPeriod(user);
-    await user.click(screen.getByRole("button", { name: "+ Client" }));
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
 
     const table = screen.getByRole("table");
     await user.type(within(table).getByPlaceholderText("Client name"), "Drilldown Client");

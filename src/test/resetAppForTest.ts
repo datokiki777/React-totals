@@ -66,5 +66,6 @@ export async function openGroupMenu(): Promise<void> {
  * weeks fields must expand it first by clicking its "Period" header.
  */
 export async function expandFirstPeriod(user: UserEvent): Promise<void> {
-  await user.click(screen.getByRole("button", { name: /Period/ }));
+  const [firstPeriodBtn] = screen.getAllByTestId("period-collapse-btn");
+  await user.click(firstPeriodBtn);
 }

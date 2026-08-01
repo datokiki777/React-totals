@@ -65,8 +65,8 @@ describe("Settings — defaults, currency display, destructive-action confirmati
     await screen.findByRole("button", { name: "+ New period" });
     await user.click(screen.getByRole("button", { name: "+ New period" }));
     await expandFirstPeriod(user);
-    await screen.findByRole("button", { name: "+ Client" });
-    await user.click(screen.getByRole("button", { name: "+ Client" }));
+    await screen.findByRole("button", { name: "+ Add client" });
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
 
     const table = screen.getByRole("table");
     await user.type(within(table).getAllByPlaceholderText("0")[0], "1234");

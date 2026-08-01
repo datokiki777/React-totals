@@ -32,10 +32,10 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     // 2. Create a period.
     await user.click(screen.getByRole("button", { name: "+ New period" }));
     await expandFirstPeriod(user);
-    expect(await screen.findByText("+ Client")).toBeInTheDocument();
+    expect(await screen.findByText("+ Add client")).toBeInTheDocument();
 
     // 3. Add a client row.
-    await user.click(screen.getByRole("button", { name: "+ Client" }));
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
 
     const table = screen.getByRole("table");
     const customerInput = within(table).getByPlaceholderText("Client name");
@@ -79,7 +79,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
 
     // 6. Delete the row (confirm dialog must be accepted).
     vi.spyOn(window, "confirm").mockReturnValue(true);
-    await user.click(within(table).getByRole("button", { name: "Delete" }));
+    await user.click(within(table).getByRole("button", { name: "Remove" }));
 
     const rowsAfterDelete = await db.clientRows.toArray();
     expect(rowsAfterDelete).toHaveLength(0);
@@ -96,7 +96,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await user.click(screen.getByRole("button", { name: "+ New period" }));
     await expandFirstPeriod(user);
-    await user.click(screen.getByRole("button", { name: "+ Client" }));
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
 
     const table = screen.getByRole("table");
     const grossInput = within(table).getAllByPlaceholderText("0")[0];
@@ -169,10 +169,55 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
 
     // The client table/fields must NOT be visible until expanded.
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "+ Client" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "+ Add client" })).not.toBeInTheDocument();
 
     // Expanding it reveals the table.
     await expandFirstPeriod(user);
     expect(screen.getByRole("table")).toBeInTheDocument();
+  });
+
+  it("the '+ Add period' button inside an expanded period adds another period to the same group", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, "prompt").mockReturnValue("Extra Cycle Group");
+
+    render(<App />);
+    await screen.findByText("Select group ▾");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+
+    await user.click(screen.getByRole("button", { name: "+ Add period" }));
+
+    const periods = await db.periods.toArray();
+    expect(periods).toHaveLength(2);
+    expect(periods[0].groupId).toBe(periods[1].groupId);
+  });
+
+  it("the client table stays a real scrollable table (not stacked cards) with all six columns always present", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, "prompt").mockReturnValue("Scroll Table Group");
+
+    render(<App />);
+    await screen.findByText("Select group ▾");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
+
+    const table = screen.getByRole("table");
+    const headers = within(table).getAllByRole("columnheader");
+    expect(headers.map((h) => h.textContent)).toEqual([
+      "Customer",
+      "Gross",
+      "Net",
+      "City",
+      "Done",
+      "Actions",
+    ]);
+    // Headers must stay visible/present (not display:none, as a stacked
+    // mobile layout would do) — getAllByRole already excludes hidden
+    // elements, so finding all six here proves the header row is intact.
   });
 });

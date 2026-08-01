@@ -43,7 +43,7 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           .join(" ") || undefined
       }
     >
-      <td data-label="Client">
+      <td className={styles.customerCell}>
         <input
           className={styles.input}
           value={row.customer}
@@ -55,11 +55,21 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           onChange={(e) => updateRow(row.id, { customer: e.target.value })}
         />
         <button
-          className={styles.commentToggle}
           type="button"
+          className={styles.commentRow}
           onClick={() => setCommentOpen((v) => !v)}
+          aria-expanded={commentOpen}
         >
-          ✎ {row.comment ? "Note" : "Add note"}
+          <span className={styles.commentIcon} aria-hidden="true">
+            ✎
+          </span>
+          <span className={styles.commentLabel}>Comment</span>
+          <span className={row.comment ? styles.commentStateSaved : styles.commentStateEmpty}>
+            {row.comment ? "Saved" : "Add note"}
+          </span>
+          <span className={styles.commentChevron} aria-hidden="true">
+            {commentOpen ? "⌄" : "›"}
+          </span>
         </button>
         {commentOpen && (
           <textarea
@@ -72,7 +82,7 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           />
         )}
       </td>
-      <td data-label="Gross">
+      <td>
         <input
           className={styles.input}
           type="text"
@@ -86,7 +96,7 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           onChange={(e) => updateRow(row.id, { gross: e.target.value.replace(/\D/g, "") })}
         />
       </td>
-      <td data-label="Net">
+      <td>
         <input
           className={styles.input}
           type="text"
@@ -100,7 +110,7 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           onChange={(e) => updateRow(row.id, { net: e.target.value.replace(/\D/g, "") })}
         />
       </td>
-      <td data-label="City">
+      <td>
         <input
           className={styles.input}
           value={row.city}
@@ -112,7 +122,7 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           onChange={(e) => updateRow(row.id, { city: e.target.value })}
         />
       </td>
-      <td data-label="Status">
+      <td>
         <button
           className={styles[`status_${row.status}`]}
           type="button"
@@ -121,9 +131,9 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           {STATUS_LABEL[row.status]}
         </button>
       </td>
-      <td data-label="">
+      <td>
         <button className={styles.removeBtn} type="button" onClick={handleRemove}>
-          Delete
+          Remove
         </button>
       </td>
     </tr>
