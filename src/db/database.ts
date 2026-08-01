@@ -12,6 +12,8 @@ export interface SyncMeta {
   /** ISO timestamp of the last local mutation — the "who's newer" value
    * used by cloud-sync conflict resolution. */
   dataUpdatedAt: string;
+  /** ISO timestamp of the last successful backup of any kind. */
+  lastBackupAt?: string;
 }
 
 // Single source of truth for local persistence.

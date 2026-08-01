@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useAppStore } from "../app/store";
-import { manualCloudSave, manualCloudLoad, resolveCloudConflict } from "./cloudSyncController";
+import { manualCloudSave, resolveCloudConflict } from "./cloudSyncController";
+import { RestoreSourcePicker } from "./RestoreSourcePicker";
 import { signInWithEmail } from "./auth";
-import { confirmDialog } from "../shared/modal/modalStore";
 import styles from "../features/settings/SettingsPanel.module.css";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -111,8 +111,10 @@ export function CloudSyncSettings() {
   const cloudStatus = useAppStore((s) => s.cloudStatus);
   const cloudError = useAppStore((s) => s.cloudError);
   const cloudConflict = useAppStore((s) => s.cloudConflict);
+  const cloudLastSyncDetail = useAppStore((s) => s.cloudLastSyncDetail);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   async function handleSave() {
     setBusy(true);
@@ -122,27 +124,6 @@ export function CloudSyncSettings() {
       setMessage("Saved to cloud.");
     } catch {
       setMessage("Cloud save failed.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleLoad() {
-    if (
-      !(await confirmDialog("Load cloud data? This will replace everything on this device.", {
-        danger: true,
-        confirmLabel: "Load",
-      }))
-    ) {
-      return;
-    }
-    setBusy(true);
-    setMessage(null);
-    try {
-      await manualCloudLoad();
-      setMessage("Loaded from cloud.");
-    } catch {
-      setMessage("Cloud load failed.");
     } finally {
       setBusy(false);
     }
@@ -194,15 +175,24 @@ export function CloudSyncSettings() {
           </>
         )}
       </div>
+      {cloudLastSyncDetail && (
+        <div style={{ fontSize: 13, color: "var(--success)" }}>{cloudLastSyncDetail}</div>
+      )}
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         <button type="button" className={styles.clearBtn} onClick={handleSave} disabled={busy}>
           Save to cloud now
         </button>
-        <button type="button" className={styles.clearBtn} onClick={handleLoad} disabled={busy}>
+        <button
+          type="button"
+          className={styles.clearBtn}
+          onClick={() => setPickerOpen(true)}
+          disabled={busy}
+        >
           Load from cloud
         </button>
       </div>
       {message && <div style={{ fontSize: 13, color: "var(--text-muted)" }}>{message}</div>}
+      {pickerOpen && <RestoreSourcePicker onClose={() => setPickerOpen(false)} />}
     </div>
   );
 }

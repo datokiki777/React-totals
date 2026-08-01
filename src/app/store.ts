@@ -62,6 +62,13 @@ interface AppState {
   cloudError: string | null;
   cloudUserEmail: string | null;
   cloudConflict: { local: CloudSnapshot; cloud: CloudSnapshot } | null;
+  /** Human-readable explanation of what the last sync actually did — e.g.
+   * "Uploaded — this device was newer" — so the person never has to
+   * wonder which side won. */
+  cloudLastSyncDetail: string | null;
+  /** ISO timestamp of the last successful backup of any kind (cloud save,
+   * JSON/Excel/PDF export). */
+  lastBackupAt: string | null;
 
   // lifecycle
   init: () => Promise<void>;
@@ -105,6 +112,8 @@ interface AppState {
   setCloudStatus: (status: CloudSyncStatus, error?: string | null) => void;
   setCloudUserEmail: (email: string | null) => void;
   setCloudConflict: (conflict: { local: CloudSnapshot; cloud: CloudSnapshot } | null) => void;
+  setCloudSyncDetail: (detail: string | null) => void;
+  markBackupMade: () => void;
   /** Replaces ALL local data with a pulled cloud snapshot (used for both
    * "new device" pulls and resolved conflicts) — preserves every group
    * (including archived), period, row, and id exactly as they came from
@@ -118,7 +127,10 @@ function persist(label: string, task: () => Promise<unknown>, touchTimestamp = t
   if (touchTimestamp) {
     const ts = new Date().toISOString();
     useAppStore.setState({ dataUpdatedAt: ts });
-    db.syncMeta.put({ id: "app", dataUpdatedAt: ts }).catch(() => {});
+    db.syncMeta
+      .get("app")
+      .then((meta) => db.syncMeta.put({ id: "app", lastBackupAt: meta?.lastBackupAt, dataUpdatedAt: ts }))
+      .catch(() => {});
   }
   // Fire-and-forget persistence: the UI already reflects the change
   // (optimistic update happened synchronously in `set()` before this runs).
@@ -150,6 +162,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   cloudError: null,
   cloudUserEmail: null,
   cloudConflict: null,
+  cloudLastSyncDetail: null,
+  lastBackupAt: null,
 
   init: async () => {
     try {
@@ -192,6 +206,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         settings: storedSettings ? { ...DEFAULT_SETTINGS, ...storedSettings } : DEFAULT_SETTINGS,
         deviceVerified: deviceSecurity?.verified ?? false,
         dataUpdatedAt: syncMeta?.dataUpdatedAt ?? null,
+        lastBackupAt: syncMeta?.lastBackupAt ?? null,
         initError: null,
       });
     } catch (error) {
@@ -435,6 +450,16 @@ export const useAppStore = create<AppState>((set, get) => ({
   setCloudStatus: (cloudStatus, error = null) => set({ cloudStatus, cloudError: error }),
   setCloudUserEmail: (cloudUserEmail) => set({ cloudUserEmail }),
   setCloudConflict: (cloudConflict) => set({ cloudConflict }),
+  setCloudSyncDetail: (cloudLastSyncDetail) => set({ cloudLastSyncDetail }),
+
+  markBackupMade: () => {
+    const ts = new Date().toISOString();
+    set({ lastBackupAt: ts });
+    db.syncMeta
+      .get("app")
+      .then((meta) => db.syncMeta.put({ id: "app", dataUpdatedAt: meta?.dataUpdatedAt ?? ts, lastBackupAt: ts }))
+      .catch(() => {});
+  },
 
   applyCloudSnapshot: async (snapshot) => {
     await db.transaction(

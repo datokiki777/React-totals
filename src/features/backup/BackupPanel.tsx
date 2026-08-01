@@ -4,18 +4,21 @@ import { useAppStore } from "../../app/store";
 import { buildBackupPayload } from "../../shared/lib/backup";
 import { parseAnyBackupFormat } from "../../shared/lib/legacyMigration";
 import { confirmDialog } from "../../shared/modal/modalStore";
+import { DataBackupPanel } from "./DataBackupPanel";
 import styles from "./BackupPanel.module.css";
 
 type Message = { type: "success" | "error"; text: string } | null;
 
 export function BackupPanel() {
   const init = useAppStore((s) => s.init);
+  const markBackupMade = useAppStore((s) => s.markBackupMade);
   const groupsCount = useAppStore((s) => s.groups.length);
   const periodsCount = useAppStore((s) => s.periods.length);
   const rowsCount = useAppStore((s) => s.clientRows.length);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<Message>(null);
   const [busy, setBusy] = useState(false);
+  const [dataPanelOpen, setDataPanelOpen] = useState(false);
 
   async function handleExportJson() {
     const [groups, periods, clientRows] = await Promise.all([
@@ -36,6 +39,7 @@ export function BackupPanel() {
     a.click();
     URL.revokeObjectURL(url);
 
+    markBackupMade();
     setMessage({ type: "success", text: "JSON backup created successfully." });
   }
 
@@ -117,6 +121,7 @@ export function BackupPanel() {
     try {
       const { exportToExcel } = await import("./exportExcel");
       await exportToExcel();
+      markBackupMade();
       setMessage({ type: "success", text: "Excel file created successfully." });
     } catch (error) {
       console.error("Excel export failed:", error);
@@ -131,6 +136,7 @@ export function BackupPanel() {
     try {
       const { exportToPdf } = await import("./exportPdf");
       await exportToPdf();
+      markBackupMade();
       setMessage({ type: "success", text: "PDF file created successfully." });
     } catch (error) {
       console.error("PDF export failed:", error);
@@ -147,6 +153,15 @@ export function BackupPanel() {
         <span>Periods: {periodsCount}</span>
         <span>Clients: {rowsCount}</span>
       </div>
+
+      <button
+        type="button"
+        className={styles.btn}
+        onClick={() => setDataPanelOpen(true)}
+        style={{ alignSelf: "flex-start" }}
+      >
+        💾 Data & Backup details
+      </button>
 
       {message && (
         <div
@@ -178,6 +193,7 @@ export function BackupPanel() {
           onChange={handleImportFile}
         />
       </div>
+      {dataPanelOpen && <DataBackupPanel onClose={() => setDataPanelOpen(false)} />}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useAppStore } from "../app/store";
 import { buildCloudSnapshot } from "./cloudSnapshot";
-import { getFirestoreCloudBackend, type CloudBackend } from "./cloudBackend";
+import { getFirestoreCloudBackend, type CloudBackend, type HistoryEntry } from "./cloudBackend";
 import { determineAndPerformCloudSync, applyCloudSyncChoice } from "./cloudSyncEngine";
 import { subscribeToAuthState } from "./auth";
 
@@ -35,15 +35,20 @@ async function runSyncNow(): Promise<void> {
 
     if (outcome.decision === "noop") {
       useAppStore.getState().setCloudStatus("idle");
+      useAppStore.getState().setCloudSyncDetail("Nothing to sync yet.");
       return;
     }
     if (outcome.decision === "push") {
       useAppStore.getState().setCloudStatus("synced");
+      useAppStore.getState().setCloudSyncDetail("Uploaded — this device's data was newer.");
+      useAppStore.getState().markBackupMade();
+      backend.writeHistorySnapshot(outcome.snapshot).catch(() => {});
       return;
     }
     if (outcome.decision === "pull") {
       await useAppStore.getState().applyCloudSnapshot(outcome.snapshot);
       useAppStore.getState().setCloudStatus("synced");
+      useAppStore.getState().setCloudSyncDetail("Downloaded — the cloud had newer data.");
       return;
     }
     // "ask" — never guess; surface it for the person to resolve explicitly.
@@ -52,6 +57,9 @@ async function runSyncNow(): Promise<void> {
       cloud: outcome.cloudSnapshot,
     });
     useAppStore.getState().setCloudStatus("local");
+    useAppStore
+      .getState()
+      .setCloudSyncDetail("Both this device and the cloud changed — pick which one to keep below.");
   } catch (error) {
     console.error("Cloud sync failed:", error);
     useAppStore
@@ -108,7 +116,10 @@ export async function manualCloudSave(): Promise<void> {
   useAppStore.getState().setCloudStatus("syncing");
   try {
     await backend.writeMainSnapshot(snapshot);
+    await backend.writeHistorySnapshot(snapshot);
     useAppStore.getState().setCloudStatus("synced");
+    useAppStore.getState().setCloudSyncDetail("Saved to cloud manually.");
+    useAppStore.getState().markBackupMade();
   } catch (error) {
     useAppStore
       .getState()
@@ -128,10 +139,46 @@ export async function manualCloudLoad(): Promise<void> {
     }
     await useAppStore.getState().applyCloudSnapshot(cloudSnapshot);
     useAppStore.getState().setCloudStatus("synced");
+    useAppStore.getState().setCloudSyncDetail("Loaded the latest cloud backup.");
   } catch (error) {
     useAppStore
       .getState()
       .setCloudStatus("error", error instanceof Error ? error.message : "Load failed");
+    throw error;
+  }
+}
+
+/** Lists "Latest Cloud" plus every daily history snapshot, newest first —
+ * for the restore-source picker. */
+export async function listRestoreSources(): Promise<HistoryEntry[]> {
+  const backend = await (backendPromise ?? (backendPromise = getFirestoreCloudBackend()));
+  const [main, history] = await Promise.all([backend.readMainSnapshot(), backend.listHistory()]);
+  const entries: HistoryEntry[] = [];
+  if (main) {
+    entries.push({ id: "latest", label: "Latest Cloud", savedAt: main.dataUpdatedAt });
+  }
+  entries.push(...history);
+  return entries;
+}
+
+/** Restores local data from a specific restore source (either "latest" or
+ * a history entry's date-based id). */
+export async function restoreFromSource(id: string): Promise<void> {
+  const backend = await (backendPromise ?? (backendPromise = getFirestoreCloudBackend()));
+  useAppStore.getState().setCloudStatus("syncing");
+  try {
+    const snapshot = id === "latest" ? await backend.readMainSnapshot() : await backend.readHistorySnapshot(id);
+    if (!snapshot) {
+      useAppStore.getState().setCloudStatus("idle");
+      throw new Error("That backup could not be found.");
+    }
+    await useAppStore.getState().applyCloudSnapshot(snapshot);
+    useAppStore.getState().setCloudStatus("synced");
+    useAppStore.getState().setCloudSyncDetail(`Restored from ${id === "latest" ? "the latest cloud backup" : id}.`);
+  } catch (error) {
+    useAppStore
+      .getState()
+      .setCloudStatus("error", error instanceof Error ? error.message : "Restore failed");
     throw error;
   }
 }
@@ -147,4 +194,9 @@ export async function resolveCloudConflict(choice: "keep-local" | "use-cloud"): 
   }
   useAppStore.getState().setCloudConflict(null);
   useAppStore.getState().setCloudStatus("synced");
+  useAppStore
+    .getState()
+    .setCloudSyncDetail(
+      choice === "keep-local" ? "Kept this device's data (uploaded)." : "Used the cloud's data (downloaded)."
+    );
 }

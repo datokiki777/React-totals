@@ -94,6 +94,8 @@ export async function resetAppForTest(): Promise<void> {
     cloudError: null,
     cloudUserEmail: null,
     cloudConflict: null,
+    cloudLastSyncDetail: null,
+    lastBackupAt: null,
     settings: {
       id: "app",
       defaultRate: 13.5,
