@@ -14,6 +14,13 @@ const STATUS_LABEL: Record<string, string> = {
   error: "Cloud error",
 };
 
+function formatSyncTime(iso: string | null): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return `Synced - ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
+}
+
 function describeAuthError(err: unknown): string {
   const code = err && typeof err === "object" && "code" in err ? String((err as { code: unknown }).code) : "";
   switch (code) {
@@ -112,7 +119,7 @@ export function CloudSyncSettings() {
   const cloudStatus = useAppStore((s) => s.cloudStatus);
   const cloudError = useAppStore((s) => s.cloudError);
   const cloudConflict = useAppStore((s) => s.cloudConflict);
-  const cloudLastSyncDetail = useAppStore((s) => s.cloudLastSyncDetail);
+  const cloudLastSyncedAt = useAppStore((s) => s.cloudLastSyncedAt);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -131,6 +138,8 @@ export function CloudSyncSettings() {
     }
   }
 
+  const syncTimeLabel = formatSyncTime(cloudLastSyncedAt);
+
   if (cloudConflict) {
     return (
       <div>
@@ -141,15 +150,15 @@ export function CloudSyncSettings() {
         <div style={{ display: "flex", gap: 10 }}>
           <button
             type="button"
-            className={styles.clearBtn}
-            style={{ background: "var(--accent)", flex: 1 }}
+            className={styles.pillBlue}
+            style={{ flex: 1 }}
             onClick={() => resolveCloudConflict("keep-local")}
           >
             ☁️ Save Cloud
           </button>
           <button
             type="button"
-            className={styles.clearBtn}
+            className={styles.pillTeal}
             style={{ flex: 1 }}
             onClick={() => resolveCloudConflict("use-cloud")}
           >
@@ -158,7 +167,7 @@ export function CloudSyncSettings() {
         </div>
         <button
           type="button"
-          className={styles.clearBtn}
+          className={styles.pillPurple}
           style={{ marginTop: 10, alignSelf: "center" }}
           onClick={() => setDataPanelOpen(true)}
         >
@@ -187,13 +196,13 @@ export function CloudSyncSettings() {
           </>
         )}
       </div>
-      {cloudLastSyncDetail && (
-        <div style={{ fontSize: 13, color: "var(--success)" }}>{cloudLastSyncDetail}</div>
+      {syncTimeLabel && (
+        <div style={{ fontSize: 13, color: "var(--success)" }}>{syncTimeLabel}</div>
       )}
       <div style={{ display: "flex", gap: 10 }}>
         <button
           type="button"
-          className={styles.clearBtn}
+          className={styles.pillBlue}
           style={{ flex: 1 }}
           onClick={handleSave}
           disabled={busy}
@@ -202,7 +211,7 @@ export function CloudSyncSettings() {
         </button>
         <button
           type="button"
-          className={styles.clearBtn}
+          className={styles.pillTeal}
           style={{ flex: 1 }}
           onClick={() => setPickerOpen(true)}
           disabled={busy}
@@ -215,7 +224,7 @@ export function CloudSyncSettings() {
 
       <button
         type="button"
-        className={styles.clearBtn}
+        className={styles.pillPurple}
         style={{ marginTop: 6, alignSelf: "center" }}
         onClick={() => setDataPanelOpen(true)}
       >

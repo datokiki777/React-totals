@@ -64,6 +64,9 @@ interface AppState {
    * "Uploaded — this device was newer" — so the person never has to
    * wonder which side won. */
   cloudLastSyncDetail: string | null;
+  /** ISO timestamp of the last time a sync/save/load actually completed
+   * successfully — shown instead of the detail text, once available. */
+  cloudLastSyncedAt: string | null;
   /** ISO timestamp of the last successful backup of any kind (cloud save,
    * JSON/Excel/PDF export). */
   lastBackupAt: string | null;
@@ -110,6 +113,8 @@ interface AppState {
   setCloudUserEmail: (email: string | null) => void;
   setCloudConflict: (conflict: { local: CloudSnapshot; cloud: CloudSnapshot } | null) => void;
   setCloudSyncDetail: (detail: string | null) => void;
+  /** Marks "right now" as the last successful sync time. */
+  markCloudSynced: () => void;
   markBackupMade: () => void;
   /** Replaces ALL local data with a pulled cloud snapshot (used for both
    * "new device" pulls and resolved conflicts) — preserves every group
@@ -160,6 +165,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   cloudUserEmail: null,
   cloudConflict: null,
   cloudLastSyncDetail: null,
+  cloudLastSyncedAt: null,
   lastBackupAt: null,
 
   init: async () => {
@@ -431,6 +437,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   setCloudUserEmail: (cloudUserEmail) => set({ cloudUserEmail }),
   setCloudConflict: (cloudConflict) => set({ cloudConflict }),
   setCloudSyncDetail: (cloudLastSyncDetail) => set({ cloudLastSyncDetail }),
+  markCloudSynced: () => set({ cloudLastSyncedAt: new Date().toISOString() }),
 
   markBackupMade: () => {
     const ts = new Date().toISOString();

@@ -40,6 +40,7 @@ async function runSyncNow(): Promise<void> {
     }
     if (outcome.decision === "push") {
       useAppStore.getState().setCloudStatus("synced");
+    useAppStore.getState().markCloudSynced();
       useAppStore.getState().setCloudSyncDetail("Uploaded — this device's data was newer.");
       useAppStore.getState().markBackupMade();
       backend.writeHistorySnapshot(outcome.snapshot).catch(() => {});
@@ -48,6 +49,7 @@ async function runSyncNow(): Promise<void> {
     if (outcome.decision === "pull") {
       await useAppStore.getState().applyCloudSnapshot(outcome.snapshot);
       useAppStore.getState().setCloudStatus("synced");
+    useAppStore.getState().markCloudSynced();
       useAppStore.getState().setCloudSyncDetail("Downloaded — the cloud had newer data.");
       return;
     }
@@ -118,6 +120,7 @@ export async function manualCloudSave(): Promise<void> {
     await backend.writeMainSnapshot(snapshot);
     await backend.writeHistorySnapshot(snapshot);
     useAppStore.getState().setCloudStatus("synced");
+    useAppStore.getState().markCloudSynced();
     useAppStore.getState().setCloudSyncDetail("Saved to cloud manually.");
     useAppStore.getState().markBackupMade();
   } catch (error) {
@@ -139,6 +142,7 @@ export async function manualCloudLoad(): Promise<void> {
     }
     await useAppStore.getState().applyCloudSnapshot(cloudSnapshot);
     useAppStore.getState().setCloudStatus("synced");
+    useAppStore.getState().markCloudSynced();
     useAppStore.getState().setCloudSyncDetail("Loaded the latest cloud backup.");
   } catch (error) {
     useAppStore
@@ -174,6 +178,7 @@ export async function restoreFromSource(id: string): Promise<void> {
     }
     await useAppStore.getState().applyCloudSnapshot(snapshot);
     useAppStore.getState().setCloudStatus("synced");
+    useAppStore.getState().markCloudSynced();
     useAppStore.getState().setCloudSyncDetail(`Restored from ${id === "latest" ? "the latest cloud backup" : id}.`);
   } catch (error) {
     useAppStore
@@ -194,6 +199,7 @@ export async function resolveCloudConflict(choice: "keep-local" | "use-cloud"): 
   }
   useAppStore.getState().setCloudConflict(null);
   useAppStore.getState().setCloudStatus("synced");
+    useAppStore.getState().markCloudSynced();
   useAppStore
     .getState()
     .setCloudSyncDetail(

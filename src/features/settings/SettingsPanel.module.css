@@ -121,6 +121,47 @@
   cursor: not-allowed;
 }
 
+/* Soft, muted tint variants for the reused pill buttons (Cloud Sync,
+   Data & Backup details) — distinct from each other, but nothing
+   saturated/neon that would fight for attention. */
+.pillBlue,
+.pillTeal,
+.pillPurple {
+  background: var(--tint-bg);
+  color: var(--tint-fg);
+  border: 1px solid var(--tint-border);
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pillBlue:disabled,
+.pillTeal:disabled,
+.pillPurple:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pillBlue {
+  --tint-bg: rgba(122, 162, 255, 0.16);
+  --tint-fg: #b7cbff;
+  --tint-border: rgba(122, 162, 255, 0.35);
+}
+
+.pillTeal {
+  --tint-bg: rgba(64, 191, 178, 0.16);
+  --tint-fg: #92e3d7;
+  --tint-border: rgba(64, 191, 178, 0.35);
+}
+
+.pillPurple {
+  --tint-bg: rgba(184, 146, 255, 0.16);
+  --tint-fg: #d6c2ff;
+  --tint-border: rgba(184, 146, 255, 0.35);
+}
+
 .clearedMessage {
   font-size: var(--font-md);
   color: var(--success);

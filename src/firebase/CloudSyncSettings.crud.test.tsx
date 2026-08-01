@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../App";
+import { CloudSyncSettings } from "./CloudSyncSettings";
 import { useAppStore } from "../app/store";
 import { resetAppForTest } from "../test/resetAppForTest";
 
@@ -119,5 +120,20 @@ describe("Cloud Sync settings — signed-in view", () => {
     expect(saveBtn.parentElement).toBe(restoreBtn.parentElement); // same row
 
     expect(screen.getByRole("button", { name: "💾 Data & Backup details" })).toBeInTheDocument();
+  });
+
+  it("shows a 'Synced - HH:MM:SS' timestamp once a sync has actually completed", async () => {
+    // Rendered directly (not <App/>) to avoid App's startCloudSync() auth
+    // subscription racing with this test's manually-mocked signed-in state.
+    act(() => {
+      useAppStore.setState({ cloudUserEmail: "person@example.com" });
+    });
+    render(<CloudSyncSettings />);
+
+    act(() => {
+      useAppStore.getState().markCloudSynced();
+    });
+
+    expect(await screen.findByText(/^Synced - \d{1,2}:\d{2}:\d{2}/)).toBeInTheDocument();
   });
 });

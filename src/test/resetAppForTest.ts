@@ -99,6 +99,7 @@ export async function resetAppForTest(): Promise<void> {
     cloudUserEmail: null,
     cloudConflict: null,
     cloudLastSyncDetail: null,
+    cloudLastSyncedAt: null,
     lastBackupAt: null,
     settings: {
       id: "app",

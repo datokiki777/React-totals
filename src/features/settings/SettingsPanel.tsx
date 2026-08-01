@@ -123,7 +123,11 @@ export function SettingsPanel() {
           <span>Name</span>
           <span>{packageJson.name}</span>
           <span>Version</span>
-          <span>{packageJson.version}</span>
+          <span>
+            {packageJson.version} <span style={{ color: "var(--text-muted)" }}>({__BUILD_ID__})</span>
+          </span>
+          <span>Built</span>
+          <span>{new Date(__BUILD_TIME__).toLocaleString()}</span>
           <span>Data</span>
           <span>
             {groupsCount} groups · {periodsCount} periods · {rowsCount} clients

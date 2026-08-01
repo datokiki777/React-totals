@@ -24,7 +24,7 @@ export function DataBackupPanel({ onClose }: { onClose: () => void }) {
   const clientRows = useAppStore((s) => s.clientRows);
   const lastBackupAt = useAppStore((s) => s.lastBackupAt);
   const cloudUserEmail = useAppStore((s) => s.cloudUserEmail);
-  const cloudLastSyncDetail = useAppStore((s) => s.cloudLastSyncDetail);
+  const cloudLastSyncedAt = useAppStore((s) => s.cloudLastSyncedAt);
   const cloudStatus = useAppStore((s) => s.cloudStatus);
 
   const [usedStorage, setUsedStorage] = useState<string | null>(null);
@@ -101,7 +101,11 @@ export function DataBackupPanel({ onClose }: { onClose: () => void }) {
           <div className={styles.row}>
             <span>☁️ Cloud Sync</span>
             <b className={cloudUserEmail ? styles.safe : undefined}>
-              {cloudUserEmail ? (cloudLastSyncDetail ?? cloudStatus) : "Not signed in"}
+              {cloudUserEmail
+                ? cloudLastSyncedAt
+                  ? `Synced - ${new Date(cloudLastSyncedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`
+                  : cloudStatus
+                : "Not signed in"}
             </b>
           </div>
         </div>
