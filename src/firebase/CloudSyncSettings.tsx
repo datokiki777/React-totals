@@ -13,6 +13,29 @@ const STATUS_LABEL: Record<string, string> = {
   error: "Cloud error",
 };
 
+function describeAuthError(err: unknown): string {
+  const code = err && typeof err === "object" && "code" in err ? String((err as { code: unknown }).code) : "";
+  switch (code) {
+    case "auth/user-not-found":
+      return "No account exists with this email yet — it must be created first in the Firebase Console (Authentication > Users > Add user).";
+    case "auth/wrong-password":
+    case "auth/invalid-credential":
+      return "Wrong email or password.";
+    case "auth/invalid-email":
+      return "That doesn't look like a valid email address.";
+    case "auth/user-disabled":
+      return "This account has been disabled in the Firebase Console.";
+    case "auth/too-many-requests":
+      return "Too many failed attempts — wait a bit before trying again.";
+    case "auth/network-request-failed":
+      return "Network error — check your connection and try again.";
+    case "auth/operation-not-allowed":
+      return "Email/Password sign-in isn't enabled for this project (Firebase Console > Authentication > Sign-in method).";
+    default:
+      return code ? `Sign in failed (${code}).` : "Sign in failed — check your email and password.";
+  }
+}
+
 function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,7 +56,7 @@ function SignInForm() {
       // and triggers the first sync automatically.
     } catch (err) {
       console.error("Sign in failed:", err);
-      setError("Sign in failed — check your email and password.");
+      setError(describeAuthError(err));
     } finally {
       setSigningIn(false);
     }
