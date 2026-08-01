@@ -86,4 +86,38 @@ describe("Cloud Sync settings — signed-in view", () => {
     await user.click(screen.getByRole("button", { name: "Close" }));
     expect(screen.queryByText("💾 Data & Backup")).not.toBeInTheDocument();
   });
+
+  it("a conflict shows 'Save Cloud'/'Restore Cloud' on one row with cloud icons, plus Data & Backup details", async () => {
+    const user = userEvent.setup();
+    useAppStore.setState({
+      cloudConflict: {
+        local: {
+          dataUpdatedAt: "2026-08-01T10:00:00.000Z",
+          groups: [],
+          periods: [],
+          clientRows: [],
+          settings: useAppStore.getState().settings,
+        },
+        cloud: {
+          dataUpdatedAt: "2026-08-01T10:00:00.000Z",
+          groups: [],
+          periods: [],
+          clientRows: [],
+          settings: useAppStore.getState().settings,
+        },
+      },
+    });
+
+    render(<App />);
+    await screen.findByText("Select group ▾");
+    await user.click(screen.getByRole("tab", { name: "Settings" }));
+
+    const saveBtn = screen.getByRole("button", { name: "☁️ Save Cloud" });
+    const restoreBtn = screen.getByRole("button", { name: "☁️ Restore Cloud" });
+    expect(saveBtn).toBeInTheDocument();
+    expect(restoreBtn).toBeInTheDocument();
+    expect(saveBtn.parentElement).toBe(restoreBtn.parentElement); // same row
+
+    expect(screen.getByRole("button", { name: "💾 Data & Backup details" })).toBeInTheDocument();
+  });
 });

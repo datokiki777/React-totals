@@ -138,23 +138,33 @@ export function CloudSyncSettings() {
           <b>This device and the cloud both have changes and we can't tell which is
           newer.</b> Choose which version to keep — the other will be replaced.
         </p>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 10 }}>
           <button
             type="button"
             className={styles.clearBtn}
-            style={{ background: "var(--accent)" }}
+            style={{ background: "var(--accent)", flex: 1 }}
             onClick={() => resolveCloudConflict("keep-local")}
           >
-            Keep this device's data
+            ☁️ Save Cloud
           </button>
           <button
             type="button"
             className={styles.clearBtn}
+            style={{ flex: 1 }}
             onClick={() => resolveCloudConflict("use-cloud")}
           >
-            Use cloud data instead
+            ☁️ Restore Cloud
           </button>
         </div>
+        <button
+          type="button"
+          className={styles.clearBtn}
+          style={{ marginTop: 10, alignSelf: "center" }}
+          onClick={() => setDataPanelOpen(true)}
+        >
+          💾 Data & Backup details
+        </button>
+        {dataPanelOpen && <DataBackupPanel onClose={() => setDataPanelOpen(false)} />}
       </div>
     );
   }
