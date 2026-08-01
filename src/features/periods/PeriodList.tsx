@@ -10,10 +10,15 @@ export function PeriodList() {
   const addClientRow = useAppStore((s) => s.addClientRow);
   const requestExpandPeriod = useAppStore((s) => s.requestExpandPeriod);
 
-  const periods = useMemo(
-    () => allPeriods.filter((p) => p.groupId === activeGroupId),
-    [allPeriods, activeGroupId]
-  );
+  const periods = useMemo(() => {
+    const groupPeriods = allPeriods.filter((p) => p.groupId === activeGroupId);
+    return [...groupPeriods].sort((a, b) => {
+      const aTime = a.fromDate ? Date.parse(a.fromDate) : Infinity;
+      const bTime = b.fromDate ? Date.parse(b.fromDate) : Infinity;
+      if (aTime !== bTime) return aTime - bTime;
+      return a.createdAt - b.createdAt;
+    });
+  }, [allPeriods, activeGroupId]);
 
   // The FAB always targets the newest period (by From date; falls back to
   // whichever was created most recently if dates are missing/tied) —

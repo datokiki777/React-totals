@@ -367,4 +367,35 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
       expect(rows[0].periodId).not.toBe(firstPeriodId);
     });
   });
+
+  it("periods are always listed in date order, regardless of which one was created first", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Sort Order Group");
+
+    render(<App />);
+    await screen.findByText("Select group ▾");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+
+    // Create the LATER-dated period first...
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    fireEvent.change(screen.getByLabelText("From"), { target: { value: "2026-06-01" } });
+    await waitFor(async () => {
+      expect((await db.periods.toArray())[0]?.fromDate).toBe("2026-06-01");
+    });
+
+    // ...then the EARLIER-dated one second.
+    await user.click(screen.getByRole("button", { name: "+ Add period" }));
+    const collapseButtons = screen.getAllByTestId("period-collapse-btn");
+    await user.click(collapseButtons[1]);
+    const fromInputs = screen.getAllByLabelText("From");
+    fireEvent.change(fromInputs[1], { target: { value: "2026-01-01" } });
+
+    await waitFor(() => {
+      const headers = screen.getAllByTestId("period-collapse-btn");
+      expect(headers[0]).toHaveTextContent("01/01/2026");
+      expect(headers[1]).toHaveTextContent("01/06/2026");
+    });
+  });
 });

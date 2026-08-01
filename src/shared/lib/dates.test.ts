@@ -155,8 +155,12 @@ describe("dateRangesOverlap", () => {
     expect(dateRangesOverlap("2026-01-01", "2026-01-31", "2026-02-01", "2026-02-28")).toBe(false);
   });
 
-  it("treats touching-edge ranges (same boundary day) as overlapping — inclusive", () => {
-    expect(dateRangesOverlap("2026-01-01", "2026-01-15", "2026-01-15", "2026-01-31")).toBe(true);
+  it("does NOT treat touching-edge ranges as overlapping — ending one period and starting the next the same day is normal", () => {
+    expect(dateRangesOverlap("2026-01-01", "2026-01-15", "2026-01-15", "2026-01-31")).toBe(false);
+  });
+
+  it("still catches a genuine one-day overlap beyond just touching at the boundary", () => {
+    expect(dateRangesOverlap("2026-01-01", "2026-01-16", "2026-01-15", "2026-01-31")).toBe(true);
   });
 
   it("detects one range fully containing the other", () => {

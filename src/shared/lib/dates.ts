@@ -141,9 +141,12 @@ export function formatPeriodDate(iso: string | null | undefined): string {
 }
 
 /**
- * True if two inclusive date ranges overlap. Only meaningful when both
- * ranges are fully specified — a period with a missing from/to date isn't
- * checked (there's nothing reliable to compare).
+ * True if two inclusive date ranges genuinely overlap — sharing a boundary
+ * day (one period's end date is the very next one's start date) does NOT
+ * count as overlap, since ending one period and starting the next on the
+ * same day is completely normal. Only a real overlap beyond that boundary
+ * triggers this. Only meaningful when both ranges are fully specified — a
+ * period with a missing from/to date isn't checked.
  */
 export function dateRangesOverlap(
   aFrom: string | null,
@@ -157,7 +160,7 @@ export function dateRangesOverlap(
   const bStart = parseDateOnly(bFrom);
   const bEnd = parseDateOnly(bTo);
   if (!aStart || !aEnd || !bStart || !bEnd) return false;
-  return aStart <= bEnd && bStart <= aEnd;
+  return aStart < bEnd && bStart < aEnd;
 }
 
 export function getPeriodsDateRange(periods: Period[]): {
