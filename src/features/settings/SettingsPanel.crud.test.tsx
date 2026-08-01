@@ -3,7 +3,7 @@ import { render, screen, cleanup, waitFor, within } from "@testing-library/react
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
 import { db } from "../../db/database";
-import { resetAppForTest } from "../../test/resetAppForTest";
+import { resetAppForTest, openGroupMenu } from "../../test/resetAppForTest";
 
 async function openSettings(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("tab", { name: /პარამეტრები/ }));
@@ -43,6 +43,7 @@ describe("Settings — defaults, currency display, destructive-action confirmati
     // Go back to Edit and create a group — it should pick up the new defaults.
     await user.click(screen.getByRole("tab", { name: "რედაქტირება" }));
     vi.spyOn(window, "prompt").mockReturnValue("New Defaults Group");
+    await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
 
     await waitFor(async () => {
@@ -59,6 +60,7 @@ describe("Settings — defaults, currency display, destructive-action confirmati
 
     render(<App />);
     await screen.findByText("აირჩიე ჯგუფი ▾");
+    await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
     await screen.findByRole("button", { name: "+ ახალი პერიოდი" });
     await user.click(screen.getByRole("button", { name: "+ ახალი პერიოდი" }));
@@ -95,6 +97,7 @@ describe("Settings — defaults, currency display, destructive-action confirmati
 
     render(<App />);
     await screen.findByText("აირჩიე ჯგუფი ▾");
+    await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
     await screen.findByRole("button", { name: /Group To Delete/ });
 
@@ -117,6 +120,7 @@ describe("Settings — defaults, currency display, destructive-action confirmati
 
     render(<App />);
     await screen.findByText("აირჩიე ჯგუფი ▾");
+    await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
     await screen.findByRole("button", { name: /Group Kept/ });
 
@@ -132,6 +136,7 @@ describe("Settings — defaults, currency display, destructive-action confirmati
 
     render(<App />);
     await screen.findByText("აირჩიე ჯგუფი ▾");
+    await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
     await screen.findByRole("button", { name: /Group X/ });
 

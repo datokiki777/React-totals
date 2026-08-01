@@ -75,16 +75,54 @@
   gap: var(--space-3);
 }
 
+.settingsBtn,
+.settingsBtnActive {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: var(--font-lg);
+}
+
+.settingsBtnActive {
+  background: var(--accent);
+  color: #071633;
+  box-shadow: 0 2px 8px rgba(255, 196, 64, 0.35);
+}
+
 /* Segmented-capsule look: a rounded track holding pill tabs, matching the
    old app's compact glass segmented controls. */
 .workspaceSwitch,
-.modeSwitch {
+.modeSwitch,
+.modeSwitchCompact {
   display: flex;
   gap: 3px;
   background: rgba(0, 0, 0, 0.22);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-pill);
   padding: 3px;
+}
+
+.workspaceSwitch {
+  flex: 1;
+}
+
+.modeSwitchCompact {
+  flex-shrink: 0;
+  transform: scale(0.92);
+  transform-origin: left center;
+}
+
+.groupSwitcherSlot {
+  flex: 1;
+  min-width: 0;
 }
 
 .tab,
@@ -98,6 +136,7 @@
   font-size: var(--font-md);
   line-height: 1.2;
   transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
 }
 
 .tabActive {

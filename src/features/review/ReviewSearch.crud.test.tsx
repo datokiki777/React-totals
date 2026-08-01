@@ -2,9 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, cleanup, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
-import { resetAppForTest } from "../../test/resetAppForTest";
+import { resetAppForTest, openGroupMenu } from "../../test/resetAppForTest";
 
 async function setupOneClient(user: ReturnType<typeof userEvent.setup>) {
+  await openGroupMenu();
   await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
   await screen.findByRole("button", { name: "+ ახალი პერიოდი" });
   await user.click(screen.getByRole("button", { name: "+ ახალი პერიოდი" }));

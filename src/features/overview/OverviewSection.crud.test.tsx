@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, cleanup, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
-import { resetAppForTest } from "../../test/resetAppForTest";
+import { resetAppForTest, openGroupMenu } from "../../test/resetAppForTest";
 
 describe("Overview page — matches the old app's business logic", () => {
   beforeEach(async () => {
@@ -21,6 +21,7 @@ describe("Overview page — matches the old app's business logic", () => {
     render(<App />);
     await screen.findByText("აირჩიე ჯგუფი ▾");
 
+    await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
     await user.click(screen.getByRole("button", { name: "+ ახალი პერიოდი" }));
     await user.click(screen.getByRole("button", { name: "+ კლიენტი" }));
@@ -67,6 +68,7 @@ describe("Overview page — matches the old app's business logic", () => {
 
     render(<App />);
     await screen.findByText("აირჩიე ჯგუფი ▾");
+    await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
 
     // Set a default salary of 400/28days -> 100/week.

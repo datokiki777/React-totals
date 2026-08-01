@@ -3,7 +3,7 @@ import { render, screen, within, cleanup, waitFor } from "@testing-library/react
 import userEvent from "@testing-library/user-event";
 import App from "../App";
 import { db } from "../db/database";
-import { resetAppForTest } from "../test/resetAppForTest";
+import { resetAppForTest, openGroupMenu } from "../test/resetAppForTest";
 
 describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
   beforeEach(async () => {
@@ -24,7 +24,8 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     // Wait for initial load to finish.
     expect(await screen.findByText("აირჩიე ჯგუფი ▾")).toBeInTheDocument();
 
-    // 1. Create a group.
+    // 1. Create a group (long-press the group switcher to open its menu first).
+    await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
     expect(await screen.findByRole("button", { name: /Test Group/ })).toBeInTheDocument();
 
@@ -90,6 +91,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     render(<App />);
 
     await screen.findByText("აირჩიე ჯგუფი ▾");
+    await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
     await user.click(screen.getByRole("button", { name: "+ ახალი პერიოდი" }));
     await user.click(screen.getByRole("button", { name: "+ კლიენტი" }));

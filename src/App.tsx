@@ -52,6 +52,16 @@ function App() {
     <div className={styles.app}>
       <header className={styles.topbar}>
         <div className={styles.topRow}>
+          <button
+            className={mode === "settings" ? styles.settingsBtnActive : styles.settingsBtn}
+            onClick={() => setMode("settings")}
+            role="tab"
+            aria-selected={mode === "settings"}
+            aria-label="პარამეტრები"
+            type="button"
+          >
+            ⚙️
+          </button>
           <div className={styles.workspaceSwitch} role="tablist" aria-label="სამუშაო სივრცე">
             <button
               className={workspace === "active" ? styles.tabActive : styles.tab}
@@ -72,10 +82,7 @@ function App() {
           </div>
         </div>
         <div className={styles.topRow}>
-          <GroupSwitcher />
-        </div>
-        <div className={styles.topRow}>
-          <div className={styles.modeSwitch} role="tablist" aria-label="რეჟიმი">
+          <div className={styles.modeSwitchCompact} role="tablist" aria-label="რეჟიმი">
             <button
               className={mode === "edit" ? styles.tabActive : styles.tab}
               onClick={() => setMode("edit")}
@@ -92,15 +99,9 @@ function App() {
             >
               მიმოხილვა
             </button>
-            <button
-              className={mode === "settings" ? styles.tabActive : styles.tab}
-              onClick={() => setMode("settings")}
-              role="tab"
-              aria-selected={mode === "settings"}
-              aria-label="პარამეტრები"
-            >
-              ⚙️ პარამეტრები
-            </button>
+          </div>
+          <div className={styles.groupSwitcherSlot}>
+            <GroupSwitcher />
           </div>
         </div>
       </header>

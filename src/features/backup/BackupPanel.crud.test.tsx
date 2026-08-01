@@ -217,22 +217,23 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     expect(archived.defaultSalary).toBe(150); // legacy defaultSalaryAmount alias
 
     // Confirm the Active/Archive workspace tabs actually reflect the import
-    // (not just IndexedDB): open the group picker on each tab and check
-    // which group names are listed there. (The picker button always shows
-    // the currently *active* group's name, "Client Group A", regardless of
-    // which workspace tab is selected — only its dropdown *contents* are
-    // workspace-filtered.)
+    // (not just IndexedDB): tapping the group switcher cycles only within
+    // the groups visible on the current workspace tab.
     await user.click(screen.getByRole("tab", { name: "რედაქტირება" }));
-    const pickerBtn = screen.getByRole("button", { name: /Client Group A/ });
+    const switcherBtn = screen.getByTestId("group-switcher-btn");
 
-    await user.click(pickerBtn); // open, on the Active tab
-    expect(screen.getByRole("button", { name: "Client Group A" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Archived Group B" })).not.toBeInTheDocument();
-    await user.click(pickerBtn); // close
+    // On the Active tab, cycling must always land on the active group —
+    // there's only one, so tapping again keeps showing it, never the
+    // archived one.
+    expect(switcherBtn).toHaveTextContent("Client Group A");
+    await user.click(switcherBtn);
+    expect(switcherBtn).toHaveTextContent("Client Group A");
+    expect(switcherBtn).not.toHaveTextContent("Archived Group B");
 
+    // On the Archive tab, cycling must only ever land on the archived group.
     await user.click(screen.getByRole("tab", { name: "არქივი" }));
-    await user.click(pickerBtn); // open, on the Archive tab
-    expect(await screen.findByRole("button", { name: "Archived Group B" })).toBeInTheDocument();
+    await user.click(switcherBtn);
+    expect(switcherBtn).toHaveTextContent("Archived Group B");
     expect(screen.queryByRole("button", { name: "Client Group A" })).not.toBeInTheDocument();
   });
 

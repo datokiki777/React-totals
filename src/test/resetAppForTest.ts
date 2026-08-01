@@ -1,5 +1,7 @@
 import { db } from "../db/database";
 import { useAppStore } from "../app/store";
+import { act, fireEvent, screen } from "@testing-library/react";
+import { GROUP_SWITCHER_LONG_PRESS_MS } from "../features/groups/GroupSwitcher";
 
 /**
  * Resets both IndexedDB and the in-memory Zustand store between e2e tests.
@@ -35,5 +37,21 @@ export async function resetAppForTest(): Promise<void> {
     },
     loaded: false,
     initError: null,
+  });
+}
+
+/**
+ * Simulates a real long-press on the group switcher button (pointerdown,
+ * wait past the long-press threshold, pointerup) to open its management
+ * menu (+ Group / Rename / Delete / Archive / Default %/salary). A plain
+ * click on that button cycles the active group instead — see
+ * GroupSwitcher.tsx.
+ */
+export async function openGroupMenu(): Promise<void> {
+  const btn = screen.getByTestId("group-switcher-btn");
+  await act(async () => {
+    fireEvent.pointerDown(btn);
+    await new Promise((r) => setTimeout(r, GROUP_SWITCHER_LONG_PRESS_MS + 80));
+    fireEvent.pointerUp(btn);
   });
 }
