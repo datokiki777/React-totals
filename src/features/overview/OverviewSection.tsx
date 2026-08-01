@@ -178,15 +178,15 @@ export function OverviewSection() {
       {!collapsed && (
         <>
       <div className={styles.grid}>
-        <div className={styles.kpi}>
+        <div className={`${styles.kpi} ${styles.kpiGross}`}>
           <div className={styles.label}>Gross</div>
           <div className={styles.value}>{money(grand.gross)}</div>
         </div>
-        <div className={styles.kpi}>
+        <div className={`${styles.kpi} ${styles.kpiNet}`}>
           <div className={styles.label}>Net</div>
           <div className={styles.value}>{money(grand.net)}</div>
         </div>
-        <div className={styles.kpi}>
+        <div className={`${styles.kpi} ${styles.kpiMy}`}>
           <div className={styles.label}>My €</div>
           <div className={styles.value}>{money(grand.myEur)}</div>
         </div>
