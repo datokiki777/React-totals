@@ -48,6 +48,13 @@
   gap: var(--space-4);
 }
 
+/* Review mode: this menu is browse-only — add/rename/archive/delete and
+   the rate/salary fields are disabled, so fade the whole panel to signal
+   that at a glance. */
+.menuPanelDimmed {
+  opacity: 0.5;
+}
+
 .row {
   display: flex;
   gap: var(--space-2);

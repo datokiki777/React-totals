@@ -8,6 +8,7 @@ export const GROUP_SWITCHER_LONG_PRESS_MS = 500;
 export function GroupSwitcher() {
   const groups = useAppStore((s) => s.groups);
   const workspace = useAppStore((s) => s.workspace);
+  const mode = useAppStore((s) => s.mode);
   const activeGroupId = useAppStore((s) => s.activeGroupId);
   const setActiveGroup = useAppStore((s) => s.setActiveGroup);
   const addGroup = useAppStore((s) => s.addGroup);
@@ -16,6 +17,12 @@ export function GroupSwitcher() {
   const toggleArchiveGroup = useAppStore((s) => s.toggleArchiveGroup);
   const updateGroupSettings = useAppStore((s) => s.updateGroupSettings);
   const confirmDestructive = useAppStore((s) => s.settings.confirmDestructiveActions);
+
+  // In Review mode this menu is for browsing/switching groups only —
+  // structural edits (add/rename/archive/delete a group, change its
+  // default rate/salary) are disabled and visually faded, since Review
+  // is meant to be a read-only look at the data.
+  const isReviewMode = mode === "review";
 
   const [menuOpen, setMenuOpen] = useState(false);
   const pressTimer = useRef<number | null>(null);
@@ -59,20 +66,21 @@ export function GroupSwitcher() {
   }
 
   async function handleAddGroup() {
+    if (isReviewMode) return;
     const name = window.prompt("Group name:");
     if (name === null) return;
     await addGroup(name);
   }
 
   async function handleRename() {
-    if (!activeGroup) return;
+    if (isReviewMode || !activeGroup) return;
     const name = window.prompt("New name:", activeGroup.name);
     if (name === null) return;
     await renameGroup(activeGroup.id, name);
   }
 
   async function handleDelete() {
-    if (!activeGroup) return;
+    if (isReviewMode || !activeGroup) return;
     if (
       confirmDestructive &&
       !window.confirm(`Delete group "${activeGroup.name}" and all its periods?`)
@@ -102,16 +110,24 @@ export function GroupSwitcher() {
       </button>
 
       {menuOpen && (
-        <div className={styles.menuPanel} role="menu">
+        <div
+          className={isReviewMode ? `${styles.menuPanel} ${styles.menuPanelDimmed}` : styles.menuPanel}
+          role="menu"
+        >
           <div className={styles.row}>
-            <button className={styles.btn} onClick={handleAddGroup} type="button">
+            <button
+              className={styles.btn}
+              onClick={handleAddGroup}
+              type="button"
+              disabled={isReviewMode}
+            >
               + Group
             </button>
             <button
               className={styles.btn}
               onClick={handleRename}
               type="button"
-              disabled={!activeGroup}
+              disabled={!activeGroup || isReviewMode}
             >
               Rename
             </button>
@@ -119,15 +135,15 @@ export function GroupSwitcher() {
               className={styles.btnDanger}
               onClick={handleDelete}
               type="button"
-              disabled={!activeGroup}
+              disabled={!activeGroup || isReviewMode}
             >
               Delete
             </button>
             <button
               className={styles.btn}
-              onClick={() => activeGroup && toggleArchiveGroup(activeGroup.id)}
+              onClick={() => activeGroup && !isReviewMode && toggleArchiveGroup(activeGroup.id)}
               type="button"
-              disabled={!activeGroup}
+              disabled={!activeGroup || isReviewMode}
               title="Archive / Restore"
               aria-label="Archive / Restore"
             >
@@ -143,10 +159,11 @@ export function GroupSwitcher() {
                 step="0.01"
                 min="0"
                 max="100"
-                disabled={!activeGroup}
+                disabled={!activeGroup || isReviewMode}
                 value={activeGroup?.defaultRate ?? ""}
                 onChange={(e) =>
                   activeGroup &&
+                  !isReviewMode &&
                   updateGroupSettings(activeGroup.id, { defaultRate: Number(e.target.value) })
                 }
               />
@@ -157,10 +174,11 @@ export function GroupSwitcher() {
                 type="number"
                 step="1"
                 min="0"
-                disabled={!activeGroup}
+                disabled={!activeGroup || isReviewMode}
                 value={activeGroup?.defaultSalary ?? ""}
                 onChange={(e) =>
                   activeGroup &&
+                  !isReviewMode &&
                   updateGroupSettings(activeGroup.id, { defaultSalary: Number(e.target.value) })
                 }
               />

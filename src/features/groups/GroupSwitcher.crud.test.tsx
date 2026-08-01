@@ -154,4 +154,41 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
     await user.click(screen.getByRole("tab", { name: "Active" }));
     expect(switcherBtn).toHaveTextContent("Active Two");
   });
+
+  it("group management controls (add/rename/archive/delete, default rate/salary) are disabled in Review mode", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText("Select group ▾");
+
+    await addGroupViaMenu(user, "Manageable In Edit");
+    const switcherBtn = screen.getByTestId("group-switcher-btn");
+    // Menu is left open by addGroupViaMenu's long-press.
+    expect(screen.getByRole("button", { name: "+ Group" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Rename" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Delete" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Archive / Restore" })).toBeEnabled();
+    expect(screen.getByLabelText("Default %")).toBeEnabled();
+    expect(screen.getByLabelText("Default salary / 28d")).toBeEnabled();
+
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+
+    expect(screen.getByRole("button", { name: "+ Group" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Rename" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Archive / Restore" })).toBeDisabled();
+    expect(screen.getByLabelText("Default %")).toBeDisabled();
+    expect(screen.getByLabelText("Default salary / 28d")).toBeDisabled();
+
+    // But tap-to-cycle (browsing groups) must still work in Review mode:
+    // close the (still-open, now-disabled) menu with another long-press,
+    // add a second group back in Edit mode, then confirm cycling works
+    // once we're back in Review.
+    await openGroupMenu();
+    await user.click(screen.getByRole("tab", { name: "Edit" }));
+    await addGroupViaMenu(user, "Second Group");
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+
+    await user.click(switcherBtn);
+    expect(switcherBtn).toHaveTextContent("Manageable In Edit");
+  });
 });

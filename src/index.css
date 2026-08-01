@@ -1,11 +1,13 @@
 :root {
   color-scheme: dark;
 
-  /* Colors — unchanged from the current app, per explicit request */
-  --surface-1: #050f24;
-  --surface-2: #0b1d3f;
-  --surface-3: #132a55;
-  --surface-glass: rgba(11, 29, 63, 0.72);
+  /* Colors — slightly lightened from the original (per explicit request:
+     the near-black background was hard to read in bright light), still
+     dark-only. */
+  --surface-1: #0a1830;
+  --surface-2: #142a4d;
+  --surface-3: #1d3a68;
+  --surface-glass: rgba(20, 42, 77, 0.74);
   --border: rgba(255, 255, 255, 0.1);
   --border-soft: rgba(255, 255, 255, 0.06);
   --text: #f5f7fb;

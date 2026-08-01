@@ -136,4 +136,43 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     expect(await screen.findByText("Acme Corp")).toBeInTheDocument();
     expect(screen.getByText(/wants a discount/)).toBeInTheDocument();
   });
+
+  it("a collapsed group card shows every status color present (not just Done), matching the old app", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, "prompt").mockReturnValue("Multi Status Group");
+
+    render(<App />);
+    await screen.findByText("Select group ▾");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+
+    const table = screen.getByRole("table");
+
+    // Row 1 -> Done (1 click), Row 2 -> Fail (2 clicks), Row 3 -> Fixed
+    // (3 clicks), Row 4 -> Wrong (4 clicks).
+    for (let i = 0; i < 4; i++) {
+      await user.click(screen.getByRole("button", { name: "+ Add client" }));
+    }
+    const statusButtons = within(table).getAllByRole("button", { name: "—" });
+    expect(statusButtons).toHaveLength(4);
+    for (let row = 0; row < 4; row++) {
+      for (let clicks = 0; clicks <= row; clicks++) {
+        await user.click(statusButtons[row]);
+      }
+    }
+
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+
+    // Collapsed group card — must show all four status colors at once,
+    // not just a single green "total" badge.
+    const groupToggle = screen.getByRole("button", { name: /Multi Status Group/, expanded: false });
+    // The badge classes are hashed by CSS Modules, so assert by the
+    // actual visible counts instead of a specific class name.
+    const badgeTexts = within(groupToggle)
+      .getAllByText(/^[0-9]+$/)
+      .map((el) => el.textContent);
+    expect(badgeTexts).toEqual(["1", "1", "1", "1"]); // Done, Fail, Fixed, Wrong
+  });
 });
