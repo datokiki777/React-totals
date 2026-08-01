@@ -5,6 +5,7 @@ import {
   parseAnyBackupFormat,
 } from "./legacyMigration";
 import { buildBackupPayload } from "./backup";
+import { computeGrandTotals, computeGroupFinancials } from "./calc";
 import {
   legacyWrappedBackup,
   legacyUnwrappedBackup,
@@ -134,6 +135,97 @@ describe("migrateLegacyAppState — 100% data fidelity from the real old-app sha
     expect(result2.periods[0].groupId).toBe(result2.groups[0].id);
     expect(result2.clientRows[0].id).toBeTruthy();
     expect(result2.clientRows[0].periodId).toBe(result2.periods[0].id);
+  });
+});
+
+describe("Legacy migration MUST import archived groups too, not just the active workspace", () => {
+  // Everything below is computed independently, by hand, from the raw
+  // legacyWrappedBackup fixture above — not derived from the migration
+  // code — so this test genuinely confirms the migrated data against the
+  // source JSON rather than just re-checking the migrator against itself.
+  const result = parseAnyBackupFormat(legacyWrappedBackup);
+  if (!result.ok) throw new Error("fixture must migrate successfully");
+  const { groups, periods, clientRows } = result.data;
+
+  it("imports every group from the file — active AND archived — never just the active workspace", () => {
+    // Source JSON has exactly 2 groups: grp-1 (active), grp-2 (archived).
+    expect(groups).toHaveLength(2);
+    expect(groups.map((g) => g.id).sort()).toEqual(["grp-1", "grp-2"]);
+  });
+
+  it("preserves each group's archived flag exactly as in the source JSON", () => {
+    const active = groups.find((g) => g.id === "grp-1")!;
+    const archived = groups.find((g) => g.id === "grp-2")!;
+    expect(active.archived).toBe(false);
+    expect(archived.archived).toBe(true);
+  });
+
+  it("Active/Archive counts after import match the source JSON exactly", () => {
+    const activeCount = groups.filter((g) => !g.archived).length;
+    const archivedCount = groups.filter((g) => g.archived).length;
+    // Source JSON: 1 group with archived:false, 1 group with archived:true.
+    expect(activeCount).toBe(1);
+    expect(archivedCount).toBe(1);
+  });
+
+  it("imports every period and every client row belonging to the archived group", () => {
+    const archivedGroupPeriods = periods.filter((p) => p.groupId === "grp-2");
+    expect(archivedGroupPeriods).toHaveLength(1); // per-3
+
+    const archivedPeriodIds = new Set(archivedGroupPeriods.map((p) => p.id));
+    const archivedGroupRows = clientRows.filter((r) => archivedPeriodIds.has(r.periodId));
+    expect(archivedGroupRows).toHaveLength(1); // row-7
+  });
+
+  it("preserves comment, status, amounts and dates inside the archived group untouched", () => {
+    const per3 = periods.find((p) => p.id === "per-3")!;
+    expect(per3.fromDate).toBe("2024-06-01");
+    expect(per3.toDate).toBe("2024-06-14");
+    expect(per3.paidWeeks).toBe(2);
+
+    const row7 = clientRows.find((r) => r.id === "row-7")!;
+    expect(row7.customer).toBe("Old Client");
+    expect(row7.city).toBe("Zugdidi");
+    expect(row7.gross).toBe("800");
+    expect(row7.net).toBe("600");
+    expect(row7.status).toBe("done");
+    expect(row7.comment).toBe("Long-time repeat customer");
+  });
+
+  it("total group/period/client counts across BOTH workspaces match the source JSON", () => {
+    // Source JSON: 2 groups, 3 periods total (2 in grp-1 + 1 in grp-2),
+    // 7 client rows total (5 + 1 in grp-1's two periods, 1 in grp-2).
+    expect(groups).toHaveLength(2);
+    expect(periods).toHaveLength(3);
+    expect(clientRows).toHaveLength(7);
+  });
+
+  it("financial totals computed from the migrated data match hand-computed totals from the source JSON", () => {
+    // grp-1 (active, rate 13.5%): per-1 excludes row-3 ("wrong"), sums the
+    // rest; per-2 has one row with a European-decimal gross ("1.234,56").
+    //   per-1 gross = 1234.56 + 500 + 250.25 + 10 = 1994.81
+    //   per-1 net   = 987.65
+    //   per-1 my€   = 987.65*.135 + 500*.135 + 250.25*.135 + 10*.135
+    //               = 133.33275 + 67.5 + 33.78375 + 1.35 = 235.9665
+    //   per-2 gross = 1234.56, net = 0, my€ = 1234.56*.135 = 166.6656
+    //   grp-1 total: gross 3229.37, net 987.65, my€ 402.6321
+    //
+    // grp-2 (archived, rate 20%): per-3 has one row with both gross & net.
+    //   gross 800, net 600, my€ = 600*0.2 = 120 (base is Net, since entered)
+    //
+    // Grand total: gross 4029.37, net 1587.65, my€ 522.6321
+    const grand = computeGrandTotals(groups, periods, clientRows);
+    expect(grand.gross).toBeCloseTo(4029.37, 2);
+    expect(grand.net).toBeCloseTo(1587.65, 2);
+    expect(grand.myEur).toBeCloseTo(522.6321, 2);
+
+    // The archived group's own financials, in isolation, must also match —
+    // proving archived-group money isn't silently dropped from totals.
+    const archivedGroup = groups.find((g) => g.id === "grp-2")!;
+    const archivedFinancials = computeGroupFinancials(archivedGroup, periods, clientRows);
+    expect(archivedFinancials.gross).toBeCloseTo(800, 2);
+    expect(archivedFinancials.net).toBeCloseTo(600, 2);
+    expect(archivedFinancials.myEur).toBeCloseTo(120, 2);
   });
 });
 

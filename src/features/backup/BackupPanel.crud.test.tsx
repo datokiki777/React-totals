@@ -215,6 +215,25 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     const archived = groups.find((g) => g.name === "Archived Group B")!;
     expect(archived.archived).toBe(true);
     expect(archived.defaultSalary).toBe(150); // legacy defaultSalaryAmount alias
+
+    // Confirm the Active/Archive workspace tabs actually reflect the import
+    // (not just IndexedDB): open the group picker on each tab and check
+    // which group names are listed there. (The picker button always shows
+    // the currently *active* group's name, "Client Group A", regardless of
+    // which workspace tab is selected — only its dropdown *contents* are
+    // workspace-filtered.)
+    await user.click(screen.getByRole("tab", { name: "რედაქტირება" }));
+    const pickerBtn = screen.getByRole("button", { name: /Client Group A/ });
+
+    await user.click(pickerBtn); // open, on the Active tab
+    expect(screen.getByRole("button", { name: "Client Group A" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Archived Group B" })).not.toBeInTheDocument();
+    await user.click(pickerBtn); // close
+
+    await user.click(screen.getByRole("tab", { name: "არქივი" }));
+    await user.click(pickerBtn); // open, on the Archive tab
+    expect(await screen.findByRole("button", { name: "Archived Group B" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Client Group A" })).not.toBeInTheDocument();
   });
 
   it("imports the old app's raw/unwrapped appState format too", async () => {

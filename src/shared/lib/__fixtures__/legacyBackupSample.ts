@@ -125,7 +125,7 @@ export const legacyWrappedBackup = {
                   city: "Zugdidi",
                   gross: "800",
                   net: "600",
-                  comment: "",
+                  comment: "Long-time repeat customer",
                   done: "done",
                 },
               ],
