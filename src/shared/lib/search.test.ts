@@ -76,10 +76,10 @@ describe("buildSearchIndex", () => {
     expect(buildSearchIndex([makeGroup()], [makePeriod()], rows)).toHaveLength(0);
   });
 
-  it("formats gross/net for display", () => {
+  it("formats gross/net for display with no cents", () => {
     const index = buildSearchIndex([makeGroup()], [makePeriod()], [makeRow({ gross: "1500" })]);
-    expect(index[0].gross).toBe("1500.00");
-    expect(index[0].net).toBe("0.00");
+    expect(index[0].gross).toBe("1500");
+    expect(index[0].net).toBe("0");
   });
 });
 

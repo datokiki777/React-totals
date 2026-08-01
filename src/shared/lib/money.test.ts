@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseMoney, clampRate, formatCurrency } from "./money";
+import { parseMoney, clampRate, formatCurrency, roundMoneyString } from "./money";
 
 describe("parseMoney", () => {
   it("parses plain integers", () => {
@@ -66,5 +66,31 @@ describe("formatCurrency", () => {
 
   it("never touches the numeric formatting itself", () => {
     expect(formatCurrency("0.00", "₾")).toBe("₾0.00");
+  });
+});
+
+describe("roundMoneyString — the app doesn't support cents anywhere", () => {
+  it("rounds a plain decimal string to a whole-number string", () => {
+    expect(roundMoneyString("1234.56")).toBe("1235");
+    expect(roundMoneyString("250.25")).toBe("250");
+    expect(roundMoneyString("67.5")).toBe("68");
+  });
+
+  it("leaves an already-whole-number string unchanged", () => {
+    expect(roundMoneyString("500")).toBe("500");
+    expect(roundMoneyString("0")).toBe("0");
+  });
+
+  it("rounds European-formatted decimal strings too", () => {
+    expect(roundMoneyString("1.234,56")).toBe("1235");
+  });
+
+  it("leaves '' as '' — not entered is still not entered", () => {
+    expect(roundMoneyString("")).toBe("");
+    expect(roundMoneyString("   ")).toBe("");
+  });
+
+  it("leaves malformed input untouched rather than discarding it", () => {
+    expect(roundMoneyString("abc")).toBe("abc");
   });
 });

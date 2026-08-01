@@ -69,7 +69,7 @@ describe("Settings — defaults, currency display, destructive-action confirmati
     await user.click(screen.getByRole("button", { name: "+ Client" }));
 
     const table = screen.getByRole("table");
-    await user.type(within(table).getAllByPlaceholderText("0")[0], "1234.56");
+    await user.type(within(table).getAllByPlaceholderText("0")[0], "1234");
 
     await openSettings(user);
     const currencySelect = screen.getByLabelText("Currency symbol");
@@ -83,12 +83,12 @@ describe("Settings — defaults, currency display, destructive-action confirmati
     // The Overview KPI should now show the new symbol as a prefix.
     await user.click(screen.getByRole("tab", { name: "Edit" }));
     await waitFor(() => {
-      expect(screen.getByText("$1234.56")).toBeInTheDocument();
+      expect(screen.getByText("$1234")).toBeInTheDocument();
     });
 
     // The underlying stored Gross value must be completely unchanged.
     const rows = await db.clientRows.toArray();
-    expect(rows[0].gross).toBe("1234.56");
+    expect(rows[0].gross).toBe("1234");
   });
 
   it("skips the confirmation dialog for destructive actions when the setting is turned off", async () => {

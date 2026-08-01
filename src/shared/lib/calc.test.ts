@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computePeriodTotals } from "./calc";
+import { computePeriodTotals, formatMoney } from "./calc";
 import type { ClientRow, Period } from "../types/domain";
 
 function makePeriod(overrides: Partial<Period> = {}): Period {
@@ -97,12 +97,12 @@ describe("computePeriodTotals — must match the old vanilla app exactly", () =>
     expect(totals.myEur).toBe(10); // 100% of 10
   });
 
-  it("parses European-formatted money strings", () => {
+  it("parses European-formatted money strings, rounded to whole numbers", () => {
     const period = makePeriod();
     const rows = [makeRow({ gross: "1.234,56", net: "" })];
     const totals = computePeriodTotals(period, rows, 10);
-    expect(totals.gross).toBeCloseTo(1234.56);
-    expect(totals.myEur).toBeCloseTo(123.456);
+    expect(totals.gross).toBe(1235); // 1234.56 rounded
+    expect(totals.myEur).toBeCloseTo(123.5); // 1235 * 10%
   });
 
   it("ignores rows belonging to a different period", () => {
@@ -124,5 +124,22 @@ describe("computePeriodTotals — must match the old vanilla app exactly", () =>
     ];
     const totals = computePeriodTotals(period, rows, 10);
     expect(totals.unpaid).toBeCloseTo(10);
+  });
+});
+
+describe("formatMoney — the app never shows cents", () => {
+  it("rounds to the nearest whole number", () => {
+    expect(formatMoney(135)).toBe("135");
+    expect(formatMoney(67.5)).toBe("68");
+    expect(formatMoney(67.4)).toBe("67");
+  });
+
+  it("treats NaN/undefined-ish input as 0", () => {
+    expect(formatMoney(0)).toBe("0");
+    expect(formatMoney(-0)).toBe("0");
+  });
+
+  it("never includes a decimal point", () => {
+    expect(formatMoney(1234.999)).not.toContain(".");
   });
 });

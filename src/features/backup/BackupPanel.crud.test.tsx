@@ -208,7 +208,8 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     // Spot-check real data actually landed correctly, decimals intact.
     const rows = await db.clientRows.toArray();
     const acme = rows.find((r) => r.customer === "Acme Corp")!;
-    expect(acme.gross).toBe("1234.56");
+    // 1234.56 gets rounded to 1235 by the store's init() cents-cleanup pass.
+    expect(acme.gross).toBe("1235");
     expect(acme.status).toBe("done");
 
     const groups = await db.groups.toArray();

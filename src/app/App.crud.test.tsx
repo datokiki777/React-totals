@@ -65,13 +65,13 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
 
     // Expected My€ = gross (1000) * 13.5% = 135, since Net is not entered.
     await screen.findByTestId("period-total-my-eur");
-    expect(screen.getByTestId("period-total-my-eur")).toHaveTextContent("135.00");
+    expect(screen.getByTestId("period-total-my-eur")).toHaveTextContent("135");
 
     // 5. Now enter an explicit Net of "0" — My€ must become 0 (base = Net, not Gross),
     // exactly matching the old app's semantics for an explicitly-entered zero.
     await user.type(netInput, "0");
     await waitFor(() =>
-      expect(screen.getByTestId("period-total-my-eur")).toHaveTextContent("0.00")
+      expect(screen.getByTestId("period-total-my-eur")).toHaveTextContent("0")
     );
 
     const rowsAfterNetZero = await db.clientRows.toArray();
@@ -103,8 +103,8 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     await user.type(grossInput, "500");
 
     await waitFor(() =>
-      expect(screen.getByTestId("period-total-my-eur")).toHaveTextContent("67.50")
-    ); // 500 * 13.5%
+      expect(screen.getByTestId("period-total-my-eur")).toHaveTextContent("68")
+    ); // 500 * 13.5% = 67.5, rounded up to 68
 
     // Cycle status: none -> done -> fail -> fixed -> wrong
     const statusBtn = within(table).getByRole("button", { name: "—" });
@@ -117,7 +117,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
 
     // Row is still visible with its data, but excluded from totals -> 0.00
     await waitFor(() =>
-      expect(screen.getByTestId("period-total-my-eur")).toHaveTextContent("0.00")
+      expect(screen.getByTestId("period-total-my-eur")).toHaveTextContent("0")
     );
     expect(screen.getByDisplayValue("500")).toBeInTheDocument();
   });

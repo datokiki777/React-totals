@@ -76,28 +76,28 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
         <input
           className={styles.input}
           type="text"
-          inputMode="decimal"
+          inputMode="numeric"
           value={row.gross}
           placeholder="0"
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck={false}
-          onChange={(e) => updateRow(row.id, { gross: e.target.value })}
+          onChange={(e) => updateRow(row.id, { gross: e.target.value.replace(/\D/g, "") })}
         />
       </td>
       <td data-label="Net">
         <input
           className={styles.input}
           type="text"
-          inputMode="decimal"
+          inputMode="numeric"
           value={row.net}
           placeholder="0"
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck={false}
-          onChange={(e) => updateRow(row.id, { net: e.target.value })}
+          onChange={(e) => updateRow(row.id, { net: e.target.value.replace(/\D/g, "") })}
         />
       </td>
       <td data-label="City">

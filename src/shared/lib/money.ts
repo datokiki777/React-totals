@@ -44,6 +44,20 @@ export function parseMoney(value: string | number | null | undefined): number {
   return Number.isFinite(n) ? n : NaN;
 }
 
+/**
+ * Rounds a raw money string (as stored on a ClientRow) to a whole number,
+ * with no cents — the app no longer supports fractional amounts anywhere.
+ * "" stays "" (not entered is still not entered). Malformed values are
+ * left untouched defensively rather than silently discarded.
+ */
+export function roundMoneyString(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  const n = parseMoney(trimmed);
+  if (!Number.isFinite(n)) return trimmed;
+  return String(Math.round(n));
+}
+
 /** Same clamp the old app applies to rate percentages at calc time. */
 export function clampRate(percent: number): number {
   let p = Number(percent);

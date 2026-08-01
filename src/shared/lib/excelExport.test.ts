@@ -63,9 +63,9 @@ describe("buildExcelRows", () => {
     });
   });
 
-  it("preserves decimal precision exactly (no rounding)", () => {
+  it("rounds fractional amounts to whole numbers — the app doesn't support cents", () => {
     const rows = buildExcelRows([makeGroup()], [makePeriod()], [makeRow({ gross: "1234.56" })]);
-    expect(rows[0].Gross).toBe(1234.56);
+    expect(rows[0].Gross).toBe(1235);
   });
 
   it("marks an archived group's name with the archive icon", () => {

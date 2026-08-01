@@ -30,7 +30,7 @@ describe("Overview page — matches the old app's business logic", () => {
     const overviewCard = screen.getByText("📊 Overview").closest("section")!;
 
     // Initially everything is zero.
-    expect(within(overviewCard).getAllByText(/0\.00/).length).toBeGreaterThan(0);
+    expect(within(overviewCard).getAllByText("€0").length).toBeGreaterThan(0);
 
     const table = screen.getByRole("table");
     const grossInput = within(table).getAllByPlaceholderText("0")[0];
@@ -40,18 +40,18 @@ describe("Overview page — matches the old app's business logic", () => {
     // and the same row is "Unpaid" (Gross entered, Net not entered).
     await waitFor(() => {
       const grossKpi = within(overviewCard).getByText("Gross").parentElement!;
-      expect(grossKpi).toHaveTextContent("1000.00");
+      expect(grossKpi).toHaveTextContent("1000");
     });
 
     await waitFor(() => {
       const unpaidPill = within(overviewCard).getByText("Unpaid").parentElement!;
-      expect(unpaidPill).toHaveTextContent("135.00"); // 1000 * 13.5%
+      expect(unpaidPill).toHaveTextContent("135"); // 1000 * 13.5%
     });
 
     // No salary configured for this group (default 0) -> income == unpaid.
     await waitFor(() => {
       const incomePill = within(overviewCard).getByText("Income").parentElement!;
-      expect(incomePill).toHaveTextContent("135.00");
+      expect(incomePill).toHaveTextContent("135");
     });
 
     // Status badges update automatically when a row's status changes.
@@ -95,13 +95,13 @@ describe("Overview page — matches the old app's business logic", () => {
 
     await waitFor(() => {
       const unpaidPill = within(overviewCard).getByText("Unpaid").parentElement!;
-      expect(unpaidPill).toHaveTextContent("135.00");
+      expect(unpaidPill).toHaveTextContent("135");
     });
 
     // salary owed = 100 (1 week * 100/week, 0 paid weeks) -> income = 135 - 100 = 35
     await waitFor(() => {
       const incomePill = within(overviewCard).getByText("Income").parentElement!;
-      expect(incomePill).toHaveTextContent("35.00");
+      expect(incomePill).toHaveTextContent("35");
     });
   });
 

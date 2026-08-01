@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { db } from "../db/database";
 import { generateId, now } from "../shared/lib/id";
+import { roundMoneyString } from "../shared/lib/money";
 import type {
   Group,
   Period,
@@ -108,12 +109,30 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   init: async () => {
     try {
-      const [groups, periods, clientRows, storedSettings] = await Promise.all([
+      const [groups, periods, rawClientRows, storedSettings] = await Promise.all([
         db.groups.toArray(),
         db.periods.toArray(),
         db.clientRows.toArray(),
         db.settings.get("app"),
       ]);
+
+      // The app no longer supports cents anywhere. Round any legacy
+      // gross/net values that still have decimals (e.g. from an older
+      // export or a pre-rounding version of this app) and rewrite them,
+      // so stored data matches what's displayed everywhere from now on.
+      const rowsToFix: ClientRow[] = [];
+      const clientRows = rawClientRows.map((row) => {
+        const gross = roundMoneyString(row.gross);
+        const net = roundMoneyString(row.net);
+        if (gross === row.gross && net === row.net) return row;
+        const fixed = { ...row, gross, net, updatedAt: now() };
+        rowsToFix.push(fixed);
+        return fixed;
+      });
+      if (rowsToFix.length) {
+        persist("rounding legacy cents", () => db.clientRows.bulkPut(rowsToFix));
+      }
+
       const firstActive = groups.find((g) => !g.archived)?.id ?? null;
       const firstArchived = groups.find((g) => g.archived)?.id ?? null;
       set({

@@ -103,9 +103,9 @@ describe("migrateLegacyAppState — 100% data fidelity from the real old-app sha
     expect(row7.net).toBe("600");
   });
 
-  it("never rounds or reformats gross/net — decimals preserved exactly", () => {
+  it("the migration function itself copies gross/net verbatim — rounding happens separately, at store init", () => {
     const row1 = result.clientRows.find((r) => r.id === "row-1")!;
-    expect(row1.gross).toBe("1234.56"); // NOT rounded to "1235" like the old app's own import does
+    expect(row1.gross).toBe("1234.56"); // raw string preserved by the migrator itself
     const row4 = result.clientRows.find((r) => r.id === "row-4")!;
     expect(row4.gross).toBe("250.25");
   });
@@ -201,30 +201,38 @@ describe("Legacy migration MUST import archived groups too, not just the active 
   });
 
   it("financial totals computed from the migrated data match hand-computed totals from the source JSON", () => {
+    // The app rounds Gross/Net to whole numbers (no cents anywhere), so
+    // every amount below is first rounded before any math happens on it.
+    //
     // grp-1 (active, rate 13.5%): per-1 excludes row-3 ("wrong"), sums the
     // rest; per-2 has one row with a European-decimal gross ("1.234,56").
-    //   per-1 gross = 1234.56 + 500 + 250.25 + 10 = 1994.81
-    //   per-1 net   = 987.65
-    //   per-1 my€   = 987.65*.135 + 500*.135 + 250.25*.135 + 10*.135
-    //               = 133.33275 + 67.5 + 33.78375 + 1.35 = 235.9665
-    //   per-2 gross = 1234.56, net = 0, my€ = 1234.56*.135 = 166.6656
-    //   grp-1 total: gross 3229.37, net 987.65, my€ 402.6321
+    //   per-1: row-1 gross 1234.56->1235, net 987.65->988 (base=net)
+    //          row-2 gross 500 (base=gross)
+    //          row-4 gross 250.25->250 (base=gross)
+    //          row-5 gross 10 (base=gross)
+    //   per-1 gross = 1235 + 500 + 250 + 10 = 1995
+    //   per-1 net   = 988
+    //   per-1 my€   = 988*.135 + 500*.135 + 250*.135 + 10*.135
+    //               = 133.38 + 67.5 + 33.75 + 1.35 = 235.98
+    //   per-2: row-6 gross 1.234,56 -> 1234.56 -> 1235 (base=gross)
+    //   per-2 gross = 1235, net = 0, my€ = 1235*.135 = 166.725
+    //   grp-1 total: gross 3230, net 988, my€ 402.705
     //
-    // grp-2 (archived, rate 20%): per-3 has one row with both gross & net.
-    //   gross 800, net 600, my€ = 600*0.2 = 120 (base is Net, since entered)
+    // grp-2 (archived, rate 20%): per-3 row-7 gross 800, net 600 (both
+    // already whole), base=net -> my€ = 600*0.2 = 120
     //
-    // Grand total: gross 4029.37, net 1587.65, my€ 522.6321
+    // Grand total: gross 4030, net 1588, my€ 522.705
     const grand = computeGrandTotals(groups, periods, clientRows);
-    expect(grand.gross).toBeCloseTo(4029.37, 2);
-    expect(grand.net).toBeCloseTo(1587.65, 2);
-    expect(grand.myEur).toBeCloseTo(522.6321, 2);
+    expect(grand.gross).toBe(4030);
+    expect(grand.net).toBe(1588);
+    expect(grand.myEur).toBeCloseTo(522.705, 2);
 
     // The archived group's own financials, in isolation, must also match —
     // proving archived-group money isn't silently dropped from totals.
     const archivedGroup = groups.find((g) => g.id === "grp-2")!;
     const archivedFinancials = computeGroupFinancials(archivedGroup, periods, clientRows);
-    expect(archivedFinancials.gross).toBeCloseTo(800, 2);
-    expect(archivedFinancials.net).toBeCloseTo(600, 2);
+    expect(archivedFinancials.gross).toBe(800);
+    expect(archivedFinancials.net).toBe(600);
     expect(archivedFinancials.myEur).toBeCloseTo(120, 2);
   });
 });

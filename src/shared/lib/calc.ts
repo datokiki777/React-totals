@@ -21,6 +21,8 @@ import {
  *
  * - Rows marked "wrong" are excluded entirely from every total.
  * - Gross/Net are free-text; "" (not entered) is different from "0" (entered).
+ * - The app doesn't support cents anywhere: Gross/Net are rounded to whole
+ *   numbers the moment they're parsed, before any math happens on them.
  * - "My €" per row = (Net if entered, else Gross if entered, else 0) * rate.
  * - "Unpaid" per row = Gross * rate, only when Gross is entered but Net isn't
  *   (i.e. money billed but not yet reconciled against a net/paid amount).
@@ -51,8 +53,8 @@ export function computePeriodTotals(
 
     if (!hasGross && !hasNet) continue;
 
-    const grossVal = hasGross ? parseMoney(grossRaw) : 0;
-    const netVal = hasNet ? parseMoney(netRaw) : 0;
+    const grossVal = hasGross ? Math.round(parseMoney(grossRaw)) : 0;
+    const netVal = hasNet ? Math.round(parseMoney(netRaw)) : 0;
 
     if (Number.isFinite(grossVal)) gross += grossVal;
     if (Number.isFinite(netVal)) net += netVal;
@@ -220,6 +222,7 @@ export function computeMonthlyTotals(
   return result;
 }
 
+/** Formats an amount with no cents — the app displays whole numbers only. */
 export function formatMoney(n: number): string {
-  return (n || 0).toFixed(2);
+  return String(Math.round(n || 0));
 }
