@@ -6,7 +6,9 @@ import { OverviewSection } from "./features/overview/OverviewSection";
 import { ReviewSearch } from "./features/review/ReviewSearch";
 import { ReviewList } from "./features/review/ReviewList";
 import { SettingsPanel } from "./features/settings/SettingsPanel";
+import { PinLockScreen } from "./features/security/PinLockScreen";
 import { UpdatePrompt } from "./pwa/UpdatePrompt";
+import { startCloudSync } from "./firebase/cloudSyncController";
 import styles from "./App.module.css";
 
 function App() {
@@ -17,6 +19,8 @@ function App() {
   const setMode = useAppStore((s) => s.setMode);
   const workspace = useAppStore((s) => s.workspace);
   const setWorkspace = useAppStore((s) => s.setWorkspace);
+  const pinEnabled = useAppStore((s) => s.settings.pinEnabled);
+  const deviceVerified = useAppStore((s) => s.deviceVerified);
 
   // Remembers which mode (Edit/Review) was active before Settings was
   // opened, so a second tap on the Settings button closes it back to
@@ -33,6 +37,17 @@ function App() {
   useEffect(() => {
     init();
   }, [init]);
+
+  useEffect(() => {
+    if (loaded && !initError) {
+      // Cloud sync runs entirely in the background: it watches auth state,
+      // and if nobody's signed in yet it just stays in local-only mode —
+      // signing in (Settings > Cloud Sync) is opt-in, never a blocking
+      // gate on top of the app. Firebase Auth persists a session across
+      // reloads on its own, so this is a one-time sign-in per device.
+      startCloudSync();
+    }
+  }, [loaded, initError]);
 
   if (!loaded) {
     return (
@@ -58,6 +73,11 @@ function App() {
         </div>
       </div>
     );
+  }
+
+  // PIN lock is the only thing that ever blocks the whole app.
+  if (pinEnabled && !deviceVerified) {
+    return <PinLockScreen />;
   }
 
   return (

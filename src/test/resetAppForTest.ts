@@ -18,6 +18,8 @@ export async function resetAppForTest(): Promise<void> {
   await db.periods.clear();
   await db.clientRows.clear();
   await db.settings.clear();
+  await db.deviceSecurity.clear();
+  await db.syncMeta.clear();
   await new Promise((r) => setTimeout(r, 30));
 
   useAppStore.setState({
@@ -32,12 +34,20 @@ export async function resetAppForTest(): Promise<void> {
     totalsScope: "current",
     highlightedRowId: null,
     expandPeriodId: null,
+    dataUpdatedAt: null,
+    deviceVerified: false,
+    cloudStatus: "idle",
+    cloudError: null,
+    cloudUserEmail: null,
+    cloudConflict: null,
     settings: {
       id: "app",
       defaultRate: 13.5,
       defaultSalary: 0,
       currencySymbol: "€",
       confirmDestructiveActions: true,
+      pinEnabled: false,
+      pinHash: null,
     },
     loaded: false,
     initError: null,

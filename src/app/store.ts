@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { db } from "../db/database";
 import { generateId, now } from "../shared/lib/id";
 import { roundMoneyString } from "../shared/lib/money";
+import { hashPin } from "../shared/lib/pin";
 import type {
   Group,
   Period,
@@ -9,10 +10,12 @@ import type {
   DoneStatus,
   AppSettings,
 } from "../shared/types/domain";
+import type { CloudSnapshot } from "../firebase/cloudSnapshot";
 
 export type ViewMode = "edit" | "review" | "settings";
 export type WorkspaceTab = "active" | "archive";
 export type TotalsScope = "current" | "all";
+export type CloudSyncStatus = "idle" | "syncing" | "synced" | "local" | "error";
 
 const DEFAULT_SETTINGS: AppSettings = {
   id: "app",
@@ -20,6 +23,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultSalary: 0,
   currencySymbol: "€",
   confirmDestructiveActions: true,
+  pinEnabled: false,
+  pinHash: null,
 };
 
 interface AppState {
@@ -29,6 +34,9 @@ interface AppState {
   clientRows: ClientRow[];
   loaded: boolean;
   initError: string | null;
+  /** ISO timestamp of the last local mutation — used by cloud sync to
+   * decide which side (local vs cloud) is newer. */
+  dataUpdatedAt: string | null;
 
   // ui state
   activeGroupId: string | null;
@@ -45,6 +53,15 @@ interface AppState {
   expandPeriodId: string | null;
   totalsScope: TotalsScope;
   settings: AppSettings;
+
+  // PIN lock (per-device)
+  deviceVerified: boolean;
+
+  // Cloud sync (Firebase)
+  cloudStatus: CloudSyncStatus;
+  cloudError: string | null;
+  cloudUserEmail: string | null;
+  cloudConflict: { local: CloudSnapshot; cloud: CloudSnapshot } | null;
 
   // lifecycle
   init: () => Promise<void>;
@@ -77,11 +94,32 @@ interface AppState {
   clearExpandPeriodRequest: () => void;
   updateSettings: (patch: Partial<Omit<AppSettings, "id">>) => void;
   clearAllData: () => Promise<void>;
+
+  // PIN lock actions
+  verifyPin: (pin: string) => Promise<boolean>;
+  setPinLock: (opts: { enabled: boolean; newPin?: string }) => Promise<void>;
+
+  // Cloud sync actions (state setters — the actual Firebase orchestration
+  // lives in src/firebase/, which calls these; keeps this store
+  // Firebase-agnostic)
+  setCloudStatus: (status: CloudSyncStatus, error?: string | null) => void;
+  setCloudUserEmail: (email: string | null) => void;
+  setCloudConflict: (conflict: { local: CloudSnapshot; cloud: CloudSnapshot } | null) => void;
+  /** Replaces ALL local data with a pulled cloud snapshot (used for both
+   * "new device" pulls and resolved conflicts) — preserves every group
+   * (including archived), period, row, and id exactly as they came from
+   * the cloud. */
+  applyCloudSnapshot: (snapshot: CloudSnapshot) => Promise<void>;
 }
 
 const STATUS_CYCLE: DoneStatus[] = ["none", "done", "fail", "fixed", "wrong"];
 
-function persist(label: string, task: () => Promise<unknown>) {
+function persist(label: string, task: () => Promise<unknown>, touchTimestamp = true) {
+  if (touchTimestamp) {
+    const ts = new Date().toISOString();
+    useAppStore.setState({ dataUpdatedAt: ts });
+    db.syncMeta.put({ id: "app", dataUpdatedAt: ts }).catch(() => {});
+  }
   // Fire-and-forget persistence: the UI already reflects the change
   // (optimistic update happened synchronously in `set()` before this runs).
   // We still await the write internally so real failures are logged instead
@@ -97,6 +135,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   clientRows: [],
   loaded: false,
   initError: null,
+  dataUpdatedAt: null,
   activeGroupId: null,
   lastActiveGroupIdActive: null,
   lastActiveGroupIdArchive: null,
@@ -106,15 +145,23 @@ export const useAppStore = create<AppState>((set, get) => ({
   expandPeriodId: null,
   totalsScope: "current",
   settings: DEFAULT_SETTINGS,
+  deviceVerified: false,
+  cloudStatus: "idle",
+  cloudError: null,
+  cloudUserEmail: null,
+  cloudConflict: null,
 
   init: async () => {
     try {
-      const [groups, periods, rawClientRows, storedSettings] = await Promise.all([
-        db.groups.toArray(),
-        db.periods.toArray(),
-        db.clientRows.toArray(),
-        db.settings.get("app"),
-      ]);
+      const [groups, periods, rawClientRows, storedSettings, deviceSecurity, syncMeta] =
+        await Promise.all([
+          db.groups.toArray(),
+          db.periods.toArray(),
+          db.clientRows.toArray(),
+          db.settings.get("app"),
+          db.deviceSecurity.get("device"),
+          db.syncMeta.get("app"),
+        ]);
 
       // The app no longer supports cents anywhere. Round any legacy
       // gross/net values that still have decimals (e.g. from an older
@@ -130,7 +177,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         return fixed;
       });
       if (rowsToFix.length) {
-        persist("rounding legacy cents", () => db.clientRows.bulkPut(rowsToFix));
+        persist("rounding legacy cents", () => db.clientRows.bulkPut(rowsToFix), false);
       }
 
       const firstActive = groups.find((g) => !g.archived)?.id ?? null;
@@ -143,6 +190,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         lastActiveGroupIdActive: firstActive,
         lastActiveGroupIdArchive: firstArchived,
         settings: storedSettings ? { ...DEFAULT_SETTINGS, ...storedSettings } : DEFAULT_SETTINGS,
+        deviceVerified: deviceSecurity?.verified ?? false,
+        dataUpdatedAt: syncMeta?.dataUpdatedAt ?? null,
         initError: null,
       });
     } catch (error) {
@@ -353,6 +402,69 @@ export const useAppStore = create<AppState>((set, get) => ({
       clientRows: [],
       activeGroupId: null,
       highlightedRowId: null,
+    });
+    persist("clear all data", () => Promise.resolve());
+  },
+
+  verifyPin: async (pin) => {
+    const { pinHash } = get().settings;
+    if (!pinHash) return false;
+    const attemptHash = await hashPin(pin);
+    if (attemptHash !== pinHash) return false;
+    set({ deviceVerified: true });
+    await db.deviceSecurity.put({ id: "device", verified: true });
+    return true;
+  },
+
+  setPinLock: async ({ enabled, newPin }) => {
+    if (enabled) {
+      if (!newPin) throw new Error("A PIN is required to enable PIN lock.");
+      const pinHash = await hashPin(newPin);
+      get().updateSettings({ pinEnabled: true, pinHash });
+      // Setting a fresh PIN immediately verifies THIS device, so the
+      // person isn't locked out of the device they just set it on.
+      set({ deviceVerified: true });
+      await db.deviceSecurity.put({ id: "device", verified: true });
+    } else {
+      get().updateSettings({ pinEnabled: false, pinHash: null });
+      set({ deviceVerified: false });
+      await db.deviceSecurity.delete("device");
+    }
+  },
+
+  setCloudStatus: (cloudStatus, error = null) => set({ cloudStatus, cloudError: error }),
+  setCloudUserEmail: (cloudUserEmail) => set({ cloudUserEmail }),
+  setCloudConflict: (cloudConflict) => set({ cloudConflict }),
+
+  applyCloudSnapshot: async (snapshot) => {
+    await db.transaction(
+      "rw",
+      db.groups,
+      db.periods,
+      db.clientRows,
+      db.settings,
+      db.syncMeta,
+      async () => {
+        await Promise.all([db.groups.clear(), db.periods.clear(), db.clientRows.clear()]);
+        if (snapshot.groups.length) await db.groups.bulkAdd(snapshot.groups);
+        if (snapshot.periods.length) await db.periods.bulkAdd(snapshot.periods);
+        if (snapshot.clientRows.length) await db.clientRows.bulkAdd(snapshot.clientRows);
+        await db.settings.put(snapshot.settings);
+        await db.syncMeta.put({ id: "app", dataUpdatedAt: snapshot.dataUpdatedAt });
+      }
+    );
+
+    const firstActive = snapshot.groups.find((g) => !g.archived)?.id ?? null;
+    const firstArchived = snapshot.groups.find((g) => g.archived)?.id ?? null;
+    set({
+      groups: snapshot.groups,
+      periods: snapshot.periods,
+      clientRows: snapshot.clientRows,
+      settings: snapshot.settings,
+      dataUpdatedAt: snapshot.dataUpdatedAt,
+      activeGroupId: firstActive,
+      lastActiveGroupIdActive: firstActive,
+      lastActiveGroupIdArchive: firstArchived,
     });
   },
 }));

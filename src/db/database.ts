@@ -1,5 +1,18 @@
 import Dexie, { type Table } from "dexie";
-import type { Group, Period, ClientRow, AppSettings } from "../shared/types/domain";
+import type {
+  Group,
+  Period,
+  ClientRow,
+  AppSettings,
+  DeviceSecurity,
+} from "../shared/types/domain";
+
+export interface SyncMeta {
+  id: "app";
+  /** ISO timestamp of the last local mutation — the "who's newer" value
+   * used by cloud-sync conflict resolution. */
+  dataUpdatedAt: string;
+}
 
 // Single source of truth for local persistence.
 // Kept intentionally thin: Dexie tables map 1:1 to domain types.
@@ -9,6 +22,8 @@ class ClientTotalsDB extends Dexie {
   periods!: Table<Period, string>;
   clientRows!: Table<ClientRow, string>;
   settings!: Table<AppSettings, string>;
+  deviceSecurity!: Table<DeviceSecurity, string>;
+  syncMeta!: Table<SyncMeta, string>;
 
   constructor() {
     super("client-totals-db");
@@ -18,6 +33,18 @@ class ClientTotalsDB extends Dexie {
       periods: "id, groupId, archived, fromDate, createdAt",
       clientRows: "id, periodId, status, createdAt",
       settings: "id",
+    });
+
+    // v2: added deviceSecurity (per-device PIN-verified flag) and syncMeta
+    // (last-local-change timestamp for cloud sync conflict resolution).
+    // Both are new tables — no migration needed for the existing ones.
+    this.version(2).stores({
+      groups: "id, archived, createdAt",
+      periods: "id, groupId, archived, fromDate, createdAt",
+      clientRows: "id, periodId, status, createdAt",
+      settings: "id",
+      deviceSecurity: "id",
+      syncMeta: "id",
     });
   }
 }
