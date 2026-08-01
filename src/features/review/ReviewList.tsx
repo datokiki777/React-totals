@@ -7,7 +7,7 @@ import {
   formatMoney,
 } from "../../shared/lib/calc";
 import { parseMoney } from "../../shared/lib/money";
-import { formatPeriodDate, getPeriodPaidStatus } from "../../shared/lib/dates";
+import { formatPeriodDate, getPeriodPaidStatus, sortPeriodsByDate } from "../../shared/lib/dates";
 import type { ClientRow, Group, Period } from "../../shared/types/domain";
 import styles from "./ReviewList.module.css";
 
@@ -62,7 +62,7 @@ export function ReviewList() {
         <ReviewGroupCard
           key={group.id}
           group={group}
-          periods={allPeriods.filter((p) => p.groupId === group.id)}
+          periods={sortPeriodsByDate(allPeriods.filter((p) => p.groupId === group.id))}
           clientRows={clientRows}
         />
       ))}

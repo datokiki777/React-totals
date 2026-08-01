@@ -211,4 +211,37 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     expect(paidBadge.className).toContain("badgePaid");
     expect(paidBadge.className).not.toContain("badgeUnpaid");
   });
+
+  it("Review mode also lists a group's periods in date order, not creation order", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Review Sort Group");
+
+    render(<App />);
+    await screen.findByText("Select group ▾");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+
+    // Create the LATER-dated period first...
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    fireEvent.change(screen.getByLabelText("From"), { target: { value: "2026-06-01" } });
+    fireEvent.change(screen.getByLabelText("To"), { target: { value: "2026-06-08" } });
+
+    // ...then the EARLIER-dated one second.
+    await user.click(screen.getByRole("button", { name: "+ Add period" }));
+    const collapseButtons = screen.getAllByTestId("period-collapse-btn");
+    await user.click(collapseButtons[1]);
+    const fromInputs = screen.getAllByLabelText("From");
+    const toInputs = screen.getAllByLabelText("To");
+    fireEvent.change(toInputs[1], { target: { value: "2026-01-08" } });
+    fireEvent.change(fromInputs[1], { target: { value: "2026-01-01" } });
+
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+    const groupToggle = screen.getByRole("button", { name: /Review Sort Group/, expanded: false });
+    await user.click(groupToggle);
+
+    const ranges = await screen.findAllByText(/\d{2}\/\d{2}\/2026 → \d{2}\/\d{2}\/2026/);
+    expect(ranges[0]).toHaveTextContent("01/01/2026 → 08/01/2026");
+    expect(ranges[1]).toHaveTextContent("01/06/2026 → 08/06/2026");
+  });
 });

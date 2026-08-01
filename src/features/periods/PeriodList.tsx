@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useAppStore } from "../../app/store";
+import { sortPeriodsByDate } from "../../shared/lib/dates";
 import { PeriodCard } from "./PeriodCard";
 import styles from "./PeriodList.module.css";
 
@@ -10,27 +11,22 @@ export function PeriodList() {
   const addClientRow = useAppStore((s) => s.addClientRow);
   const requestExpandPeriod = useAppStore((s) => s.requestExpandPeriod);
 
-  const periods = useMemo(() => {
-    const groupPeriods = allPeriods.filter((p) => p.groupId === activeGroupId);
-    return [...groupPeriods].sort((a, b) => {
-      const aTime = a.fromDate ? Date.parse(a.fromDate) : Infinity;
-      const bTime = b.fromDate ? Date.parse(b.fromDate) : Infinity;
-      if (aTime !== bTime) return aTime - bTime;
-      return a.createdAt - b.createdAt;
-    });
-  }, [allPeriods, activeGroupId]);
+  const periods = useMemo(
+    () => sortPeriodsByDate(allPeriods.filter((p) => p.groupId === activeGroupId)),
+    [allPeriods, activeGroupId]
+  );
 
-  // The FAB always targets the newest period (by From date; falls back to
-  // whichever was created most recently if dates are missing/tied) —
-  // not just whichever period happens to be first in the list.
+  // The FAB always targets the newest period (by From date; an undated
+  // period never wins "newest" just by virtue of sorting last for
+  // display purposes) — not just whichever period happens to be first.
   const newestPeriod = useMemo(() => {
-    if (periods.length === 0) return undefined;
-    return [...periods].sort((a, b) => {
-      const aTime = a.fromDate ? Date.parse(a.fromDate) : -Infinity;
-      const bTime = b.fromDate ? Date.parse(b.fromDate) : -Infinity;
-      if (aTime !== bTime) return bTime - aTime;
-      return b.createdAt - a.createdAt;
-    })[0];
+    return periods.reduce<(typeof periods)[number] | undefined>((newest, p) => {
+      if (!newest) return p;
+      const newestTime = newest.fromDate ? Date.parse(newest.fromDate) : -Infinity;
+      const pTime = p.fromDate ? Date.parse(p.fromDate) : -Infinity;
+      if (pTime !== newestTime) return pTime > newestTime ? p : newest;
+      return p.createdAt > newest.createdAt ? p : newest;
+    }, undefined);
   }, [periods]);
 
   if (!activeGroupId) {

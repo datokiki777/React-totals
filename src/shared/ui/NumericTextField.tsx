@@ -74,6 +74,7 @@ export function NumericTextField({
       onChange={handleChange}
       disabled={disabled}
       aria-label={ariaLabel}
+      autoComplete="chrome-off"
     />
   );
 }

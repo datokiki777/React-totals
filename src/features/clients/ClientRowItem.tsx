@@ -64,7 +64,7 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           className={styles.input}
           value={row.customer}
           placeholder="Client name"
-          autoComplete="off"
+          autoComplete="chrome-off"
           autoCorrect="off"
           autoCapitalize="words"
           spellCheck={false}
@@ -105,7 +105,7 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           inputMode="numeric"
           value={row.gross}
           placeholder="0"
-          autoComplete="off"
+          autoComplete="chrome-off"
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck={false}
@@ -119,7 +119,7 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           inputMode="numeric"
           value={row.net}
           placeholder="0"
-          autoComplete="off"
+          autoComplete="chrome-off"
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck={false}
@@ -132,7 +132,7 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           className={styles.input}
           value={row.city}
           placeholder="City"
-          autoComplete="off"
+          autoComplete="chrome-off"
           autoCorrect="off"
           autoCapitalize="words"
           spellCheck={false}

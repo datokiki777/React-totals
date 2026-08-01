@@ -181,6 +181,24 @@ export function getPeriodPaidStatus(period: Pick<Period, "fromDate" | "toDate" |
   return { spanWeeks, fullyPaid: paidWeeks >= spanWeeks };
 }
 
+/**
+ * Sorts periods earliest-first by From date (periods with no date yet
+ * sort last; ties or missing dates fall back to creation order). Shared
+ * by every place periods are listed (Edit mode, Review mode) so they're
+ * always in the same, predictable order regardless of which one was
+ * created first.
+ */
+export function sortPeriodsByDate<T extends Pick<Period, "fromDate" | "createdAt">>(
+  periods: T[]
+): T[] {
+  return [...periods].sort((a, b) => {
+    const aTime = a.fromDate ? Date.parse(a.fromDate) : Infinity;
+    const bTime = b.fromDate ? Date.parse(b.fromDate) : Infinity;
+    if (aTime !== bTime) return aTime - bTime;
+    return a.createdAt - b.createdAt;
+  });
+}
+
 export function getPeriodsDateRange(periods: Period[]): {
   min: Date | null;
   max: Date | null;
