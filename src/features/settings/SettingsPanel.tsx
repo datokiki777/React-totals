@@ -55,6 +55,7 @@ export function SettingsPanel() {
               min="0"
               max="100"
               value={settings.defaultRate}
+              onFocus={(e) => e.currentTarget.select()}
               onChange={(e) => updateSettings({ defaultRate: Number(e.target.value) })}
             />
           </label>
@@ -65,6 +66,7 @@ export function SettingsPanel() {
               step="1"
               min="0"
               value={settings.defaultSalary}
+              onFocus={(e) => e.currentTarget.select()}
               onChange={(e) => updateSettings({ defaultSalary: Number(e.target.value) })}
             />
           </label>

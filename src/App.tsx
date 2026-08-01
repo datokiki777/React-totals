@@ -6,7 +6,6 @@ import { OverviewSection } from "./features/overview/OverviewSection";
 import { ReviewSearch } from "./features/review/ReviewSearch";
 import { ReviewList } from "./features/review/ReviewList";
 import { SettingsPanel } from "./features/settings/SettingsPanel";
-import { PinLockScreen } from "./features/security/PinLockScreen";
 import { UpdatePrompt } from "./pwa/UpdatePrompt";
 import { ModalHost } from "./shared/modal/ModalHost";
 import { startCloudSync } from "./firebase/cloudSyncController";
@@ -20,7 +19,6 @@ function App() {
   const setMode = useAppStore((s) => s.setMode);
   const workspace = useAppStore((s) => s.workspace);
   const setWorkspace = useAppStore((s) => s.setWorkspace);
-  const deviceVerified = useAppStore((s) => s.deviceVerified);
   const activeGroupsCount = useAppStore((s) => s.groups.filter((g) => !g.archived).length);
   const archivedGroupsCount = useAppStore((s) => s.groups.filter((g) => g.archived).length);
 
@@ -77,11 +75,8 @@ function App() {
     );
   }
 
-  // PIN lock is automatic and mandatory on every new device — the one
-  // thing that blocks the whole app.
-  if (!deviceVerified) {
-    return <PinLockScreen />;
-  }
+  // PIN lock was removed — it added a startup delay for no real security
+  // benefit (client-side PINs are trivially bypassable anyway).
 
   return (
     <div className={styles.app}>

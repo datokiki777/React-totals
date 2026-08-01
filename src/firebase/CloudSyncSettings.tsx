@@ -158,7 +158,7 @@ export function CloudSyncSettings() {
           </button>
           <button
             type="button"
-            className={styles.pillTeal}
+            className={styles.pillBlue}
             style={{ flex: 1 }}
             onClick={() => resolveCloudConflict("use-cloud")}
           >
@@ -211,7 +211,7 @@ export function CloudSyncSettings() {
         </button>
         <button
           type="button"
-          className={styles.pillTeal}
+          className={styles.pillBlue}
           style={{ flex: 1 }}
           onClick={() => setPickerOpen(true)}
           disabled={busy}

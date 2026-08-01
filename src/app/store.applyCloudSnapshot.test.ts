@@ -3,38 +3,6 @@ import { useAppStore } from "./store";
 import { resetAppForTest } from "../test/resetAppForTest";
 import { db } from "../db/database";
 import { buildCloudSnapshot } from "../firebase/cloudSnapshot";
-import { REQUIRED_PIN } from "../shared/lib/pin";
-
-describe("store — PIN lock (automatic, fixed PIN — not user-configurable)", () => {
-  beforeEach(async () => {
-    await resetAppForTest();
-    // resetAppForTest() marks the device verified by default (so unrelated
-    // tests don't have to deal with the PIN gate) — these tests are
-    // specifically about that gate, so simulate a genuinely fresh device.
-    await db.deviceSecurity.clear();
-    useAppStore.setState({ deviceVerified: false });
-  });
-
-  it("verifyPin succeeds for the correct (fixed) PIN and verifies this device", async () => {
-    expect(useAppStore.getState().deviceVerified).toBe(false);
-
-    expect(await useAppStore.getState().verifyPin(REQUIRED_PIN)).toBe(true);
-    expect(useAppStore.getState().deviceVerified).toBe(true);
-
-    const stored = await db.deviceSecurity.get("device");
-    expect(stored?.verified).toBe(true);
-  });
-
-  it("verifyPin fails for any wrong PIN and leaves the device unverified", async () => {
-    expect(await useAppStore.getState().verifyPin("0000")).toBe(false);
-    expect(useAppStore.getState().deviceVerified).toBe(false);
-    expect(await db.deviceSecurity.get("device")).toBeUndefined();
-  });
-
-  it("a fresh device starts unverified — the PIN gate is on by default, not opt-in", async () => {
-    expect(useAppStore.getState().deviceVerified).toBe(false);
-  });
-});
 
 describe("store — applyCloudSnapshot", () => {
   beforeEach(async () => {

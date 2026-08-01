@@ -70,7 +70,13 @@ describe("Cloud Sync settings — signed-in view", () => {
     // Same parent row, not wrapped onto separate lines.
     expect(saveBtn.parentElement).toBe(loadBtn.parentElement);
 
-    expect(screen.getByRole("button", { name: "💾 Data & Backup details" })).toBeInTheDocument();
+    const detailsBtn = screen.getByRole("button", { name: "💾 Data & Backup details" });
+    expect(detailsBtn).toBeInTheDocument();
+
+    // Save/Load share one color; Data & Backup details has its own,
+    // distinct from them.
+    expect(saveBtn.className).toBe(loadBtn.className);
+    expect(detailsBtn.className).not.toBe(saveBtn.className);
   });
 
   it("the Data & Backup details button opens a stats panel with active/archive breakdown and backup status", async () => {
@@ -118,8 +124,11 @@ describe("Cloud Sync settings — signed-in view", () => {
     expect(saveBtn).toBeInTheDocument();
     expect(restoreBtn).toBeInTheDocument();
     expect(saveBtn.parentElement).toBe(restoreBtn.parentElement); // same row
+    expect(saveBtn.className).toBe(restoreBtn.className); // same color as each other
 
-    expect(screen.getByRole("button", { name: "💾 Data & Backup details" })).toBeInTheDocument();
+    const detailsBtn = screen.getByRole("button", { name: "💾 Data & Backup details" });
+    expect(detailsBtn).toBeInTheDocument();
+    expect(detailsBtn.className).not.toBe(saveBtn.className); // its own distinct color
   });
 
   it("shows a 'Synced - HH:MM:SS' timestamp once a sync has actually completed", async () => {

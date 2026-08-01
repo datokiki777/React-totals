@@ -275,4 +275,20 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     expect(status).toHaveTextContent("Import completed successfully.");
     expect(status).not.toHaveTextContent(/migrated/);
   });
+
+  it("Export/Import JSON share one color, Export Excel/PDF share a different one, and the two pairs don't match each other", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText("Select group ▾");
+    await openSettings(user);
+
+    const exportJson = screen.getByRole("button", { name: "💾 Export JSON" });
+    const importJson = screen.getByRole("button", { name: "♻️ Import JSON" });
+    const exportExcel = screen.getByRole("button", { name: "📊 Export Excel" });
+    const exportPdf = screen.getByRole("button", { name: "📄 Export PDF" });
+
+    expect(exportJson.className).toBe(importJson.className);
+    expect(exportExcel.className).toBe(exportPdf.className);
+    expect(exportJson.className).not.toBe(exportExcel.className);
+  });
 });

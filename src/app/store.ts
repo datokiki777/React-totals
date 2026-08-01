@@ -2,7 +2,6 @@ import { create } from "zustand";
 import { db } from "../db/database";
 import { generateId, now } from "../shared/lib/id";
 import { roundMoneyString } from "../shared/lib/money";
-import { hashPin, REQUIRED_PIN } from "../shared/lib/pin";
 import type {
   Group,
   Period,
@@ -52,9 +51,6 @@ interface AppState {
   totalsScope: TotalsScope;
   settings: AppSettings;
 
-  // PIN lock (per-device)
-  deviceVerified: boolean;
-
   // Cloud sync (Firebase)
   cloudStatus: CloudSyncStatus;
   cloudError: string | null;
@@ -102,9 +98,6 @@ interface AppState {
   clearExpandPeriodRequest: () => void;
   updateSettings: (patch: Partial<Omit<AppSettings, "id">>) => void;
   clearAllData: () => Promise<void>;
-
-  // PIN lock actions
-  verifyPin: (pin: string) => Promise<boolean>;
 
   // Cloud sync actions (state setters — the actual Firebase orchestration
   // lives in src/firebase/, which calls these; keeps this store
@@ -159,7 +152,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   expandPeriodId: null,
   totalsScope: "current",
   settings: DEFAULT_SETTINGS,
-  deviceVerified: false,
   cloudStatus: "idle",
   cloudError: null,
   cloudUserEmail: null,
@@ -170,15 +162,13 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   init: async () => {
     try {
-      const [groups, periods, rawClientRows, storedSettings, deviceSecurity, syncMeta] =
-        await Promise.all([
-          db.groups.toArray(),
-          db.periods.toArray(),
-          db.clientRows.toArray(),
-          db.settings.get("app"),
-          db.deviceSecurity.get("device"),
-          db.syncMeta.get("app"),
-        ]);
+      const [groups, periods, rawClientRows, storedSettings, syncMeta] = await Promise.all([
+        db.groups.toArray(),
+        db.periods.toArray(),
+        db.clientRows.toArray(),
+        db.settings.get("app"),
+        db.syncMeta.get("app"),
+      ]);
 
       // The app no longer supports cents anywhere. Round any legacy
       // gross/net values that still have decimals (e.g. from an older
@@ -207,7 +197,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         lastActiveGroupIdActive: firstActive,
         lastActiveGroupIdArchive: firstArchived,
         settings: storedSettings ? { ...DEFAULT_SETTINGS, ...storedSettings } : DEFAULT_SETTINGS,
-        deviceVerified: deviceSecurity?.verified ?? false,
         dataUpdatedAt: syncMeta?.dataUpdatedAt ?? null,
         lastBackupAt: syncMeta?.lastBackupAt ?? null,
         initError: null,
@@ -422,15 +411,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       highlightedRowId: null,
     });
     persist("clear all data", () => Promise.resolve());
-  },
-
-  verifyPin: async (pin) => {
-    const attemptHash = await hashPin(pin);
-    const requiredHash = await hashPin(REQUIRED_PIN);
-    if (attemptHash !== requiredHash) return false;
-    set({ deviceVerified: true });
-    await db.deviceSecurity.put({ id: "device", verified: true });
-    return true;
   },
 
   setCloudStatus: (cloudStatus, error = null) => set({ cloudStatus, cloudError: error }),

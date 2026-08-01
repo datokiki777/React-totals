@@ -162,7 +162,7 @@ export function BackupPanel() {
       )}
 
       <div className={styles.actions}>
-        <button className={styles.btnPrimary} type="button" onClick={handleExportJson} disabled={busy}>
+        <button className={styles.pillGreen} type="button" onClick={handleExportJson} disabled={busy}>
           💾 Export JSON
         </button>
         <button className={styles.pillGreen} type="button" onClick={handleImportClick} disabled={busy}>
@@ -171,7 +171,7 @@ export function BackupPanel() {
         <button className={styles.pillAmber} type="button" onClick={handleExportExcel} disabled={busy}>
           📊 Export Excel
         </button>
-        <button className={styles.pillCoral} type="button" onClick={handleExportPdf} disabled={busy}>
+        <button className={styles.pillAmber} type="button" onClick={handleExportPdf} disabled={busy}>
           📄 Export PDF
         </button>
         <input

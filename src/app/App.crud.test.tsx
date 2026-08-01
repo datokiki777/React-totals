@@ -301,4 +301,31 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     // The entered value is preserved either way — this is just a heads-up.
     expect(netInput).toHaveValue("100");
   });
+
+  it("asks for confirmation before deleting a client row even when it's still completely empty", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Empty Row Group");
+    mockModalConfirm(false); // decline the very first time
+
+    render(<App />);
+    await screen.findByText("Select group ▾");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
+
+    const table = screen.getByRole("table");
+    // Row has no name/gross/net/city/comment entered at all yet.
+    await user.click(within(table).getByRole("button", { name: "Remove" }));
+
+    // Declined -> the row must still be there.
+    expect(within(table).getByRole("button", { name: "Remove" })).toBeInTheDocument();
+
+    mockModalConfirm(true);
+    await user.click(within(table).getByRole("button", { name: "Remove" }));
+
+    // Confirmed -> the row is actually gone.
+    expect(within(table).queryByRole("button", { name: "Remove" })).not.toBeInTheDocument();
+  });
 });

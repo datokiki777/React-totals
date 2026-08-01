@@ -28,7 +28,6 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
     if (!row) return;
     if (
       confirmDestructive &&
-      (row.customer || row.gross || row.net || row.city || row.comment) &&
       !(await confirmDialog(`Delete client "${row.customer || "Unnamed"}"?`, { danger: true }))
     ) {
       return;

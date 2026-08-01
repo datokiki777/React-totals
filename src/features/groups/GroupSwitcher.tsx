@@ -164,6 +164,7 @@ export function GroupSwitcher() {
                 max="100"
                 disabled={!activeGroup || isReviewMode}
                 value={activeGroup?.defaultRate ?? ""}
+                onFocus={(e) => e.currentTarget.select()}
                 onChange={(e) =>
                   activeGroup &&
                   !isReviewMode &&
@@ -179,6 +180,7 @@ export function GroupSwitcher() {
                 min="0"
                 disabled={!activeGroup || isReviewMode}
                 value={activeGroup?.defaultSalary ?? ""}
+                onFocus={(e) => e.currentTarget.select()}
                 onChange={(e) =>
                   activeGroup &&
                   !isReviewMode &&

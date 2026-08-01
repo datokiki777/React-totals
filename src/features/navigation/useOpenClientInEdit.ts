@@ -31,7 +31,7 @@ export function useOpenClientInEdit() {
     // scrolling to and highlighting the row.
     setTimeout(() => {
       const rowEl = document.querySelector(`tr[data-row-id="${target.rowId}"]`);
-      rowEl?.scrollIntoView({ behavior: "smooth", block: "center" });
+      rowEl?.scrollIntoView?.({ behavior: "smooth", block: "center" });
       highlightRow(target.rowId);
     }, 80);
   };
