@@ -110,7 +110,7 @@ export function OverviewSection() {
   const canGoPrev = monthIndex !== null && monthIndex > 0;
   const canGoNext = monthIndex !== null && monthIndex < monthKeys.length - 1;
 
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   // --- Clicking a Done/Fail/Fixed/Wrong badge drills down into the
   // matching clients, scrollable, click-through to Edit mode. ---

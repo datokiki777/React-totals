@@ -82,16 +82,6 @@ function App() {
     <div className={styles.app}>
       <header className={styles.topbar}>
         <div className={styles.topRow}>
-          <button
-            className={mode === "settings" ? styles.settingsBtnActive : styles.settingsBtn}
-            onClick={toggleSettings}
-            role="tab"
-            aria-selected={mode === "settings"}
-            aria-label="Settings"
-            type="button"
-          >
-            ⚙️
-          </button>
           <div className={styles.workspaceSwitch} role="tablist" aria-label="Workspace">
             <button
               className={workspace === "active" ? styles.tabActive : styles.tab}
@@ -116,6 +106,16 @@ function App() {
               Archive
             </button>
           </div>
+          <button
+            className={mode === "settings" ? styles.settingsBtnActive : styles.settingsBtn}
+            onClick={toggleSettings}
+            role="tab"
+            aria-selected={mode === "settings"}
+            aria-label="Settings"
+            type="button"
+          >
+            ⚙️
+          </button>
         </div>
         <div className={styles.topRow}>
           <div className={styles.modeSwitchCompact} role="tablist" aria-label="Mode">

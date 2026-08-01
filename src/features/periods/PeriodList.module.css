@@ -2,6 +2,9 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  /* Room for the fixed "+ New Customer" FAB so it never covers the last
+     period card's Total row. */
+  padding-bottom: 84px;
 }
 
 .placeholder {

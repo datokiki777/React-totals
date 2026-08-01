@@ -328,4 +328,43 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     // Confirmed -> the row is actually gone.
     expect(within(table).queryByRole("button", { name: "Remove" })).not.toBeInTheDocument();
   });
+
+  it("the '+ New Customer' FAB adds the client to the newest period (by date), not just the first one created", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("FAB Target Group");
+
+    render(<App />);
+    await screen.findByText("Select group ▾");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+
+    // First period created, but dated OLDER.
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    fireEvent.change(screen.getByLabelText("From"), { target: { value: "2026-01-01" } });
+    const firstPeriodId = (await db.periods.toArray())[0].id;
+
+    // Second period created LATER but dated NEWER — this is the one the
+    // FAB should target, even though it wasn't created first.
+    await user.click(screen.getByRole("button", { name: "+ Add period" }));
+    const collapseButtons = screen.getAllByTestId("period-collapse-btn");
+    await user.click(collapseButtons[1]);
+    const fromInputs = screen.getAllByLabelText("From");
+    fireEvent.change(fromInputs[1], { target: { value: "2026-06-01" } });
+    const secondPeriodId = (await waitFor(async () => {
+      const all = await db.periods.toArray();
+      const second = all.find((p) => p.id !== firstPeriodId && p.fromDate === "2026-06-01");
+      expect(second).toBeTruthy();
+      return second!;
+    })).id;
+
+    await user.click(screen.getByRole("button", { name: "+ New Customer" }));
+
+    await waitFor(async () => {
+      const rows = await db.clientRows.toArray();
+      expect(rows).toHaveLength(1);
+      expect(rows[0].periodId).toBe(secondPeriodId);
+      expect(rows[0].periodId).not.toBe(firstPeriodId);
+    });
+  });
 });

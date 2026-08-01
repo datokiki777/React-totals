@@ -15,16 +15,27 @@ export function PeriodList() {
     [allPeriods, activeGroupId]
   );
 
+  // The FAB always targets the newest period (by From date; falls back to
+  // whichever was created most recently if dates are missing/tied) —
+  // not just whichever period happens to be first in the list.
+  const newestPeriod = useMemo(() => {
+    if (periods.length === 0) return undefined;
+    return [...periods].sort((a, b) => {
+      const aTime = a.fromDate ? Date.parse(a.fromDate) : -Infinity;
+      const bTime = b.fromDate ? Date.parse(b.fromDate) : -Infinity;
+      if (aTime !== bTime) return bTime - aTime;
+      return b.createdAt - a.createdAt;
+    })[0];
+  }, [periods]);
+
   if (!activeGroupId) {
     return <div className={styles.placeholder}>Select or create a group to add a period.</div>;
   }
 
-  const firstPeriod = periods[0];
-
   function handleFabClick() {
-    if (firstPeriod) {
-      requestExpandPeriod(firstPeriod.id);
-      addClientRow(firstPeriod.id);
+    if (newestPeriod) {
+      requestExpandPeriod(newestPeriod.id);
+      addClientRow(newestPeriod.id);
     } else if (activeGroupId) {
       addPeriod(activeGroupId);
     }
@@ -40,7 +51,7 @@ export function PeriodList() {
       ))}
 
       <button className={styles.fab} type="button" onClick={handleFabClick}>
-        {firstPeriod ? "+ New Customer" : "+ New period"}
+        {newestPeriod ? "+ New Customer" : "+ New period"}
       </button>
     </div>
   );

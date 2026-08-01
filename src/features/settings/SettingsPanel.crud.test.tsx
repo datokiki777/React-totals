@@ -80,8 +80,10 @@ describe("Settings — defaults, currency display, destructive-action confirmati
       expect(stored?.currencySymbol).toBe("$");
     });
 
-    // The Overview KPI should now show the new symbol as a prefix.
+    // The Overview KPI should now show the new symbol as a prefix — it
+    // starts collapsed by default now, so open it first.
     await user.click(screen.getByRole("tab", { name: "Edit" }));
+    await user.click(screen.getByRole("button", { name: /Overview/ }));
     await waitFor(() => {
       expect(screen.getByText("$1234")).toBeInTheDocument();
     });

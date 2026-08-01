@@ -28,6 +28,8 @@ describe("Overview page — matches the old app's business logic", () => {
     await user.click(screen.getByRole("button", { name: "+ Add client" }));
 
     const overviewCard = screen.getByText("📊 Overview").closest("section")!;
+    // Overview starts collapsed by default now — open it.
+    await user.click(within(overviewCard).getByRole("button", { name: /Overview/ }));
 
     // Initially everything is zero.
     expect(within(overviewCard).getAllByText("€0").length).toBeGreaterThan(0);
@@ -92,6 +94,8 @@ describe("Overview page — matches the old app's business logic", () => {
     await user.type(grossInput, "1000"); // unpaid = 1000 * 13.5% = 135
 
     const overviewCard = screen.getByText("📊 Overview").closest("section")!;
+    // Overview starts collapsed by default now — open it.
+    await user.click(within(overviewCard).getByRole("button", { name: /Overview/ }));
 
     await waitFor(() => {
       const unpaidPill = within(overviewCard).getByText("Unpaid").parentElement!;
@@ -126,6 +130,8 @@ describe("Overview page — matches the old app's business logic", () => {
     await user.click(statusBtn);
 
     const overviewCard = screen.getByText("📊 Overview").closest("section")!;
+    // Overview starts collapsed by default now — open it.
+    await user.click(within(overviewCard).getByRole("button", { name: /Overview/ }));
 
     // No client list until a badge is clicked.
     expect(within(overviewCard).queryByRole("list")).not.toBeInTheDocument();
