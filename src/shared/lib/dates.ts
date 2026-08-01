@@ -163,6 +163,24 @@ export function dateRangesOverlap(
   return aStart < bEnd && bStart < aEnd;
 }
 
+/**
+ * How many whole weeks a period's date range actually spans, and whether
+ * the recorded paidWeeks covers that in full. Returns null for `spanWeeks`
+ * when the period doesn't have both dates set (nothing reliable to
+ * compare against).
+ */
+export function getPeriodPaidStatus(period: Pick<Period, "fromDate" | "toDate" | "paidWeeks">): {
+  spanWeeks: number | null;
+  fullyPaid: boolean | null;
+} {
+  const from = parseDateOnly(period.fromDate);
+  const to = parseDateOnly(period.toDate);
+  if (!from || !to) return { spanWeeks: null, fullyPaid: null };
+  const spanWeeks = weeksBetweenRounded(from, to);
+  const paidWeeks = period.paidWeeks ?? 0;
+  return { spanWeeks, fullyPaid: paidWeeks >= spanWeeks };
+}
+
 export function getPeriodsDateRange(periods: Period[]): {
   min: Date | null;
   max: Date | null;

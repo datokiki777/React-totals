@@ -12,6 +12,7 @@ import {
   formatDateForRange,
   formatPeriodDate,
   dateRangesOverlap,
+  getPeriodPaidStatus,
   weeksBetweenRounded,
 } from "./dates";
 import type { Period } from "../types/domain";
@@ -172,6 +173,56 @@ describe("dateRangesOverlap", () => {
     expect(dateRangesOverlap("2026-01-01", null, "2026-01-15", "2026-02-15")).toBe(false);
     expect(dateRangesOverlap("2026-01-01", "2026-01-31", null, "2026-02-15")).toBe(false);
     expect(dateRangesOverlap("2026-01-01", "2026-01-31", "2026-01-15", null)).toBe(false);
+  });
+});
+
+describe("getPeriodPaidStatus", () => {
+  it("a 2-week period (14 days) with 1 paid week is NOT fully paid", () => {
+    const status = getPeriodPaidStatus({
+      fromDate: "2026-07-22",
+      toDate: "2026-08-05",
+      paidWeeks: 1,
+    });
+    expect(status.spanWeeks).toBe(2);
+    expect(status.fullyPaid).toBe(false);
+  });
+
+  it("a 2-week period with 2 paid weeks IS fully paid", () => {
+    const status = getPeriodPaidStatus({
+      fromDate: "2026-07-22",
+      toDate: "2026-08-05",
+      paidWeeks: 2,
+    });
+    expect(status.fullyPaid).toBe(true);
+  });
+
+  it("more paid weeks than the period actually spans still counts as fully paid", () => {
+    const status = getPeriodPaidStatus({
+      fromDate: "2026-07-22",
+      toDate: "2026-08-05",
+      paidWeeks: 5,
+    });
+    expect(status.fullyPaid).toBe(true);
+  });
+
+  it("zero/null paidWeeks on a real period is not fully paid", () => {
+    expect(
+      getPeriodPaidStatus({ fromDate: "2026-01-01", toDate: "2026-01-08", paidWeeks: 0 }).fullyPaid
+    ).toBe(false);
+    expect(
+      getPeriodPaidStatus({ fromDate: "2026-01-01", toDate: "2026-01-08", paidWeeks: null }).fullyPaid
+    ).toBe(false);
+  });
+
+  it("returns nulls when the period is missing a from/to date", () => {
+    expect(getPeriodPaidStatus({ fromDate: null, toDate: "2026-01-08", paidWeeks: 1 })).toEqual({
+      spanWeeks: null,
+      fullyPaid: null,
+    });
+    expect(getPeriodPaidStatus({ fromDate: "2026-01-01", toDate: null, paidWeeks: 1 })).toEqual({
+      spanWeeks: null,
+      fullyPaid: null,
+    });
   });
 });
 

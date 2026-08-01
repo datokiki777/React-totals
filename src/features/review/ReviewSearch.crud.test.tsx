@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, cleanup, within } from "@testing-library/react";
+import { render, screen, cleanup, within, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
 import { resetAppForTest, openGroupMenu, expandFirstPeriod, mockModalPrompt, mockModalConfirm } from "../../test/resetAppForTest";
@@ -174,5 +174,41 @@ describe("Review/Search module — matches the old app's search behavior", () =>
       .getAllByText(/^[0-9]+$/)
       .map((el) => el.textContent);
     expect(badgeTexts).toEqual(["1", "1", "1", "1"]); // Done, Fail, Fixed, Wrong
+  });
+
+  it("the period's paid-weeks badge is red when underpaid and turns green once fully paid", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Paid Weeks Group");
+
+    render(<App />);
+    await screen.findByText("Select group ▾");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+
+    // 14-day span = exactly 2 weeks.
+    fireEvent.change(screen.getByLabelText("From"), { target: { value: "2026-01-01" } });
+    fireEvent.change(screen.getByLabelText("To"), { target: { value: "2026-01-15" } });
+    fireEvent.change(screen.getByLabelText("Paid Weeks"), { target: { value: "1" } });
+
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+    const groupToggle = screen.getByRole("button", { name: /Paid Weeks Group/, expanded: false });
+    await user.click(groupToggle);
+
+    const badge = await screen.findByText("💰 1w / 2w");
+    expect(badge.className).toMatch(/badgeUnpaid/);
+
+    // Bump paid weeks up to fully cover the period's actual span.
+    await user.click(screen.getByRole("tab", { name: "Edit" }));
+    await expandFirstPeriod(user); // periods remount collapsed when leaving/returning to Edit
+    fireEvent.change(screen.getByLabelText("Paid Weeks"), { target: { value: "2" } });
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+    const groupToggleAgain = screen.getByRole("button", { name: /Paid Weeks Group/, expanded: false });
+    await user.click(groupToggleAgain);
+
+    const paidBadge = await screen.findByText("💰 2w / 2w");
+    expect(paidBadge.className).toContain("badgePaid");
+    expect(paidBadge.className).not.toContain("badgeUnpaid");
   });
 });

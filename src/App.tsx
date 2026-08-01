@@ -45,7 +45,28 @@ function App() {
       // signing in (Settings > Cloud Sync) is opt-in, never a blocking
       // gate on top of the app. Firebase Auth persists a session across
       // reloads on its own, so this is a one-time sign-in per device.
-      startCloudSync();
+      //
+      // Deliberately deferred (not called immediately): Firebase's own
+      // SDK is genuinely large (Auth + Firestore is several hundred KB of
+      // JS), and starting to download/parse/execute it the instant the
+      // app becomes visible competes with the browser for the same CPU
+      // it needs to finish painting — exactly the kind of background
+      // work that turns a fast cold start into a janky one, especially
+      // on an already-throttled/low-battery device. Letting the browser
+      // report itself idle first (or falling back to a short delay where
+      // requestIdleCallback isn't available) means cloud sync starts
+      // only once the actual UI is already fully rendered and settled.
+      const idleCallback =
+        typeof requestIdleCallback === "function"
+          ? requestIdleCallback(() => startCloudSync(), { timeout: 4000 })
+          : window.setTimeout(() => startCloudSync(), 1500);
+      return () => {
+        if (typeof cancelIdleCallback === "function" && typeof idleCallback === "number") {
+          cancelIdleCallback(idleCallback);
+        } else {
+          window.clearTimeout(idleCallback as ReturnType<typeof setTimeout>);
+        }
+      };
     }
   }, [loaded, initError]);
 

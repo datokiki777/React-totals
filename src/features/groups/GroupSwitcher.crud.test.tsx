@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
+import { db } from "../../db/database";
 import { resetAppForTest, openGroupMenu, mockModalPrompt } from "../../test/resetAppForTest";
 import { GROUP_SWITCHER_LONG_PRESS_MS } from "./GroupSwitcher";
 
@@ -190,5 +191,29 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
 
     await user.click(switcherBtn);
     expect(switcherBtn).toHaveTextContent("Manageable In Edit");
+  });
+
+  it("clearing Default % or salary mid-edit and typing again never leaves a stray leading zero", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText("Select group ▾");
+    await addGroupViaMenu(user, "Clear And Retype Group");
+
+    const rateInput = screen.getByLabelText("Default %");
+    const salaryInput = screen.getByLabelText("Default salary / 28d");
+
+    // Delete everything down to empty, THEN type — not just tap-in-and-type.
+    await user.clear(rateInput);
+    await user.type(rateInput, "13.5");
+    expect(rateInput).toHaveValue("13.5");
+
+    await user.clear(salaryInput);
+    await user.type(salaryInput, "3500");
+    expect(salaryInput).toHaveValue("3500");
+
+    // And the underlying numeric values are correct too, not "013"/"03500".
+    const group = (await db.groups.toArray())[0];
+    expect(group.defaultRate).toBe(13.5);
+    expect(group.defaultSalary).toBe(3500);
   });
 });

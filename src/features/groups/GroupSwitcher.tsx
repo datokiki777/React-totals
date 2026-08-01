@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useAppStore } from "../../app/store";
 import { confirmDialog, promptDialog } from "../../shared/modal/modalStore";
+import { NumericTextField } from "../../shared/ui/NumericTextField";
 import styles from "./GroupSwitcher.module.css";
 
 /** How long a press must be held before it counts as "long press" (ms). */
@@ -157,35 +158,21 @@ export function GroupSwitcher() {
           <div className={styles.settingsRow}>
             <label className={styles.settingsField}>
               <span>Default %</span>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="100"
+              <NumericTextField
+                allowDecimal
                 disabled={!activeGroup || isReviewMode}
-                value={activeGroup?.defaultRate ?? ""}
-                onFocus={(e) => e.currentTarget.select()}
-                onChange={(e) =>
-                  activeGroup &&
-                  !isReviewMode &&
-                  updateGroupSettings(activeGroup.id, { defaultRate: Number(e.target.value) })
-                }
+                syncKey={activeGroup?.id ?? "none"}
+                value={activeGroup?.defaultRate ?? 0}
+                onChange={(n) => activeGroup && !isReviewMode && updateGroupSettings(activeGroup.id, { defaultRate: n })}
               />
             </label>
             <label className={styles.settingsField}>
               <span>Default salary / 28d</span>
-              <input
-                type="number"
-                step="1"
-                min="0"
+              <NumericTextField
                 disabled={!activeGroup || isReviewMode}
-                value={activeGroup?.defaultSalary ?? ""}
-                onFocus={(e) => e.currentTarget.select()}
-                onChange={(e) =>
-                  activeGroup &&
-                  !isReviewMode &&
-                  updateGroupSettings(activeGroup.id, { defaultSalary: Number(e.target.value) })
-                }
+                syncKey={activeGroup?.id ?? "none"}
+                value={activeGroup?.defaultSalary ?? 0}
+                onChange={(n) => activeGroup && !isReviewMode && updateGroupSettings(activeGroup.id, { defaultSalary: n })}
               />
             </label>
           </div>

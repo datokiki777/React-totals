@@ -7,7 +7,7 @@ import {
   formatMoney,
 } from "../../shared/lib/calc";
 import { parseMoney } from "../../shared/lib/money";
-import { formatPeriodDate } from "../../shared/lib/dates";
+import { formatPeriodDate, getPeriodPaidStatus } from "../../shared/lib/dates";
 import type { ClientRow, Group, Period } from "../../shared/types/domain";
 import styles from "./ReviewList.module.css";
 
@@ -181,9 +181,15 @@ function ReviewPeriodCard({
           <span className={styles.badge}>
             My €: <b>{formatMoney(totals.myEur)}</b>
           </span>
-          {(period.paidWeeks ?? 0) > 0 && (
-            <span className={styles.badge}>💰 {period.paidWeeks}w</span>
-          )}
+          {(() => {
+            const { spanWeeks, fullyPaid } = getPeriodPaidStatus(period);
+            if (spanWeeks === null) return null;
+            return (
+              <span className={fullyPaid ? styles.badgePaid : styles.badgeUnpaid}>
+                💰 {period.paidWeeks ?? 0}w / {spanWeeks}w
+              </span>
+            );
+          })()}
         </div>
       </summary>
 

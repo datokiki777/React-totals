@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAppStore } from "../../app/store";
 import { BackupPanel } from "../backup/BackupPanel";
 import { CloudSyncSettings } from "../../firebase/CloudSyncSettings";
+import { NumericTextField } from "../../shared/ui/NumericTextField";
 import packageJson from "../../../package.json";
 import styles from "./SettingsPanel.module.css";
 
@@ -49,25 +50,19 @@ export function SettingsPanel() {
         <div className={styles.fieldRow}>
           <label className={styles.field}>
             <span>Default rate %</span>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              max="100"
+            <NumericTextField
+              allowDecimal
+              syncKey="app-settings"
               value={settings.defaultRate}
-              onFocus={(e) => e.currentTarget.select()}
-              onChange={(e) => updateSettings({ defaultRate: Number(e.target.value) })}
+              onChange={(n) => updateSettings({ defaultRate: n })}
             />
           </label>
           <label className={styles.field}>
             <span>Default salary / 28 days</span>
-            <input
-              type="number"
-              step="1"
-              min="0"
+            <NumericTextField
+              syncKey="app-settings"
               value={settings.defaultSalary}
-              onFocus={(e) => e.currentTarget.select()}
-              onChange={(e) => updateSettings({ defaultSalary: Number(e.target.value) })}
+              onChange={(n) => updateSettings({ defaultSalary: n })}
             />
           </label>
         </div>
