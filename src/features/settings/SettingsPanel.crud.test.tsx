@@ -3,7 +3,7 @@ import { render, screen, cleanup, waitFor, within } from "@testing-library/react
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
 import { db } from "../../db/database";
-import { resetAppForTest, openGroupMenu, expandFirstPeriod } from "../../test/resetAppForTest";
+import { resetAppForTest, openGroupMenu, expandFirstPeriod, mockModalPrompt, mockModalConfirm, getModalOpenCount, resetModalOpenCount } from "../../test/resetAppForTest";
 
 async function openSettings(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("tab", { name: /Settings/ }));
@@ -42,7 +42,7 @@ describe("Settings — defaults, currency display, destructive-action confirmati
 
     // Go back to Edit and create a group — it should pick up the new defaults.
     await user.click(screen.getByRole("tab", { name: "Edit" }));
-    vi.spyOn(window, "prompt").mockReturnValue("New Defaults Group");
+    mockModalPrompt("New Defaults Group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
 
@@ -56,7 +56,7 @@ describe("Settings — defaults, currency display, destructive-action confirmati
 
   it("changing the currency display symbol never touches stored numeric values", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Currency Group");
+    mockModalPrompt("Currency Group");
 
     render(<App />);
     await screen.findByText("Select group ▾");
@@ -93,8 +93,7 @@ describe("Settings — defaults, currency display, destructive-action confirmati
 
   it("skips the confirmation dialog for destructive actions when the setting is turned off", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Group To Delete");
-    const confirmSpy = vi.spyOn(window, "confirm");
+    mockModalPrompt("Group To Delete");
 
     render(<App />);
     await screen.findByText("Select group ▾");
@@ -105,10 +104,11 @@ describe("Settings — defaults, currency display, destructive-action confirmati
     await openSettings(user);
     await user.click(screen.getByLabelText(/Confirm destructive actions/));
 
+    resetModalOpenCount();
     await user.click(screen.getByRole("tab", { name: "Edit" }));
     await user.click(screen.getByRole("button", { name: "Delete" }));
 
-    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(getModalOpenCount()).toBe(0);
     await waitFor(async () => {
       expect(await db.groups.count()).toBe(0);
     });
@@ -116,8 +116,8 @@ describe("Settings — defaults, currency display, destructive-action confirmati
 
   it("still confirms destructive actions by default (setting left on)", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Group Kept");
-    vi.spyOn(window, "confirm").mockReturnValue(false); // decline
+    mockModalPrompt("Group Kept");
+    mockModalConfirm(false); // decline
 
     render(<App />);
     await screen.findByText("Select group ▾");
@@ -127,13 +127,13 @@ describe("Settings — defaults, currency display, destructive-action confirmati
 
     await user.click(screen.getByRole("button", { name: "Delete" }));
 
-    expect(window.confirm).toHaveBeenCalled();
+    expect(getModalOpenCount()).toBeGreaterThan(0);
     expect(await db.groups.count()).toBe(1); // declined -> still there
   });
 
   it("requires typing the exact confirmation phrase before 'clear all data' is enabled", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Group X");
+    mockModalPrompt("Group X");
 
     render(<App />);
     await screen.findByText("Select group ▾");

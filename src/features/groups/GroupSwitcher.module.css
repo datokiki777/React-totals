@@ -9,27 +9,25 @@
 .switcherBtn {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 6px;
   width: 100%;
   background: var(--surface-3);
   border: 1px solid var(--border-soft);
   color: var(--text);
-  padding: 8px 14px;
+  padding: 6px 14px;
   border-radius: var(--radius-pill);
   cursor: pointer;
-  font-size: var(--font-base);
+  font-size: var(--font-md);
   font-weight: 600;
   box-shadow: var(--shadow-card);
   touch-action: manipulation;
   user-select: none;
 }
 
-.switcherDot {
-  width: 6px;
-  height: 20px;
-  border-radius: var(--radius-pill);
-  background: var(--info);
+.switcherIcon {
+  font-size: 13px;
   flex-shrink: 0;
+  line-height: 1;
 }
 
 .menuPanel {

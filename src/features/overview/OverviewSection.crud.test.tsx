@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, cleanup, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
-import { resetAppForTest, openGroupMenu, expandFirstPeriod } from "../../test/resetAppForTest";
+import { resetAppForTest, openGroupMenu, expandFirstPeriod, mockModalPrompt } from "../../test/resetAppForTest";
 
 describe("Overview page — matches the old app's business logic", () => {
   beforeEach(async () => {
@@ -16,7 +16,7 @@ describe("Overview page — matches the old app's business logic", () => {
 
   it("KPI cards (Gross/Net/My€/Unpaid/Income) update automatically as data changes", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Overview Group");
+    mockModalPrompt("Overview Group");
 
     render(<App />);
     await screen.findByText("Select group ▾");
@@ -65,7 +65,7 @@ describe("Overview page — matches the old app's business logic", () => {
 
   it("configuring a group salary reduces Income relative to Unpaid", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Salary Group");
+    mockModalPrompt("Salary Group");
 
     render(<App />);
     await screen.findByText("Select group ▾");
@@ -107,7 +107,7 @@ describe("Overview page — matches the old app's business logic", () => {
 
   it("clicking a status badge shows a scrollable list of matching clients, and clicking one jumps to it in Edit mode", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Status Drilldown Group");
+    mockModalPrompt("Status Drilldown Group");
 
     render(<App />);
     await screen.findByText("Select group ▾");

@@ -8,6 +8,7 @@ import { ReviewList } from "./features/review/ReviewList";
 import { SettingsPanel } from "./features/settings/SettingsPanel";
 import { PinLockScreen } from "./features/security/PinLockScreen";
 import { UpdatePrompt } from "./pwa/UpdatePrompt";
+import { ModalHost } from "./shared/modal/ModalHost";
 import { startCloudSync } from "./firebase/cloudSyncController";
 import styles from "./App.module.css";
 
@@ -21,6 +22,8 @@ function App() {
   const setWorkspace = useAppStore((s) => s.setWorkspace);
   const pinEnabled = useAppStore((s) => s.settings.pinEnabled);
   const deviceVerified = useAppStore((s) => s.deviceVerified);
+  const activeGroupsCount = useAppStore((s) => s.groups.filter((g) => !g.archived).length);
+  const archivedGroupsCount = useAppStore((s) => s.groups.filter((g) => g.archived).length);
 
   // Remembers which mode (Edit/Review) was active before Settings was
   // opened, so a second tap on the Settings button closes it back to
@@ -101,6 +104,9 @@ function App() {
               role="tab"
               aria-selected={workspace === "active"}
             >
+              <span className={styles.tabCount} aria-hidden="true">
+                {activeGroupsCount}
+              </span>
               Active
             </button>
             <button
@@ -109,6 +115,9 @@ function App() {
               role="tab"
               aria-selected={workspace === "archive"}
             >
+              <span className={styles.tabCount} aria-hidden="true">
+                {archivedGroupsCount}
+              </span>
               Archive
             </button>
           </div>
@@ -161,6 +170,7 @@ function App() {
       </footer>
 
       <UpdatePrompt />
+      <ModalHost />
     </div>
   );
 }

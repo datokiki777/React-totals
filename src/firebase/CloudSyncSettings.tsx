@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAppStore } from "../app/store";
 import { manualCloudSave, manualCloudLoad, resolveCloudConflict } from "./cloudSyncController";
 import { signInWithEmail } from "./auth";
+import { confirmDialog } from "../shared/modal/modalStore";
 import styles from "../features/settings/SettingsPanel.module.css";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -104,7 +105,14 @@ export function CloudSyncSettings() {
   }
 
   async function handleLoad() {
-    if (!window.confirm("Load cloud data? This will replace everything on this device.")) return;
+    if (
+      !(await confirmDialog("Load cloud data? This will replace everything on this device.", {
+        danger: true,
+        confirmLabel: "Load",
+      }))
+    ) {
+      return;
+    }
     setBusy(true);
     setMessage(null);
     try {

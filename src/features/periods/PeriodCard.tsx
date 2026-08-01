@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "../../app/store";
 import { computePeriodTotals, formatMoney } from "../../shared/lib/calc";
-import { formatPeriodDate } from "../../shared/lib/dates";
+import { formatPeriodDate, dateRangesOverlap } from "../../shared/lib/dates";
+import { confirmDialog } from "../../shared/modal/modalStore";
 import { ClientRowItem } from "../clients/ClientRowItem";
 import styles from "./PeriodCard.module.css";
 
@@ -10,6 +11,7 @@ export function PeriodCard({ periodId }: { periodId: string }) {
   const group = useAppStore((s) =>
     period ? s.groups.find((g) => g.id === period.groupId) : undefined
   );
+  const allPeriods = useAppStore((s) => s.periods);
   const allClientRows = useAppStore((s) => s.clientRows);
   const updatePeriod = useAppStore((s) => s.updatePeriod);
   const removePeriod = useAppStore((s) => s.removePeriod);
@@ -41,9 +43,38 @@ export function PeriodCard({ periodId }: { periodId: string }) {
 
   const totals = computePeriodTotals(period, rows, group.defaultRate);
 
-  function handleRemovePeriod() {
-    if (confirmDestructive && !window.confirm("Delete this period and all its clients?")) return;
+  async function handleRemovePeriod() {
+    if (
+      confirmDestructive &&
+      !(await confirmDialog("Delete this period and all its clients?", { danger: true }))
+    ) {
+      return;
+    }
     removePeriod(periodId);
+  }
+
+  async function handleDateChange(field: "fromDate" | "toDate", value: string) {
+    if (!period) return;
+    const nextValue = value || null;
+    const nextFrom = field === "fromDate" ? nextValue : period.fromDate;
+    const nextTo = field === "toDate" ? nextValue : period.toDate;
+
+    const overlapsWith = allPeriods.find(
+      (p) =>
+        p.id !== period.id &&
+        p.groupId === period.groupId &&
+        dateRangesOverlap(nextFrom, nextTo, p.fromDate, p.toDate)
+    );
+
+    if (overlapsWith) {
+      const label = `${formatPeriodDate(overlapsWith.fromDate)} → ${formatPeriodDate(overlapsWith.toDate)}`;
+      const proceed = await confirmDialog(
+        `This date range overlaps with another period in this group (${label}). Continue anyway?`
+      );
+      if (!proceed) return;
+    }
+
+    updatePeriod(period.id, { [field]: nextValue });
   }
 
   return (
@@ -87,7 +118,7 @@ export function PeriodCard({ periodId }: { periodId: string }) {
                 <input
                   type="date"
                   value={period.fromDate ?? ""}
-                  onChange={(e) => updatePeriod(period.id, { fromDate: e.target.value || null })}
+                  onChange={(e) => handleDateChange("fromDate", e.target.value)}
                 />
               </label>
               <label className={styles.field}>
@@ -95,7 +126,7 @@ export function PeriodCard({ periodId }: { periodId: string }) {
                 <input
                   type="date"
                   value={period.toDate ?? ""}
-                  onChange={(e) => updatePeriod(period.id, { toDate: e.target.value || null })}
+                  onChange={(e) => handleDateChange("toDate", e.target.value)}
                 />
               </label>
             </div>

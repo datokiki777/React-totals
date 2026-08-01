@@ -1,8 +1,61 @@
 import { db } from "../db/database";
 import { useAppStore } from "../app/store";
+import { useModalStore } from "../shared/modal/modalStore";
 import { act, fireEvent, screen } from "@testing-library/react";
 import type { UserEvent } from "@testing-library/user-event";
 import { GROUP_SWITCHER_LONG_PRESS_MS } from "../features/groups/GroupSwitcher";
+
+// --- In-app modal auto-answer (replaces vi.spyOn(window, "confirm"/"prompt")
+// now that confirm()/prompt() are rendered as an in-app <ModalHost/> instead
+// of the browser's native dialogs). Ergonomics deliberately mirror
+// mockReturnValue: set once, and every subsequent confirm/prompt in the
+// test resolves with that value until cleared. ---
+let mockedConfirmAnswer: boolean | undefined;
+let mockedPromptAnswer: string | null | undefined;
+let modalOpenCount = 0;
+let lastSeenModalRequest: unknown = null;
+
+useModalStore.subscribe((state) => {
+  const req = state.request;
+  if (req && req !== lastSeenModalRequest) {
+    modalOpenCount++;
+    lastSeenModalRequest = req;
+  }
+  if (!req) lastSeenModalRequest = null;
+
+  if (req?.kind === "confirm" && mockedConfirmAnswer !== undefined) {
+    req.resolve(mockedConfirmAnswer);
+    useModalStore.getState().close();
+  } else if (req?.kind === "prompt" && mockedPromptAnswer !== undefined) {
+    req.resolve(mockedPromptAnswer);
+    useModalStore.getState().close();
+  }
+});
+
+export function mockModalConfirm(answer: boolean) {
+  mockedConfirmAnswer = answer;
+}
+
+export function mockModalPrompt(answer: string | null) {
+  mockedPromptAnswer = answer;
+}
+
+/** How many confirm/prompt modals have been opened since the last reset —
+ * the equivalent of asserting a window.confirm spy's call count. */
+export function getModalOpenCount(): number {
+  return modalOpenCount;
+}
+
+export function resetModalOpenCount(): void {
+  modalOpenCount = 0;
+}
+
+function clearModalMocks() {
+  mockedConfirmAnswer = undefined;
+  mockedPromptAnswer = undefined;
+  modalOpenCount = 0;
+  lastSeenModalRequest = null;
+}
 
 /**
  * Resets both IndexedDB and the in-memory Zustand store between e2e tests.
@@ -14,6 +67,7 @@ import { GROUP_SWITCHER_LONG_PRESS_MS } from "../features/groups/GroupSwitcher";
  * writes finish before we reset, so no state leaks across tests.
  */
 export async function resetAppForTest(): Promise<void> {
+  clearModalMocks();
   await db.groups.clear();
   await db.periods.clear();
   await db.clientRows.clear();

@@ -128,10 +128,36 @@ export function formatDateForRange(date: Date | null): string {
  * unparsable dates. This is the single source of truth for date display
  * everywhere in the app — the underlying stored/input value stays ISO.
  */
+/**
+ * Formats a stored ISO date string (as produced by <input type="date">,
+ * e.g. "2026-01-31") for display as DD/MM/YYYY. Returns "—" for missing or
+ * unparsable dates. This is the single source of truth for date display
+ * everywhere in the app — the underlying stored/input value stays ISO.
+ */
 export function formatPeriodDate(iso: string | null | undefined): string {
   const parsed = parseDateOnly(iso);
   if (!parsed) return "—";
   return formatDateForRange(parsed);
+}
+
+/**
+ * True if two inclusive date ranges overlap. Only meaningful when both
+ * ranges are fully specified — a period with a missing from/to date isn't
+ * checked (there's nothing reliable to compare).
+ */
+export function dateRangesOverlap(
+  aFrom: string | null,
+  aTo: string | null,
+  bFrom: string | null,
+  bTo: string | null
+): boolean {
+  if (!aFrom || !aTo || !bFrom || !bTo) return false;
+  const aStart = parseDateOnly(aFrom);
+  const aEnd = parseDateOnly(aTo);
+  const bStart = parseDateOnly(bFrom);
+  const bEnd = parseDateOnly(bTo);
+  if (!aStart || !aEnd || !bStart || !bEnd) return false;
+  return aStart <= bEnd && bStart <= aEnd;
 }
 
 export function getPeriodsDateRange(periods: Period[]): {

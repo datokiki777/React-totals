@@ -170,6 +170,17 @@
   vertical-align: top;
 }
 
+.table tfoot tr {
+  background: linear-gradient(180deg, rgba(255, 196, 64, 0.1), rgba(255, 196, 64, 0.04));
+  border-top: 2px solid var(--accent);
+}
+
+.table tfoot td {
+  padding: 10px var(--space-4);
+  font-weight: 700;
+  font-size: var(--font-base);
+}
+
 .totalLabel {
   font-weight: 700;
 }

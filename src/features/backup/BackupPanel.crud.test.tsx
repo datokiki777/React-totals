@@ -3,7 +3,7 @@ import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
 import { db } from "../../db/database";
-import { resetAppForTest } from "../../test/resetAppForTest";
+import { resetAppForTest, mockModalConfirm, getModalOpenCount } from "../../test/resetAppForTest";
 import { buildBackupPayload } from "../../shared/lib/backup";
 import {
   legacyWrappedBackup,
@@ -88,7 +88,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
 
   it("asks for confirmation before replacing data, and does nothing if declined", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "confirm").mockReturnValue(false);
+    mockModalConfirm(false);
 
     render(<App />);
     await screen.findByText("Select group ▾");
@@ -102,7 +102,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(fileInput, makeFile(JSON.stringify(payload)));
 
-    expect(window.confirm).toHaveBeenCalled();
+    expect(getModalOpenCount()).toBeGreaterThan(0);
     // Declined -> nothing changes.
     await new Promise((r) => setTimeout(r, 50));
     expect(await db.groups.count()).toBe(0);
@@ -111,7 +111,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
 
   it("replaces all data and refreshes every Zustand-driven view with no page reload, when confirmed", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    mockModalConfirm(true);
     const reloadSpy = vi.fn();
     vi.stubGlobal("location", { ...window.location, reload: reloadSpy });
 
@@ -186,7 +186,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
 
   it("imports a real old vanilla-JS app backup file (wrapped format) without ever saying 'invalid backup'", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    mockModalConfirm(true);
 
     render(<App />);
     await screen.findByText("Select group ▾");
@@ -240,7 +240,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
 
   it("imports the old app's raw/unwrapped appState format too", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    mockModalConfirm(true);
 
     render(<App />);
     await screen.findByText("Select group ▾");
@@ -257,7 +257,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
 
   it("new-format exports are unaffected by the legacy-migration path (no false-positive migration)", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    mockModalConfirm(true);
 
     render(<App />);
     await screen.findByText("Select group ▾");

@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, within, cleanup, waitFor } from "@testing-library/react";
+import { render, screen, within, cleanup, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../App";
 import { db } from "../db/database";
-import { resetAppForTest, openGroupMenu, expandFirstPeriod } from "../test/resetAppForTest";
+import { resetAppForTest, openGroupMenu, expandFirstPeriod, mockModalPrompt, mockModalConfirm } from "../test/resetAppForTest";
 
 describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
   beforeEach(async () => {
@@ -17,7 +17,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
 
   it("adds a group, a period, and a client row; edits persist to IndexedDB; My€ is correct", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Test Group");
+    mockModalPrompt("Test Group");
 
     render(<App />);
 
@@ -78,7 +78,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     expect(rowsAfterNetZero[0].net).toBe("0");
 
     // 6. Delete the row (confirm dialog must be accepted).
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    mockModalConfirm(true);
     await user.click(within(table).getByRole("button", { name: "Remove" }));
 
     const rowsAfterDelete = await db.clientRows.toArray();
@@ -87,7 +87,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
 
   it("excludes rows marked 'wrong' from My€ but keeps them visible in the table", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Group W");
+    mockModalPrompt("Group W");
 
     render(<App />);
 
@@ -158,7 +158,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
 
   it("a newly created period starts collapsed, matching the old app", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Collapsed Test Group");
+    mockModalPrompt("Collapsed Test Group");
 
     render(<App />);
     await screen.findByText("Select group ▾");
@@ -178,7 +178,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
 
   it("the '+ Add period' button inside an expanded period adds another period to the same group", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Extra Cycle Group");
+    mockModalPrompt("Extra Cycle Group");
 
     render(<App />);
     await screen.findByText("Select group ▾");
@@ -196,7 +196,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
 
   it("the client table stays a real scrollable table (not stacked cards) with all six columns always present", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Scroll Table Group");
+    mockModalPrompt("Scroll Table Group");
 
     render(<App />);
     await screen.findByText("Select group ▾");
@@ -219,5 +219,86 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     // Headers must stay visible/present (not display:none, as a stacked
     // mobile layout would do) — getAllByRole already excludes hidden
     // elements, so finding all six here proves the header row is intact.
+  });
+
+  it("warns when a period's dates overlap another period in the same group, and only applies the change if confirmed", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Overlap Group");
+
+    render(<App />);
+    await screen.findByText("Select group ▾");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+
+    fireEvent.change(screen.getByLabelText("From"), { target: { value: "2026-01-01" } });
+    fireEvent.change(screen.getByLabelText("To"), { target: { value: "2026-01-31" } });
+
+    const firstPeriodId = (await db.periods.toArray())[0].id;
+
+    await user.click(screen.getByRole("button", { name: "+ Add period" }));
+    const collapseButtons = screen.getAllByTestId("period-collapse-btn");
+    await user.click(collapseButtons[1]);
+
+    const fromInputs = screen.getAllByLabelText("From");
+    const toInputs = screen.getAllByLabelText("To");
+
+    // Set the second period's "To" first (no overlap check yet — "From" is
+    // still empty, so the range isn't fully specified). Wait for the store
+    // to actually reflect it before touching "From", so the overlap check
+    // reads fresh state instead of a stale closure.
+    fireEvent.change(toInputs[1], { target: { value: "2026-02-10" } });
+    const secondPeriodId = (await waitFor(async () => {
+      const all = await db.periods.toArray();
+      const second = all.find((p) => p.id !== firstPeriodId && p.toDate === "2026-02-10");
+      expect(second).toBeTruthy();
+      return second!;
+    })).id;
+
+    // Overlapping range -> declined -> the change must NOT apply.
+    mockModalConfirm(false);
+    fireEvent.change(fromInputs[1], { target: { value: "2026-01-15" } });
+
+    await waitFor(async () => {
+      const p = await db.periods.get(secondPeriodId);
+      expect(p?.fromDate).not.toBe("2026-01-15");
+    });
+
+    // Overlapping range -> confirmed -> the change DOES apply.
+    mockModalConfirm(true);
+    fireEvent.change(fromInputs[1], { target: { value: "2026-01-15" } });
+
+    await waitFor(async () => {
+      const p = await db.periods.get(secondPeriodId);
+      expect(p?.fromDate).toBe("2026-01-15");
+    });
+  });
+
+  it("warns when Net is unusually far from Gross (missing-digit sanity check)", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Mismatch Group");
+
+    render(<App />);
+    await screen.findByText("Select group ▾");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
+
+    const table = screen.getByRole("table");
+    const [grossInput, netInput] = within(table).getAllByPlaceholderText("0");
+    await user.type(grossInput, "1000");
+    await user.type(netInput, "100"); // 900 off — should trigger the warning
+    await user.tab();
+
+    expect(
+      await screen.findByText(/Net \(100\) looks far off from Gross \(1000\)/)
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Yes, it's correct" }));
+
+    // The entered value is preserved either way — this is just a heads-up.
+    expect(netInput).toHaveValue("100");
   });
 });

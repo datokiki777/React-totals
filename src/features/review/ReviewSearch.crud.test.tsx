@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, cleanup, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
-import { resetAppForTest, openGroupMenu, expandFirstPeriod } from "../../test/resetAppForTest";
+import { resetAppForTest, openGroupMenu, expandFirstPeriod, mockModalPrompt, mockModalConfirm } from "../../test/resetAppForTest";
 
 async function setupOneClient(user: ReturnType<typeof userEvent.setup>) {
   await openGroupMenu();
@@ -32,7 +32,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
 
   it("finds a client by partial name match, with no page reload (pure client-side filtering)", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Search Group");
+    mockModalPrompt("Search Group");
 
     render(<App />);
     await screen.findByText("Select group ▾");
@@ -48,7 +48,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
 
   it("finds a client by partial address/city match", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Search Group");
+    mockModalPrompt("Search Group");
 
     render(<App />);
     await screen.findByText("Select group ▾");
@@ -62,7 +62,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
 
   it("finds a client by partial comment/notes match", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Search Group");
+    mockModalPrompt("Search Group");
 
     render(<App />);
     await screen.findByText("Select group ▾");
@@ -76,7 +76,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
 
   it("shows 'No results' for a query that matches nothing, and clears instantly as you type", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Search Group");
+    mockModalPrompt("Search Group");
 
     render(<App />);
     await screen.findByText("Select group ▾");
@@ -95,8 +95,8 @@ describe("Review/Search module — matches the old app's search behavior", () =>
 
   it("clicking a result opens the client in Edit mode and highlights its row", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Search Group");
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    mockModalPrompt("Search Group");
+    mockModalConfirm(true);
 
     render(<App />);
     await screen.findByText("Select group ▾");
@@ -115,7 +115,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
 
   it("Review browse list shows the group/period/client hierarchy read-only", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Browse Group");
+    mockModalPrompt("Browse Group");
 
     render(<App />);
     await screen.findByText("Select group ▾");
@@ -139,7 +139,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
 
   it("a collapsed group card shows every status color present (not just Done), matching the old app", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "prompt").mockReturnValue("Multi Status Group");
+    mockModalPrompt("Multi Status Group");
 
     render(<App />);
     await screen.findByText("Select group ▾");

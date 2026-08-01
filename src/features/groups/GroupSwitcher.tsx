@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useAppStore } from "../../app/store";
+import { confirmDialog, promptDialog } from "../../shared/modal/modalStore";
 import styles from "./GroupSwitcher.module.css";
 
 /** How long a press must be held before it counts as "long press" (ms). */
@@ -67,14 +68,14 @@ export function GroupSwitcher() {
 
   async function handleAddGroup() {
     if (isReviewMode) return;
-    const name = window.prompt("Group name:");
+    const name = await promptDialog("Group name:");
     if (name === null) return;
     await addGroup(name);
   }
 
   async function handleRename() {
     if (isReviewMode || !activeGroup) return;
-    const name = window.prompt("New name:", activeGroup.name);
+    const name = await promptDialog("New name:", activeGroup.name);
     if (name === null) return;
     await renameGroup(activeGroup.id, name);
   }
@@ -83,7 +84,7 @@ export function GroupSwitcher() {
     if (isReviewMode || !activeGroup) return;
     if (
       confirmDestructive &&
-      !window.confirm(`Delete group "${activeGroup.name}" and all its periods?`)
+      !(await confirmDialog(`Delete group "${activeGroup.name}" and all its periods?`, { danger: true }))
     ) {
       return;
     }
@@ -105,7 +106,9 @@ export function GroupSwitcher() {
         aria-expanded={menuOpen}
         title="Tap: next group · Long-press: menu"
       >
-        <span className={styles.switcherDot} aria-hidden="true" />
+        <span className={styles.switcherIcon} aria-hidden="true">
+          👤
+        </span>
         {activeGroup ? activeGroup.name : "Select group"} ▾
       </button>
 

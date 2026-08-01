@@ -3,6 +3,7 @@ import { db } from "../../db/database";
 import { useAppStore } from "../../app/store";
 import { buildBackupPayload } from "../../shared/lib/backup";
 import { parseAnyBackupFormat } from "../../shared/lib/legacyMigration";
+import { confirmDialog } from "../../shared/modal/modalStore";
 import styles from "./BackupPanel.module.css";
 
 type Message = { type: "success" | "error"; text: string } | null;
@@ -69,14 +70,15 @@ export function BackupPanel() {
     const migratedFromLegacy = result.migratedFromLegacy;
 
     if (
-      !window.confirm(
+      !(await confirmDialog(
         (migratedFromLegacy
           ? `This is an old (Vanilla JS) app file — it will be automatically migrated to the new format.\n\n`
           : "") +
           `Import will replace all current data with the file "${file.name}" ` +
           `(${groups.length} groups, ${periods.length} periods, ${clientRows.length} clients).\n\n` +
-          "This action is irreversible. Continue?"
-      )
+          "This action is irreversible. Continue?",
+        { danger: true, confirmLabel: "Import" }
+      ))
     ) {
       return;
     }

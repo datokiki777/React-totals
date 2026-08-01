@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "../../app/store";
 import { buildSearchIndex, searchIndex, highlightParts, type SearchIndexItem } from "../../shared/lib/search";
 import { useOpenClientInEdit } from "../navigation/useOpenClientInEdit";
+import { confirmDialog } from "../../shared/modal/modalStore";
 import styles from "./ReviewSearch.module.css";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -49,8 +50,8 @@ export function ReviewSearch() {
     if (e.key === "Escape") setQuery("");
   }
 
-  function handleOpenInEdit(item: SearchIndexItem) {
-    if (!window.confirm("Open this client in Edit mode?")) return;
+  async function handleOpenInEdit(item: SearchIndexItem) {
+    if (!(await confirmDialog("Open this client in Edit mode?"))) return;
     setQuery("");
     openClientInEdit({
       rowId: item.rowId,

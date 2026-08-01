@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useAppStore } from "../../app/store";
 import type { DoneStatus } from "../../shared/types/domain";
+import { confirmDialog } from "../../shared/modal/modalStore";
+import { parseMoney } from "../../shared/lib/money";
 import styles from "./ClientRowItem.module.css";
 
 const STATUS_LABEL: Record<DoneStatus, string> = {
@@ -22,16 +24,31 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
 
   if (!row) return null;
 
-  function handleRemove() {
+  async function handleRemove() {
     if (!row) return;
     if (
       confirmDestructive &&
       (row.customer || row.gross || row.net || row.city || row.comment) &&
-      !window.confirm(`Delete client "${row.customer || "Unnamed"}"?`)
+      !(await confirmDialog(`Delete client "${row.customer || "Unnamed"}"?`, { danger: true }))
     ) {
       return;
     }
     removeRow(row.id);
+  }
+
+  // Net is never more than ~500 off from Gross in real invoices — a bigger
+  // gap almost always means a missed digit while typing. Checked on blur
+  // (not every keystroke) so it doesn't interrupt while entering the value.
+  async function handleNetBlur() {
+    if (!row || !row.gross || !row.net) return;
+    const gross = parseMoney(row.gross);
+    const net = parseMoney(row.net);
+    if (!Number.isFinite(gross) || !Number.isFinite(net)) return;
+    if (Math.abs(gross - net) <= 500) return;
+    await confirmDialog(
+      `Net (${row.net}) looks far off from Gross (${row.gross}) — Net is usually within 500 of Gross. Are you sure this is correct?`,
+      { confirmLabel: "Yes, it's correct" }
+    );
   }
 
   return (
@@ -108,6 +125,7 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           autoCapitalize="off"
           spellCheck={false}
           onChange={(e) => updateRow(row.id, { net: e.target.value.replace(/\D/g, "") })}
+          onBlur={handleNetBlur}
         />
       </td>
       <td>

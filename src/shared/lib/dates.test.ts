@@ -11,6 +11,7 @@ import {
   formatMonthKey,
   formatDateForRange,
   formatPeriodDate,
+  dateRangesOverlap,
   weeksBetweenRounded,
 } from "./dates";
 import type { Period } from "../types/domain";
@@ -142,6 +143,31 @@ describe("calcCoveredWeeks", () => {
   it("respects the predicate filter", () => {
     const periods = [makePeriod("2026-01-01", "2026-01-08")];
     expect(calcCoveredWeeks(periods, () => false)).toBe(0);
+  });
+});
+
+describe("dateRangesOverlap", () => {
+  it("detects a clear overlap", () => {
+    expect(dateRangesOverlap("2026-01-01", "2026-01-31", "2026-01-15", "2026-02-15")).toBe(true);
+  });
+
+  it("detects two non-overlapping ranges", () => {
+    expect(dateRangesOverlap("2026-01-01", "2026-01-31", "2026-02-01", "2026-02-28")).toBe(false);
+  });
+
+  it("treats touching-edge ranges (same boundary day) as overlapping — inclusive", () => {
+    expect(dateRangesOverlap("2026-01-01", "2026-01-15", "2026-01-15", "2026-01-31")).toBe(true);
+  });
+
+  it("detects one range fully containing the other", () => {
+    expect(dateRangesOverlap("2026-01-01", "2026-03-01", "2026-01-15", "2026-01-20")).toBe(true);
+  });
+
+  it("returns false if either range is missing a from or to date", () => {
+    expect(dateRangesOverlap(null, "2026-01-31", "2026-01-15", "2026-02-15")).toBe(false);
+    expect(dateRangesOverlap("2026-01-01", null, "2026-01-15", "2026-02-15")).toBe(false);
+    expect(dateRangesOverlap("2026-01-01", "2026-01-31", null, "2026-02-15")).toBe(false);
+    expect(dateRangesOverlap("2026-01-01", "2026-01-31", "2026-01-15", null)).toBe(false);
   });
 });
 

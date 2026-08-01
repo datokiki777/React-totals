@@ -2,11 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
-import { resetAppForTest, openGroupMenu } from "../../test/resetAppForTest";
+import { resetAppForTest, openGroupMenu, mockModalPrompt } from "../../test/resetAppForTest";
 import { GROUP_SWITCHER_LONG_PRESS_MS } from "./GroupSwitcher";
 
 async function addGroupViaMenu(user: ReturnType<typeof userEvent.setup>, name: string) {
-  vi.spyOn(window, "prompt").mockReturnValueOnce(name);
+  mockModalPrompt(name);
   if (!screen.queryByRole("button", { name: "+ Group" })) {
     await openGroupMenu();
   }
@@ -123,7 +123,7 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
 
     await addGroupViaMenu(user, "Original Name");
 
-    vi.spyOn(window, "prompt").mockReturnValueOnce("Renamed Group");
+    mockModalPrompt("Renamed Group");
     await user.click(screen.getByRole("button", { name: "Rename" }));
 
     const switcherBtn = await screen.findByTestId("group-switcher-btn");
