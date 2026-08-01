@@ -52,7 +52,7 @@ export function ReviewSearch() {
   }
 
   function handleOpenInEdit(item: SearchIndexItem) {
-    if (!window.confirm("გავხსნათ ეს კლიენტი რედაქტირების რეჟიმში?")) return;
+    if (!window.confirm("Open this client in Edit mode?")) return;
 
     setQuery("");
     setWorkspace(item.groupArchived ? "archive" : "active");
@@ -73,7 +73,7 @@ export function ReviewSearch() {
       <input
         className={styles.searchInput}
         type="text"
-        placeholder="მოძებნე კლიენტი სახელით, მისამართით ან შენიშვნით..."
+        placeholder="Search client by name, address, or note..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onKeyDown={handleKeyDown}

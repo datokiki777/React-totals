@@ -36,10 +36,10 @@ describe("UpdatePrompt", () => {
     needRefresh = true;
     render(<UpdatePrompt />);
 
-    expect(screen.getByText(/ახალი ვერსია ხელმისაწვდომია/)).toBeInTheDocument();
+    expect(screen.getByText(/new version is available/)).toBeInTheDocument();
 
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "განახლება" }));
+    await user.click(screen.getByRole("button", { name: "Update" }));
     expect(updateServiceWorker).toHaveBeenCalledWith(true);
   });
 
@@ -48,7 +48,7 @@ describe("UpdatePrompt", () => {
     render(<UpdatePrompt />);
 
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "მოგვიანებით" }));
+    await user.click(screen.getByRole("button", { name: "Later" }));
     expect(setNeedRefresh).toHaveBeenCalledWith(false);
     expect(updateServiceWorker).not.toHaveBeenCalled();
   });
@@ -56,14 +56,14 @@ describe("UpdatePrompt", () => {
   it("shows an offline-ready message when the app has been cached for offline use", () => {
     offlineReady = true;
     render(<UpdatePrompt />);
-    expect(screen.getByText(/მზადაა ოფლაინ რეჟიმისთვის/)).toBeInTheDocument();
+    expect(screen.getByText(/ready for offline use/)).toBeInTheDocument();
   });
 
   it("prioritizes the update banner over the offline-ready message if both are true", () => {
     needRefresh = true;
     offlineReady = true;
     render(<UpdatePrompt />);
-    expect(screen.getByText(/ახალი ვერსია ხელმისაწვდომია/)).toBeInTheDocument();
-    expect(screen.queryByText(/მზადაა ოფლაინ რეჟიმისთვის/)).not.toBeInTheDocument();
+    expect(screen.getByText(/new version is available/)).toBeInTheDocument();
+    expect(screen.queryByText(/ready for offline use/)).not.toBeInTheDocument();
   });
 });

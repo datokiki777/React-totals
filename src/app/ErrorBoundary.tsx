@@ -45,7 +45,7 @@ export class ErrorBoundary extends Component<Props, State> {
             }}
           >
             <div style={{ fontWeight: 700, marginBottom: 10 }}>
-              ⚠️ აპლიკაციაში მოხდა შეცდომა
+              ⚠️ Something went wrong
             </div>
             <div style={{ fontSize: 13, opacity: 0.75, marginBottom: 16, wordBreak: "break-word" }}>
               {this.state.error.message}
@@ -62,7 +62,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 cursor: "pointer",
               }}
             >
-              გვერდის განახლება
+              Reload page
             </button>
           </div>
         </div>

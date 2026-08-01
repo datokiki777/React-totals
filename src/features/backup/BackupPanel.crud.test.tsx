@@ -15,8 +15,8 @@ function makeFile(content: string, name = "backup.json", type = "application/jso
 }
 
 async function openSettings(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole("tab", { name: /პარამეტრები/ }));
-  await screen.findByRole("heading", { name: "ბექაფი და აღდგენა" });
+  await user.click(screen.getByRole("tab", { name: /Settings/ }));
+  await screen.findByRole("heading", { name: "Backup & Restore" });
 }
 
 describe("Import/Export — JSON backup validation, confirmation, and state refresh", () => {
@@ -32,19 +32,19 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
   it("shows a clear inline error for a file that isn't valid JSON at all", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await openSettings(user);
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(fileInput, makeFile("{ not valid json", "broken.json"));
 
-    expect(await screen.findByRole("status")).toHaveTextContent(/JSON ვერ წაიკითხა/);
+    expect(await screen.findByRole("status")).toHaveTextContent(/could not parse JSON/);
   });
 
   it("shows a clear inline error for structurally invalid backup data", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await openSettings(user);
 
     const badPayload = JSON.stringify({ groups: [{ id: "g1" }], periods: [], clientRows: [] });
@@ -52,13 +52,13 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     await user.upload(fileInput, makeFile(badPayload));
 
     const status = await screen.findByRole("status");
-    expect(status).toHaveTextContent(/ბექაფის ფორმატი არასწორია/);
+    expect(status).toHaveTextContent(/Invalid backup format/);
   });
 
   it("rejects an otherwise-valid backup where a row points at a period that isn't in the file", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await openSettings(user);
 
     const payload = buildBackupPayload(
@@ -91,7 +91,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     vi.spyOn(window, "confirm").mockReturnValue(false);
 
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await openSettings(user);
 
     const payload = buildBackupPayload(
@@ -106,7 +106,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     // Declined -> nothing changes.
     await new Promise((r) => setTimeout(r, 50));
     expect(await db.groups.count()).toBe(0);
-    expect(screen.getByText("ჯგუფები: 0")).toBeInTheDocument();
+    expect(screen.getByText("Groups: 0")).toBeInTheDocument();
   });
 
   it("replaces all data and refreshes every Zustand-driven view with no page reload, when confirmed", async () => {
@@ -116,7 +116,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     vi.stubGlobal("location", { ...window.location, reload: reloadSpy });
 
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await openSettings(user);
 
     const payload = buildBackupPayload(
@@ -142,10 +142,10 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     await user.upload(fileInput, makeFile(JSON.stringify(payload)));
 
     await waitFor(() => {
-      expect(screen.getByText("ჯგუფები: 1")).toBeInTheDocument();
+      expect(screen.getByText("Groups: 1")).toBeInTheDocument();
     });
-    expect(screen.getByText("პერიოდები: 1")).toBeInTheDocument();
-    expect(screen.getByText("კლიენტები: 1")).toBeInTheDocument();
+    expect(screen.getByText("Periods: 1")).toBeInTheDocument();
+    expect(screen.getByText("Clients: 1")).toBeInTheDocument();
 
     // The imported group should now actually be selectable/visible in the UI
     // (proof the Zustand store, not just IndexedDB, was refreshed).
@@ -189,21 +189,21 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     vi.spyOn(window, "confirm").mockReturnValue(true);
 
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await openSettings(user);
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(fileInput, makeFile(JSON.stringify(legacyWrappedBackup), "Totals_ALL_2025-03-01.json"));
 
     await waitFor(() => {
-      expect(screen.getByText("ჯგუფები: 2")).toBeInTheDocument();
+      expect(screen.getByText("Groups: 2")).toBeInTheDocument();
     });
-    expect(screen.getByText("პერიოდები: 3")).toBeInTheDocument();
-    expect(screen.getByText("კლიენტები: 7")).toBeInTheDocument();
+    expect(screen.getByText("Periods: 3")).toBeInTheDocument();
+    expect(screen.getByText("Clients: 7")).toBeInTheDocument();
 
     const status = await screen.findByRole("status");
-    expect(status).toHaveTextContent(/გადაკონვერტირდა/);
-    expect(status).not.toHaveTextContent(/არასწორია/);
+    expect(status).toHaveTextContent(/migrated/);
+    expect(status).not.toHaveTextContent(/Invalid/);
 
     // Spot-check real data actually landed correctly, decimals intact.
     const rows = await db.clientRows.toArray();
@@ -219,7 +219,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     // Confirm the Active/Archive workspace tabs actually reflect the import
     // (not just IndexedDB): tapping the group switcher cycles only within
     // the groups visible on the current workspace tab.
-    await user.click(screen.getByRole("tab", { name: "რედაქტირება" }));
+    await user.click(screen.getByRole("tab", { name: "Edit" }));
     const switcherBtn = screen.getByTestId("group-switcher-btn");
 
     // On the Active tab, cycling must always land on the active group —
@@ -231,7 +231,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     expect(switcherBtn).not.toHaveTextContent("Archived Group B");
 
     // On the Archive tab, cycling must only ever land on the archived group.
-    await user.click(screen.getByRole("tab", { name: "არქივი" }));
+    await user.click(screen.getByRole("tab", { name: "Archive" }));
     await user.click(switcherBtn);
     expect(switcherBtn).toHaveTextContent("Archived Group B");
     expect(screen.queryByRole("button", { name: "Client Group A" })).not.toBeInTheDocument();
@@ -242,16 +242,16 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     vi.spyOn(window, "confirm").mockReturnValue(true);
 
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await openSettings(user);
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(fileInput, makeFile(JSON.stringify(legacyUnwrappedBackup)));
 
     await waitFor(() => {
-      expect(screen.getByText("ჯგუფები: 2")).toBeInTheDocument();
+      expect(screen.getByText("Groups: 2")).toBeInTheDocument();
     });
-    expect(await screen.findByRole("status")).toHaveTextContent(/გადაკონვერტირდა/);
+    expect(await screen.findByRole("status")).toHaveTextContent(/migrated/);
   });
 
   it("new-format exports are unaffected by the legacy-migration path (no false-positive migration)", async () => {
@@ -259,7 +259,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     vi.spyOn(window, "confirm").mockReturnValue(true);
 
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await openSettings(user);
 
     const payload = buildBackupPayload(
@@ -271,7 +271,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     await user.upload(fileInput, makeFile(JSON.stringify(payload)));
 
     const status = await screen.findByRole("status");
-    expect(status).toHaveTextContent("იმპორტი წარმატებით დასრულდა.");
-    expect(status).not.toHaveTextContent(/გადაკონვერტირდა/);
+    expect(status).toHaveTextContent("Import completed successfully.");
+    expect(status).not.toHaveTextContent(/migrated/);
   });
 });

@@ -31,6 +31,11 @@ interface AppState {
 
   // ui state
   activeGroupId: string | null;
+  /** Remembers which group was last selected on each workspace tab, so
+   * switching Active <-> Archive restores the right group instead of
+   * leaving a stale/invisible one selected. */
+  lastActiveGroupIdActive: string | null;
+  lastActiveGroupIdArchive: string | null;
   mode: ViewMode;
   workspace: WorkspaceTab;
   highlightedRowId: string | null;
@@ -87,6 +92,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   loaded: false,
   initError: null,
   activeGroupId: null,
+  lastActiveGroupIdActive: null,
+  lastActiveGroupIdArchive: null,
   mode: "edit",
   workspace: "active",
   highlightedRowId: null,
@@ -102,11 +109,14 @@ export const useAppStore = create<AppState>((set, get) => ({
         db.settings.get("app"),
       ]);
       const firstActive = groups.find((g) => !g.archived)?.id ?? null;
+      const firstArchived = groups.find((g) => g.archived)?.id ?? null;
       set({
         groups,
         periods,
         clientRows,
         activeGroupId: firstActive,
+        lastActiveGroupIdActive: firstActive,
+        lastActiveGroupIdArchive: firstArchived,
         settings: storedSettings ? { ...DEFAULT_SETTINGS, ...storedSettings } : DEFAULT_SETTINGS,
         initError: null,
       });
@@ -164,6 +174,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       periods: s.periods.filter((p) => p.groupId !== id),
       clientRows: s.clientRows.filter((r) => !periodIds.includes(r.periodId)),
       activeGroupId: s.activeGroupId === id ? null : s.activeGroupId,
+      lastActiveGroupIdActive: s.lastActiveGroupIdActive === id ? null : s.lastActiveGroupIdActive,
+      lastActiveGroupIdArchive:
+        s.lastActiveGroupIdArchive === id ? null : s.lastActiveGroupIdArchive,
     }));
     persist("group deletion", () =>
       db.transaction("rw", db.groups, db.periods, db.clientRows, async () => {
@@ -177,14 +190,27 @@ export const useAppStore = create<AppState>((set, get) => ({
   toggleArchiveGroup: (id) => {
     const group = get().groups.find((g) => g.id === id);
     if (!group) return;
-    const patch = { archived: !group.archived, updatedAt: now() };
+    const nowArchived = !group.archived;
+    const patch = { archived: nowArchived, updatedAt: now() };
     set((s) => ({
       groups: s.groups.map((g) => (g.id === id ? { ...g, ...patch } : g)),
+      ...(s.activeGroupId === id
+        ? nowArchived
+          ? { lastActiveGroupIdArchive: id }
+          : { lastActiveGroupIdActive: id }
+        : {}),
     }));
     persist("group archive toggle", () => db.groups.update(id, patch));
   },
 
-  setActiveGroup: (id) => set({ activeGroupId: id }),
+  setActiveGroup: (id) =>
+    set((s) => {
+      const group = id ? s.groups.find((g) => g.id === id) : undefined;
+      if (!group) return { activeGroupId: id };
+      return group.archived
+        ? { activeGroupId: id, lastActiveGroupIdArchive: id }
+        : { activeGroupId: id, lastActiveGroupIdActive: id };
+    }),
 
   addPeriod: async (groupId, opts) => {
     const period: Period = {
@@ -262,7 +288,17 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   setMode: (mode) => set({ mode }),
-  setWorkspace: (workspace) => set({ workspace }),
+  setWorkspace: (workspace) =>
+    set((s) => {
+      const remembered =
+        workspace === "archive" ? s.lastActiveGroupIdArchive : s.lastActiveGroupIdActive;
+      const candidates = s.groups.filter((g) =>
+        workspace === "archive" ? g.archived : !g.archived
+      );
+      const rememberedIsValid = remembered && candidates.some((g) => g.id === remembered);
+      const nextActiveGroupId = rememberedIsValid ? remembered : (candidates[0]?.id ?? null);
+      return { workspace, activeGroupId: nextActiveGroupId };
+    }),
   setTotalsScope: (totalsScope) => set({ totalsScope }),
 
   highlightRow: (id) => {

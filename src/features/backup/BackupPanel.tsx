@@ -35,7 +35,7 @@ export function BackupPanel() {
     a.click();
     URL.revokeObjectURL(url);
 
-    setMessage({ type: "success", text: "JSON ბექაფი წარმატებით შეიქმნა." });
+    setMessage({ type: "success", text: "JSON backup created successfully." });
   }
 
   function handleImportClick() {
@@ -55,13 +55,13 @@ export function BackupPanel() {
       const text = await file.text();
       parsed = JSON.parse(text);
     } catch {
-      setMessage({ type: "error", text: "ფაილი არასწორია — JSON ვერ წაიკითხა." });
+      setMessage({ type: "error", text: "Invalid file — could not parse JSON." });
       return;
     }
 
     const result = parseAnyBackupFormat(parsed);
     if (!result.ok) {
-      setMessage({ type: "error", text: `ბექაფის ფორმატი არასწორია: ${result.error}` });
+      setMessage({ type: "error", text: `Invalid backup format: ${result.error}` });
       return;
     }
 
@@ -71,11 +71,11 @@ export function BackupPanel() {
     if (
       !window.confirm(
         (migratedFromLegacy
-          ? `ეს ძველი (Vanilla JS) აპლიკაციის ფაილია — ავტომატურად გადაკონვერტირდება ახალ ფორმატში.\n\n`
+          ? `This is an old (Vanilla JS) app file — it will be automatically migrated to the new format.\n\n`
           : "") +
-          `იმპორტი ჩაანაცვლებს ამჟამინდელ ყველა მონაცემს ფაილით "${file.name}" ` +
-          `(${groups.length} ჯგუფი, ${periods.length} პერიოდი, ${clientRows.length} კლიენტი).\n\n` +
-          "ეს ქმედება შეუქცევადია. გავაგრძელოთ?"
+          `Import will replace all current data with the file "${file.name}" ` +
+          `(${groups.length} groups, ${periods.length} periods, ${clientRows.length} clients).\n\n` +
+          "This action is irreversible. Continue?"
       )
     ) {
       return;
@@ -96,14 +96,14 @@ export function BackupPanel() {
       setMessage({
         type: "success",
         text: migratedFromLegacy
-          ? "ძველი ვერსიის ფაილი წარმატებით გადაკონვერტირდა და აიტვირთა."
-          : "იმპორტი წარმატებით დასრულდა.",
+          ? "Legacy file detected and migrated successfully."
+          : "Import completed successfully.",
       });
     } catch (error) {
       console.error("Import failed:", error);
       setMessage({
         type: "error",
-        text: "იმპორტი ვერ შესრულდა — მონაცემთა ბაზაში ჩაწერა ვერ მოხერხდა.",
+        text: "Import failed — could not write to the database.",
       });
     } finally {
       setBusy(false);
@@ -115,10 +115,10 @@ export function BackupPanel() {
     try {
       const { exportToExcel } = await import("./exportExcel");
       await exportToExcel();
-      setMessage({ type: "success", text: "Excel ფაილი წარმატებით შეიქმნა." });
+      setMessage({ type: "success", text: "Excel file created successfully." });
     } catch (error) {
       console.error("Excel export failed:", error);
-      setMessage({ type: "error", text: "Excel ექსპორტი ვერ შესრულდა." });
+      setMessage({ type: "error", text: "Excel export failed." });
     } finally {
       setBusy(false);
     }
@@ -129,10 +129,10 @@ export function BackupPanel() {
     try {
       const { exportToPdf } = await import("./exportPdf");
       await exportToPdf();
-      setMessage({ type: "success", text: "PDF ფაილი წარმატებით შეიქმნა." });
+      setMessage({ type: "success", text: "PDF file created successfully." });
     } catch (error) {
       console.error("PDF export failed:", error);
-      setMessage({ type: "error", text: "PDF ექსპორტი ვერ შესრულდა." });
+      setMessage({ type: "error", text: "PDF export failed." });
     } finally {
       setBusy(false);
     }
@@ -141,9 +141,9 @@ export function BackupPanel() {
   return (
     <div className={styles.panel}>
       <div className={styles.stats}>
-        <span>ჯგუფები: {groupsCount}</span>
-        <span>პერიოდები: {periodsCount}</span>
-        <span>კლიენტები: {rowsCount}</span>
+        <span>Groups: {groupsCount}</span>
+        <span>Periods: {periodsCount}</span>
+        <span>Clients: {rowsCount}</span>
       </div>
 
       {message && (

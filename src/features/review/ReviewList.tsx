@@ -40,17 +40,17 @@ export function ReviewList() {
     const emptyMessage =
       workspace === "archive"
         ? scope === "current"
-          ? "📦 არჩეული არქივის ჯგუფი არ არის"
-          : "📦 არქივში ჯგუფები არ არის"
+          ? "📦 No archived group selected"
+          : "📦 No groups in archive"
         : scope === "current"
-          ? "👤 აქტიური ჯგუფი არ არის არჩეული"
-          : "👥 აქტიური ჯგუფები არ არის";
+          ? "👤 No active group selected"
+          : "👥 No active groups";
 
     return (
       <div className={styles.emptyCard}>
         <div className={styles.emptyIcon}>📭</div>
         <div className={styles.emptyTitle}>{emptyMessage}</div>
-        <div className={styles.emptyHint}>შექმენი ჯგუფი ან დაამატე პერიოდი დასაწყებად</div>
+        <div className={styles.emptyHint}>Create a group or add a period to get started</div>
       </div>
     );
   }

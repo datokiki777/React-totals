@@ -24,6 +24,8 @@ export async function resetAppForTest(): Promise<void> {
     periods: [],
     clientRows: [],
     activeGroupId: null,
+    lastActiveGroupIdActive: null,
+    lastActiveGroupIdArchive: null,
     mode: "edit",
     workspace: "active",
     totalsScope: "current",

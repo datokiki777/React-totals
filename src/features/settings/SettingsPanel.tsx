@@ -12,7 +12,7 @@ const CURRENCY_OPTIONS = [
   { symbol: "₽", label: "₽ Russian Ruble" },
 ];
 
-const CLEAR_CONFIRM_PHRASE = "წაშალე";
+const CLEAR_CONFIRM_PHRASE = "DELETE";
 
 export function SettingsPanel() {
   const settings = useAppStore((s) => s.settings);
@@ -44,10 +44,10 @@ export function SettingsPanel() {
   return (
     <div className={styles.wrap}>
       <section className={styles.card}>
-        <h2 className={styles.cardTitle}>ახალი ჯგუფის ნაგულისხმევი მნიშვნელობები</h2>
+        <h2 className={styles.cardTitle}>New group defaults</h2>
         <div className={styles.fieldRow}>
           <label className={styles.field}>
-            <span>ნაგულისხმევი საკომისიო %</span>
+            <span>Default rate %</span>
             <input
               type="number"
               step="0.01"
@@ -58,7 +58,7 @@ export function SettingsPanel() {
             />
           </label>
           <label className={styles.field}>
-            <span>ნაგულისხმევი ხელფასი / 28დღე</span>
+            <span>Default salary / 28 days</span>
             <input
               type="number"
               step="1"
@@ -69,15 +69,15 @@ export function SettingsPanel() {
           </label>
         </div>
         <p className={styles.hint}>
-          ეს მნიშვნელობები გამოიყენება მხოლოდ ახალი ჯგუფის შექმნისას — უკვე არსებული ჯგუფების
-          პარამეტრები არ იცვლება.
+          These values are only used when creating a new group — existing groups
+          are not affected.
         </p>
       </section>
 
       <section className={styles.card}>
-        <h2 className={styles.cardTitle}>ვალუტის ჩვენება</h2>
+        <h2 className={styles.cardTitle}>Currency display</h2>
         <label className={styles.field}>
-          <span>სავალუტო სიმბოლო</span>
+          <span>Currency symbol</span>
           <select
             value={settings.currencySymbol}
             onChange={(e) => updateSettings({ currencySymbol: e.target.value })}
@@ -90,47 +90,47 @@ export function SettingsPanel() {
           </select>
         </label>
         <p className={styles.hint}>
-          ეს მხოლოდ ჩვენების ფორმატს ცვლის — შენახული რიცხვითი მნიშვნელობები უცვლელი რჩება.
+          This only changes how amounts are displayed — the stored numeric values stay unchanged.
         </p>
       </section>
 
       <section className={styles.card}>
-        <h2 className={styles.cardTitle}>დადასტურება</h2>
+        <h2 className={styles.cardTitle}>Confirmation</h2>
         <label className={styles.toggleRow}>
           <input
             type="checkbox"
             checked={settings.confirmDestructiveActions}
             onChange={(e) => updateSettings({ confirmDestructiveActions: e.target.checked })}
           />
-          <span>დაადასტურე წაშლის მოქმედებები (ჯგუფი, პერიოდი, კლიენტი)</span>
+          <span>Confirm destructive actions (group, period, client)</span>
         </label>
       </section>
 
       <section className={styles.card}>
-        <h2 className={styles.cardTitle}>ბექაფი და აღდგენა</h2>
+        <h2 className={styles.cardTitle}>Backup & Restore</h2>
         <BackupPanel />
       </section>
 
       <section className={styles.card}>
-        <h2 className={styles.cardTitle}>აპლიკაციის ინფორმაცია</h2>
+        <h2 className={styles.cardTitle}>App info</h2>
         <div className={styles.infoGrid}>
-          <span>სახელი</span>
+          <span>Name</span>
           <span>{packageJson.name}</span>
-          <span>ვერსია</span>
+          <span>Version</span>
           <span>{packageJson.version}</span>
-          <span>მონაცემები</span>
+          <span>Data</span>
           <span>
-            {groupsCount} ჯგუფი · {periodsCount} პერიოდი · {rowsCount} კლიენტი
+            {groupsCount} groups · {periodsCount} periods · {rowsCount} clients
           </span>
         </div>
       </section>
 
       <section className={`${styles.card} ${styles.dangerCard}`}>
-        <h2 className={styles.cardTitle}>ყველა მონაცემის წაშლა</h2>
+        <h2 className={styles.cardTitle}>Delete all data</h2>
         <p className={styles.hint}>
-          ეს სამუდამოდ წაშლის ყველა ჯგუფს, პერიოდსა და კლიენტს ამ მოწყობილობაზე. ეს ქმედება
-          <b> შეუქცევადია</b>. დაწერე ზუსტად <code>{CLEAR_CONFIRM_PHRASE}</code>, რომ ღილაკი
-          გააქტიურდეს.
+          This permanently deletes every group, period, and client on this device.
+          This action is <b>irreversible</b>. Type <code>{CLEAR_CONFIRM_PHRASE}</code> exactly
+          to enable the button.
         </p>
         <div className={styles.clearRow}>
           <input
@@ -139,7 +139,7 @@ export function SettingsPanel() {
             value={clearConfirmText}
             onChange={(e) => setClearConfirmText(e.target.value)}
             placeholder={CLEAR_CONFIRM_PHRASE}
-            aria-label={`დაწერე "${CLEAR_CONFIRM_PHRASE}" წასაშლელად დასადასტურებლად`}
+            aria-label={`Type "${CLEAR_CONFIRM_PHRASE}" to confirm deletion`}
           />
           <button
             type="button"
@@ -147,10 +147,10 @@ export function SettingsPanel() {
             disabled={!canClear || clearing}
             onClick={handleClearAllData}
           >
-            {clearing ? "იშლება…" : "წაშალე ყველა მონაცემი"}
+            {clearing ? "Deleting…" : "Delete all data"}
           </button>
         </div>
-        {cleared && <div className={styles.clearedMessage}>ყველა მონაცემი წაიშალა.</div>}
+        {cleared && <div className={styles.clearedMessage}>All data deleted.</div>}
       </section>
     </div>
   );

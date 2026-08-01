@@ -22,25 +22,25 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     render(<App />);
 
     // Wait for initial load to finish.
-    expect(await screen.findByText("აირჩიე ჯგუფი ▾")).toBeInTheDocument();
+    expect(await screen.findByText("Select group ▾")).toBeInTheDocument();
 
     // 1. Create a group (long-press the group switcher to open its menu first).
     await openGroupMenu();
-    await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
     expect(await screen.findByRole("button", { name: /Test Group/ })).toBeInTheDocument();
 
     // 2. Create a period.
-    await user.click(screen.getByRole("button", { name: "+ ახალი პერიოდი" }));
-    expect(await screen.findByText("+ კლიენტი")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    expect(await screen.findByText("+ Client")).toBeInTheDocument();
 
     // 3. Add a client row.
-    await user.click(screen.getByRole("button", { name: "+ კლიენტი" }));
+    await user.click(screen.getByRole("button", { name: "+ Client" }));
 
     const table = screen.getByRole("table");
-    const customerInput = within(table).getByPlaceholderText("კლიენტის სახელი");
+    const customerInput = within(table).getByPlaceholderText("Client name");
     const grossInputs = within(table).getAllByPlaceholderText("0");
     const [grossInput, netInput] = grossInputs;
-    const cityInput = within(table).getByPlaceholderText("ქალაქი");
+    const cityInput = within(table).getByPlaceholderText("City");
 
     await user.type(customerInput, "Acme Corp");
     await user.type(grossInput, "1000");
@@ -78,7 +78,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
 
     // 6. Delete the row (confirm dialog must be accepted).
     vi.spyOn(window, "confirm").mockReturnValue(true);
-    await user.click(within(table).getByRole("button", { name: "წაშლა" }));
+    await user.click(within(table).getByRole("button", { name: "Delete" }));
 
     const rowsAfterDelete = await db.clientRows.toArray();
     expect(rowsAfterDelete).toHaveLength(0);
@@ -90,11 +90,11 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
 
     render(<App />);
 
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await openGroupMenu();
-    await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
-    await user.click(screen.getByRole("button", { name: "+ ახალი პერიოდი" }));
-    await user.click(screen.getByRole("button", { name: "+ კლიენტი" }));
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await user.click(screen.getByRole("button", { name: "+ Client" }));
 
     const table = screen.getByRole("table");
     const grossInput = within(table).getAllByPlaceholderText("0")[0];

@@ -6,17 +6,17 @@ import { resetAppForTest, openGroupMenu } from "../../test/resetAppForTest";
 
 async function setupOneClient(user: ReturnType<typeof userEvent.setup>) {
   await openGroupMenu();
-  await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
-  await screen.findByRole("button", { name: "+ ახალი პერიოდი" });
-  await user.click(screen.getByRole("button", { name: "+ ახალი პერიოდი" }));
-  await screen.findByRole("button", { name: "+ კლიენტი" });
-  await user.click(screen.getByRole("button", { name: "+ კლიენტი" }));
+  await user.click(screen.getByRole("button", { name: "+ Group" }));
+  await screen.findByRole("button", { name: "+ New period" });
+  await user.click(screen.getByRole("button", { name: "+ New period" }));
+  await screen.findByRole("button", { name: "+ Client" });
+  await user.click(screen.getByRole("button", { name: "+ Client" }));
 
   const table = screen.getByRole("table");
-  await user.type(within(table).getByPlaceholderText("კლიენტის სახელი"), "Acme Corp");
-  await user.type(within(table).getByPlaceholderText("ქალაქი"), "Tbilisi");
-  await user.click(within(table).getByRole("button", { name: /დამატება|შენიშვნა/ }));
-  await user.type(screen.getByPlaceholderText("პირადი შენიშვნა ამ კლიენტზე..."), "wants a discount");
+  await user.type(within(table).getByPlaceholderText("Client name"), "Acme Corp");
+  await user.type(within(table).getByPlaceholderText("City"), "Tbilisi");
+  await user.click(within(table).getByRole("button", { name: /Add note|Note/ }));
+  await user.type(screen.getByPlaceholderText("Private note for this client..."), "wants a discount");
 }
 
 describe("Review/Search module — matches the old app's search behavior", () => {
@@ -34,12 +34,12 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     vi.spyOn(window, "prompt").mockReturnValue("Search Group");
 
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await setupOneClient(user);
 
-    await user.click(screen.getByRole("tab", { name: "მიმოხილვა" }));
+    await user.click(screen.getByRole("tab", { name: "Review" }));
 
-    const searchInput = screen.getByPlaceholderText(/მოძებნე კლიენტი/);
+    const searchInput = screen.getByPlaceholderText(/Search client/);
     await user.type(searchInput, "acme"); // partial + lowercase
 
     expect(await screen.findByText("Corp")).toBeInTheDocument(); // highlighted remainder of "Acme Corp"
@@ -50,11 +50,11 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     vi.spyOn(window, "prompt").mockReturnValue("Search Group");
 
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await setupOneClient(user);
 
-    await user.click(screen.getByRole("tab", { name: "მიმოხილვა" }));
-    await user.type(screen.getByPlaceholderText(/მოძებნე კლიენტი/), "bilis");
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+    await user.type(screen.getByPlaceholderText(/Search client/), "bilis");
 
     expect(await screen.findByText("Acme Corp")).toBeInTheDocument();
   });
@@ -64,11 +64,11 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     vi.spyOn(window, "prompt").mockReturnValue("Search Group");
 
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await setupOneClient(user);
 
-    await user.click(screen.getByRole("tab", { name: "მიმოხილვა" }));
-    await user.type(screen.getByPlaceholderText(/მოძებნე კლიენტი/), "discount");
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+    await user.type(screen.getByPlaceholderText(/Search client/), "discount");
 
     expect(await screen.findByText("Acme Corp")).toBeInTheDocument();
   });
@@ -78,11 +78,11 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     vi.spyOn(window, "prompt").mockReturnValue("Search Group");
 
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await setupOneClient(user);
 
-    await user.click(screen.getByRole("tab", { name: "მიმოხილვა" }));
-    const searchInput = screen.getByPlaceholderText(/მოძებნე კლიენტი/);
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+    const searchInput = screen.getByPlaceholderText(/Search client/);
 
     await user.type(searchInput, "zzz-nomatch");
     expect(await screen.findByText("No results")).toBeInTheDocument();
@@ -98,11 +98,11 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     vi.spyOn(window, "confirm").mockReturnValue(true);
 
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await setupOneClient(user);
 
-    await user.click(screen.getByRole("tab", { name: "მიმოხილვა" }));
-    await user.type(screen.getByPlaceholderText(/მოძებნე კლიენტი/), "acme");
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+    await user.type(screen.getByPlaceholderText(/Search client/), "acme");
 
     const resultButton = (await screen.findByText("Corp")).closest("button")!;
     await user.click(resultButton);
@@ -117,10 +117,10 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     vi.spyOn(window, "prompt").mockReturnValue("Browse Group");
 
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await setupOneClient(user);
 
-    await user.click(screen.getByRole("tab", { name: "მიმოხილვა" }));
+    await user.click(screen.getByRole("tab", { name: "Review" }));
 
     // Group card starts collapsed; expand it. (The GroupSwitcher picker
     // button also contains the group name, so disambiguate via aria-expanded,

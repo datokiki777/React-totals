@@ -185,7 +185,7 @@ export function parseAnyBackupFormat(json: unknown): ParsedBackupResult {
     if (!revalidated.ok) {
       return {
         ok: false,
-        error: `ძველი ფაილის კონვერტაცია ვერ მოხერხდა: ${revalidated.error}`,
+        error: `Legacy file conversion failed: ${revalidated.error}`,
       };
     }
 

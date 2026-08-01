@@ -19,12 +19,12 @@ describe("Overview page — matches the old app's business logic", () => {
     vi.spyOn(window, "prompt").mockReturnValue("Overview Group");
 
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
 
     await openGroupMenu();
-    await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
-    await user.click(screen.getByRole("button", { name: "+ ახალი პერიოდი" }));
-    await user.click(screen.getByRole("button", { name: "+ კლიენტი" }));
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await user.click(screen.getByRole("button", { name: "+ Client" }));
 
     const overviewCard = screen.getByText("📊 Overview").closest("section")!;
 
@@ -67,24 +67,24 @@ describe("Overview page — matches the old app's business logic", () => {
     vi.spyOn(window, "prompt").mockReturnValue("Salary Group");
 
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await openGroupMenu();
-    await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
 
     // Set a default salary of 400/28days -> 100/week.
     const salaryInput = screen.getByLabelText("Default salary / 28d");
     await user.clear(salaryInput);
     await user.type(salaryInput, "400");
 
-    await user.click(screen.getByRole("button", { name: "+ ახალი პერიოდი" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
 
     // A 1-week period with paidWeeks = 0 -> full week of salary owed.
-    const fromInput = screen.getByLabelText("დან");
-    const toInput = screen.getByLabelText("მდე");
+    const fromInput = screen.getByLabelText("From");
+    const toInput = screen.getByLabelText("To");
     await user.type(fromInput, "2026-01-01");
     await user.type(toInput, "2026-01-07");
 
-    await user.click(screen.getByRole("button", { name: "+ კლიენტი" }));
+    await user.click(screen.getByRole("button", { name: "+ Client" }));
     const table = screen.getByRole("table");
     const grossInput = within(table).getAllByPlaceholderText("0")[0];
     await user.type(grossInput, "1000"); // unpaid = 1000 * 13.5% = 135

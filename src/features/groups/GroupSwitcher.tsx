@@ -59,14 +59,14 @@ export function GroupSwitcher() {
   }
 
   async function handleAddGroup() {
-    const name = window.prompt("ჯგუფის სახელი:");
+    const name = window.prompt("Group name:");
     if (name === null) return;
     await addGroup(name);
   }
 
   async function handleRename() {
     if (!activeGroup) return;
-    const name = window.prompt("ახალი სახელი:", activeGroup.name);
+    const name = window.prompt("New name:", activeGroup.name);
     if (name === null) return;
     await renameGroup(activeGroup.id, name);
   }
@@ -75,7 +75,7 @@ export function GroupSwitcher() {
     if (!activeGroup) return;
     if (
       confirmDestructive &&
-      !window.confirm(`წაიშალოს ჯგუფი "${activeGroup.name}" ყველა პერიოდით?`)
+      !window.confirm(`Delete group "${activeGroup.name}" and all its periods?`)
     ) {
       return;
     }
@@ -95,17 +95,17 @@ export function GroupSwitcher() {
         onClick={handleSwitcherClick}
         aria-haspopup="true"
         aria-expanded={menuOpen}
-        title="დაწკაპუნება: შემდეგი ჯგუფი · დიდხანს დაჭერა: მენიუ"
+        title="Tap: next group · Long-press: menu"
       >
         <span className={styles.switcherDot} aria-hidden="true" />
-        {activeGroup ? activeGroup.name : "აირჩიე ჯგუფი"} ▾
+        {activeGroup ? activeGroup.name : "Select group"} ▾
       </button>
 
       {menuOpen && (
         <div className={styles.menuPanel} role="menu">
           <div className={styles.row}>
             <button className={styles.btn} onClick={handleAddGroup} type="button">
-              + ჯგუფი
+              + Group
             </button>
             <button
               className={styles.btn}
@@ -113,7 +113,7 @@ export function GroupSwitcher() {
               type="button"
               disabled={!activeGroup}
             >
-              გადარქმევა
+              Rename
             </button>
             <button
               className={styles.btnDanger}
@@ -121,15 +121,15 @@ export function GroupSwitcher() {
               type="button"
               disabled={!activeGroup}
             >
-              წაშლა
+              Delete
             </button>
             <button
               className={styles.btn}
               onClick={() => activeGroup && toggleArchiveGroup(activeGroup.id)}
               type="button"
               disabled={!activeGroup}
-              title="არქივი / დაბრუნება"
-              aria-label="არქივი / დაბრუნება"
+              title="Archive / Restore"
+              aria-label="Archive / Restore"
             >
               📦
             </button>

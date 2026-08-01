@@ -7,10 +7,10 @@ import { GROUP_SWITCHER_LONG_PRESS_MS } from "./GroupSwitcher";
 
 async function addGroupViaMenu(user: ReturnType<typeof userEvent.setup>, name: string) {
   vi.spyOn(window, "prompt").mockReturnValueOnce(name);
-  if (!screen.queryByRole("button", { name: "+ ჯგუფი" })) {
+  if (!screen.queryByRole("button", { name: "+ Group" })) {
     await openGroupMenu();
   }
-  await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
+  await user.click(screen.getByRole("button", { name: "+ Group" }));
   await screen.findByTestId("group-switcher-btn");
 }
 
@@ -27,7 +27,7 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
   it("a short tap cycles to the next group, wrapping back to the first", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
 
     await addGroupViaMenu(user, "Group One");
     await addGroupViaMenu(user, "Group Two");
@@ -50,26 +50,26 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
   it("a short tap does nothing when there are no groups yet", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
 
     const switcherBtn = screen.getByTestId("group-switcher-btn");
     await user.click(switcherBtn);
-    expect(switcherBtn).toHaveTextContent("აირჩიე ჯგუფი");
+    expect(switcherBtn).toHaveTextContent("Select group");
   });
 
   it("long-pressing opens a management menu with group actions and default-rate/salary fields", async () => {
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
 
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
 
     await openGroupMenu();
 
     const menu = screen.getByRole("menu");
-    expect(screen.getByRole("button", { name: "+ ჯგუფი" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "გადარქმევა" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "წაშლა" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "არქივი / დაბრუნება" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "+ Group" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Rename" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Archive / Restore" })).toBeInTheDocument();
     expect(screen.getByLabelText("Default %")).toBeInTheDocument();
     expect(screen.getByLabelText("Default salary / 28d")).toBeInTheDocument();
     expect(menu).toBeInTheDocument();
@@ -77,7 +77,7 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
 
   it("long-pressing again closes the menu", async () => {
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
 
     await openGroupMenu();
     expect(screen.getByRole("menu")).toBeInTheDocument();
@@ -88,7 +88,7 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
 
   it("releasing before the long-press threshold does NOT open the menu (it's a real long-press, not just any hold)", async () => {
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
 
     const switcherBtn = screen.getByTestId("group-switcher-btn");
     await act(async () => {
@@ -103,7 +103,7 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
   it("releasing a long-press does not also trigger the tap-to-cycle action", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
 
     await addGroupViaMenu(user, "Only Group");
     // The menu is left open by addGroupViaMenu's long-press; close it with
@@ -119,14 +119,39 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
   it("the menu's actions (rename) still work exactly as before, just inside the collapsible panel", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
 
     await addGroupViaMenu(user, "Original Name");
 
     vi.spyOn(window, "prompt").mockReturnValueOnce("Renamed Group");
-    await user.click(screen.getByRole("button", { name: "გადარქმევა" }));
+    await user.click(screen.getByRole("button", { name: "Rename" }));
 
     const switcherBtn = await screen.findByTestId("group-switcher-btn");
     expect(switcherBtn).toHaveTextContent("Renamed Group");
+  });
+
+  it("switching Active <-> Archive restores the group last selected on that tab (instead of showing zeros)", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText("Select group ▾");
+
+    await addGroupViaMenu(user, "Active One");
+    const switcherBtn = screen.getByTestId("group-switcher-btn");
+    expect(switcherBtn).toHaveTextContent("Active One");
+
+    // Archive it, then create a brand new active group.
+    await user.click(screen.getByRole("button", { name: "Archive / Restore" }));
+    await user.click(screen.getByRole("tab", { name: "Active" }));
+    await addGroupViaMenu(user, "Active Two");
+    expect(switcherBtn).toHaveTextContent("Active Two");
+
+    // Switch to Archive: must land on "Active One" (now archived), not on
+    // whatever was active before, and not show a blank/zeroed selection.
+    await user.click(screen.getByRole("tab", { name: "Archive" }));
+    expect(switcherBtn).toHaveTextContent("Active One");
+
+    // Switch back to Active: must restore "Active Two" automatically.
+    await user.click(screen.getByRole("tab", { name: "Active" }));
+    expect(switcherBtn).toHaveTextContent("Active Two");
   });
 });

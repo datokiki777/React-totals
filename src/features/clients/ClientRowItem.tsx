@@ -27,7 +27,7 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
     if (
       confirmDestructive &&
       (row.customer || row.gross || row.net || row.city || row.comment) &&
-      !window.confirm(`წაიშალოს კლიენტი "${row.customer || "უსახელო"}"?`)
+      !window.confirm(`Delete client "${row.customer || "Unnamed"}"?`)
     ) {
       return;
     }
@@ -43,11 +43,11 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           .join(" ") || undefined
       }
     >
-      <td data-label="კლიენტი">
+      <td data-label="Client">
         <input
           className={styles.input}
           value={row.customer}
-          placeholder="კლიენტის სახელი"
+          placeholder="Client name"
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="words"
@@ -59,14 +59,14 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           type="button"
           onClick={() => setCommentOpen((v) => !v)}
         >
-          ✎ {row.comment ? "შენიშვნა" : "დამატება"}
+          ✎ {row.comment ? "Note" : "Add note"}
         </button>
         {commentOpen && (
           <textarea
             className={styles.commentInput}
             rows={2}
             maxLength={1000}
-            placeholder="პირადი შენიშვნა ამ კლიენტზე..."
+            placeholder="Private note for this client..."
             value={row.comment}
             onChange={(e) => updateRow(row.id, { comment: e.target.value })}
           />
@@ -100,11 +100,11 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           onChange={(e) => updateRow(row.id, { net: e.target.value })}
         />
       </td>
-      <td data-label="ქალაქი">
+      <td data-label="City">
         <input
           className={styles.input}
           value={row.city}
-          placeholder="ქალაქი"
+          placeholder="City"
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="words"
@@ -112,7 +112,7 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           onChange={(e) => updateRow(row.id, { city: e.target.value })}
         />
       </td>
-      <td data-label="სტატუსი">
+      <td data-label="Status">
         <button
           className={styles[`status_${row.status}`]}
           type="button"
@@ -123,7 +123,7 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
       </td>
       <td data-label="">
         <button className={styles.removeBtn} type="button" onClick={handleRemove}>
-          წაშლა
+          Delete
         </button>
       </td>
     </tr>

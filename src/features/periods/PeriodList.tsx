@@ -14,13 +14,13 @@ export function PeriodList() {
   );
 
   if (!activeGroupId) {
-    return <div className={styles.placeholder}>აირჩიე ან შექმენი ჯგუფი, რომ დაამატო პერიოდი.</div>;
+    return <div className={styles.placeholder}>Select or create a group to add a period.</div>;
   }
 
   return (
     <div className={styles.list}>
       {periods.length === 0 && (
-        <div className={styles.placeholder}>ამ ჯგუფში პერიოდები არ არის.</div>
+        <div className={styles.placeholder}>This group has no periods yet.</div>
       )}
       {periods.map((p) => (
         <PeriodCard key={p.id} periodId={p.id} />
@@ -30,7 +30,7 @@ export function PeriodList() {
         type="button"
         onClick={() => addPeriod(activeGroupId)}
       >
-        + ახალი პერიოდი
+        + New period
       </button>
     </div>
   );

@@ -6,8 +6,8 @@ import { db } from "../../db/database";
 import { resetAppForTest, openGroupMenu } from "../../test/resetAppForTest";
 
 async function openSettings(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole("tab", { name: /პარამეტრები/ }));
-  await screen.findByRole("heading", { name: "ყველა მონაცემის წაშლა" });
+  await user.click(screen.getByRole("tab", { name: /Settings/ }));
+  await screen.findByRole("heading", { name: "Delete all data" });
 }
 
 describe("Settings — defaults, currency display, destructive-action confirmation, clear data", () => {
@@ -23,14 +23,14 @@ describe("Settings — defaults, currency display, destructive-action confirmati
   it("uses the configured default rate/salary for newly created groups", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await openSettings(user);
 
-    const rateInput = screen.getByLabelText("ნაგულისხმევი საკომისიო %");
+    const rateInput = screen.getByLabelText("Default rate %");
     await user.clear(rateInput);
     await user.type(rateInput, "22.5");
 
-    const salaryInput = screen.getByLabelText("ნაგულისხმევი ხელფასი / 28დღე");
+    const salaryInput = screen.getByLabelText("Default salary / 28 days");
     await user.clear(salaryInput);
     await user.type(salaryInput, "500");
 
@@ -41,10 +41,10 @@ describe("Settings — defaults, currency display, destructive-action confirmati
     });
 
     // Go back to Edit and create a group — it should pick up the new defaults.
-    await user.click(screen.getByRole("tab", { name: "რედაქტირება" }));
+    await user.click(screen.getByRole("tab", { name: "Edit" }));
     vi.spyOn(window, "prompt").mockReturnValue("New Defaults Group");
     await openGroupMenu();
-    await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
 
     await waitFor(async () => {
       const groups = await db.groups.toArray();
@@ -59,19 +59,19 @@ describe("Settings — defaults, currency display, destructive-action confirmati
     vi.spyOn(window, "prompt").mockReturnValue("Currency Group");
 
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await openGroupMenu();
-    await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
-    await screen.findByRole("button", { name: "+ ახალი პერიოდი" });
-    await user.click(screen.getByRole("button", { name: "+ ახალი პერიოდი" }));
-    await screen.findByRole("button", { name: "+ კლიენტი" });
-    await user.click(screen.getByRole("button", { name: "+ კლიენტი" }));
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await screen.findByRole("button", { name: "+ New period" });
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await screen.findByRole("button", { name: "+ Client" });
+    await user.click(screen.getByRole("button", { name: "+ Client" }));
 
     const table = screen.getByRole("table");
     await user.type(within(table).getAllByPlaceholderText("0")[0], "1234.56");
 
     await openSettings(user);
-    const currencySelect = screen.getByLabelText("სავალუტო სიმბოლო");
+    const currencySelect = screen.getByLabelText("Currency symbol");
     await user.selectOptions(currencySelect, "$");
 
     await waitFor(async () => {
@@ -80,7 +80,7 @@ describe("Settings — defaults, currency display, destructive-action confirmati
     });
 
     // The Overview KPI should now show the new symbol as a prefix.
-    await user.click(screen.getByRole("tab", { name: "რედაქტირება" }));
+    await user.click(screen.getByRole("tab", { name: "Edit" }));
     await waitFor(() => {
       expect(screen.getByText("$1234.56")).toBeInTheDocument();
     });
@@ -96,16 +96,16 @@ describe("Settings — defaults, currency display, destructive-action confirmati
     const confirmSpy = vi.spyOn(window, "confirm");
 
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await openGroupMenu();
-    await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
     await screen.findByRole("button", { name: /Group To Delete/ });
 
     await openSettings(user);
-    await user.click(screen.getByLabelText(/დაადასტურე წაშლის მოქმედებები/));
+    await user.click(screen.getByLabelText(/Confirm destructive actions/));
 
-    await user.click(screen.getByRole("tab", { name: "რედაქტირება" }));
-    await user.click(screen.getByRole("button", { name: "წაშლა" }));
+    await user.click(screen.getByRole("tab", { name: "Edit" }));
+    await user.click(screen.getByRole("button", { name: "Delete" }));
 
     expect(confirmSpy).not.toHaveBeenCalled();
     await waitFor(async () => {
@@ -119,12 +119,12 @@ describe("Settings — defaults, currency display, destructive-action confirmati
     vi.spyOn(window, "confirm").mockReturnValue(false); // decline
 
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await openGroupMenu();
-    await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
     await screen.findByRole("button", { name: /Group Kept/ });
 
-    await user.click(screen.getByRole("button", { name: "წაშლა" }));
+    await user.click(screen.getByRole("button", { name: "Delete" }));
 
     expect(window.confirm).toHaveBeenCalled();
     expect(await db.groups.count()).toBe(1); // declined -> still there
@@ -135,21 +135,21 @@ describe("Settings — defaults, currency display, destructive-action confirmati
     vi.spyOn(window, "prompt").mockReturnValue("Group X");
 
     render(<App />);
-    await screen.findByText("აირჩიე ჯგუფი ▾");
+    await screen.findByText("Select group ▾");
     await openGroupMenu();
-    await user.click(screen.getByRole("button", { name: "+ ჯგუფი" }));
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
     await screen.findByRole("button", { name: /Group X/ });
 
     await openSettings(user);
-    const clearBtn = screen.getByRole("button", { name: "წაშალე ყველა მონაცემი" });
+    const clearBtn = screen.getByRole("button", { name: "Delete all data" });
     expect(clearBtn).toBeDisabled();
 
-    const confirmInput = screen.getByPlaceholderText("წაშალე");
+    const confirmInput = screen.getByPlaceholderText("DELETE");
     await user.type(confirmInput, "wrong phrase");
     expect(clearBtn).toBeDisabled();
 
     await user.clear(confirmInput);
-    await user.type(confirmInput, "წაშალე");
+    await user.type(confirmInput, "DELETE");
     expect(clearBtn).toBeEnabled();
 
     await user.click(clearBtn);
@@ -157,6 +157,6 @@ describe("Settings — defaults, currency display, destructive-action confirmati
     await waitFor(async () => {
       expect(await db.groups.count()).toBe(0);
     });
-    expect(screen.getByText("ყველა მონაცემი წაიშალა.")).toBeInTheDocument();
+    expect(screen.getByText("All data deleted.")).toBeInTheDocument();
   });
 });

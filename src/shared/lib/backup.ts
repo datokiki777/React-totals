@@ -94,7 +94,7 @@ function validateRow(raw: unknown, index: number, periodIds: Set<string>): strin
  */
 export function validateBackupPayload(json: unknown): ValidationResult {
   if (typeof json !== "object" || json === null) {
-    return { ok: false, error: "ფაილი არ არის სწორი JSON ობიექტი." };
+    return { ok: false, error: "File is not a valid JSON object." };
   }
 
   const obj = json as Record<string, unknown>;
@@ -102,7 +102,7 @@ export function validateBackupPayload(json: unknown): ValidationResult {
   if (!Array.isArray(obj.groups) || !Array.isArray(obj.periods) || !Array.isArray(obj.clientRows)) {
     return {
       ok: false,
-      error: "ბექაფის ფორმატი არასწორია — 'groups', 'periods' და 'clientRows' მასივები აუცილებელია.",
+      error: "Invalid backup format — 'groups', 'periods', and 'clientRows' arrays are required.",
     };
   }
 

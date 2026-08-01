@@ -20,17 +20,17 @@ export function UpdatePrompt() {
   if (needRefresh) {
     return (
       <div className={styles.banner} role="status">
-        <span>🔄 ახალი ვერსია ხელმისაწვდომია.</span>
+        <span>🔄 A new version is available.</span>
         <div className={styles.actions}>
           <button
             type="button"
             className={styles.primary}
             onClick={() => updateServiceWorker(true)}
           >
-            განახლება
+            Update
           </button>
           <button type="button" className={styles.dismiss} onClick={() => setNeedRefresh(false)}>
-            მოგვიანებით
+            Later
           </button>
         </div>
       </div>
@@ -40,9 +40,9 @@ export function UpdatePrompt() {
   if (offlineReady) {
     return (
       <div className={styles.banner} role="status">
-        <span>✅ აპლიკაცია მზადაა ოფლაინ რეჟიმისთვის.</span>
+        <span>✅ App is ready for offline use.</span>
         <button type="button" className={styles.dismiss} onClick={() => setOfflineReady(false)}>
-          გასაგებია
+          Got it
         </button>
       </div>
     );

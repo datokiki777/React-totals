@@ -188,7 +188,7 @@ export function OverviewSection() {
             <button
               disabled={!canGoPrev}
               onClick={() => setMonthIndex((i) => (i !== null ? i - 1 : i))}
-              aria-label="წინა თვე"
+              aria-label="Previous month"
             >
               ‹
             </button>
@@ -196,7 +196,7 @@ export function OverviewSection() {
             <button
               disabled={!canGoNext}
               onClick={() => setMonthIndex((i) => (i !== null ? i + 1 : i))}
-              aria-label="შემდეგი თვე"
+              aria-label="Next month"
             >
               ›
             </button>

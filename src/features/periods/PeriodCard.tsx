@@ -26,14 +26,14 @@ export function PeriodCard({ periodId }: { periodId: string }) {
   const totals = computePeriodTotals(period, rows, group.defaultRate);
 
   function handleRemovePeriod() {
-    if (confirmDestructive && !window.confirm("წაიშალოს ეს პერიოდი ყველა კლიენტით?")) return;
+    if (confirmDestructive && !window.confirm("Delete this period and all its clients?")) return;
     removePeriod(periodId);
   }
 
   return (
     <section className={styles.card}>
       <button className={styles.collapseBtn} type="button" onClick={() => setCollapsed((v) => !v)}>
-        <span>პერიოდი</span>
+        <span>Period</span>
         <span className={styles.meta}>
           {period.fromDate || "—"} → {period.toDate || "—"}
         </span>
@@ -44,7 +44,7 @@ export function PeriodCard({ periodId }: { periodId: string }) {
         <>
           <div className={styles.head}>
             <label className={styles.field}>
-              <span>დან</span>
+              <span>From</span>
               <input
                 type="date"
                 value={period.fromDate ?? ""}
@@ -52,7 +52,7 @@ export function PeriodCard({ periodId }: { periodId: string }) {
               />
             </label>
             <label className={styles.field}>
-              <span>მდე</span>
+              <span>To</span>
               <input
                 type="date"
                 value={period.toDate ?? ""}
@@ -60,7 +60,7 @@ export function PeriodCard({ periodId }: { periodId: string }) {
               />
             </label>
             <label className={styles.field}>
-              <span>ანაზღ. კვირები</span>
+              <span>Paid weeks</span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -74,10 +74,10 @@ export function PeriodCard({ periodId }: { periodId: string }) {
             </label>
             <div className={styles.actions}>
               <button className={styles.btnPrimary} type="button" onClick={() => addClientRow(period.id)}>
-                + კლიენტი
+                + Client
               </button>
               <button className={styles.btnDanger} type="button" onClick={handleRemovePeriod}>
-                პერიოდის წაშლა
+                Delete period
               </button>
             </div>
           </div>
@@ -86,11 +86,11 @@ export function PeriodCard({ periodId }: { periodId: string }) {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>კლიენტი</th>
+                  <th>Client</th>
                   <th>Gross</th>
                   <th>Net</th>
-                  <th>ქალაქი</th>
-                  <th>სტატუსი</th>
+                  <th>City</th>
+                  <th>Status</th>
                   <th></th>
                 </tr>
               </thead>
@@ -101,7 +101,7 @@ export function PeriodCard({ periodId }: { periodId: string }) {
               </tbody>
               <tfoot>
                 <tr>
-                  <td className={styles.totalLabel}>ჯამი</td>
+                  <td className={styles.totalLabel}>Total</td>
                   <td data-testid="period-total-gross">{formatMoney(totals.gross)}</td>
                   <td data-testid="period-total-net">{formatMoney(totals.net)}</td>
                   <td colSpan={3}>

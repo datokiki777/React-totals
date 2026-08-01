@@ -25,7 +25,7 @@ function App() {
   if (!loaded) {
     return (
       <div className={styles.splash} role="status" aria-live="polite">
-        იტვირთება…
+        Loading…
       </div>
     );
   }
@@ -34,14 +34,14 @@ function App() {
     return (
       <div className={styles.splash}>
         <div className={styles.errorBox} role="alert">
-          <div className={styles.errorTitle}>⚠️ ლოკალური მონაცემების ჩატვირთვა ვერ მოხერხდა</div>
+          <div className={styles.errorTitle}>⚠️ Failed to load local data</div>
           <div className={styles.errorText}>{initError}</div>
           <div className={styles.errorHint}>
-            სცადე გვერდის განახლება. თუ ეს არ დაეხმარა, IndexedDB შესაძლოა
-            ბრაუზერის მიერ დაბლოკილია (მაგ. პრივატული რეჟიმი).
+            Try refreshing the page. If that doesn't help, IndexedDB might be
+            blocked by your browser (e.g. private mode).
           </div>
           <button className={styles.errorRetry} onClick={() => init()} type="button">
-            ხელახლა ცდა
+            Retry
           </button>
         </div>
       </div>
@@ -57,19 +57,19 @@ function App() {
             onClick={() => setMode("settings")}
             role="tab"
             aria-selected={mode === "settings"}
-            aria-label="პარამეტრები"
+            aria-label="Settings"
             type="button"
           >
             ⚙️
           </button>
-          <div className={styles.workspaceSwitch} role="tablist" aria-label="სამუშაო სივრცე">
+          <div className={styles.workspaceSwitch} role="tablist" aria-label="Workspace">
             <button
               className={workspace === "active" ? styles.tabActive : styles.tab}
               onClick={() => setWorkspace("active")}
               role="tab"
               aria-selected={workspace === "active"}
             >
-              აქტიური
+              Active
             </button>
             <button
               className={workspace === "archive" ? styles.tabActive : styles.tab}
@@ -77,19 +77,19 @@ function App() {
               role="tab"
               aria-selected={workspace === "archive"}
             >
-              არქივი
+              Archive
             </button>
           </div>
         </div>
         <div className={styles.topRow}>
-          <div className={styles.modeSwitchCompact} role="tablist" aria-label="რეჟიმი">
+          <div className={styles.modeSwitchCompact} role="tablist" aria-label="Mode">
             <button
               className={mode === "edit" ? styles.tabActive : styles.tab}
               onClick={() => setMode("edit")}
               role="tab"
               aria-selected={mode === "edit"}
             >
-              რედაქტირება
+              Edit
             </button>
             <button
               className={mode === "review" ? styles.tabActive : styles.tab}
@@ -97,7 +97,7 @@ function App() {
               role="tab"
               aria-selected={mode === "review"}
             >
-              მიმოხილვა
+              Review
             </button>
           </div>
           <div className={styles.groupSwitcherSlot}>
@@ -125,7 +125,7 @@ function App() {
       </main>
 
       <footer className={styles.footer}>
-        მონაცემები ინახება ამ მოწყობილობაზე (IndexedDB). ბექაფი/აღდგენა — პარამეტრების ჩანართში.
+        Data is stored on this device (IndexedDB). Backup/restore is under the Settings tab.
       </footer>
 
       <UpdatePrompt />
