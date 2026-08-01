@@ -148,13 +148,13 @@
 
 .main {
   flex: 1;
-  max-width: 900px;
+  max-width: 1744px;
   width: 100%;
   margin: 0 auto;
-  padding: var(--space-5);
+  padding: 20px 44px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-6);
 }
 
 .reviewPlaceholder {
@@ -170,4 +170,42 @@
   padding: var(--space-4);
   color: var(--text-faint);
   font-size: var(--font-xs);
+}
+
+@media (min-width: 769px) {
+  .topbar {
+    padding: 10px 20px 24px;
+    gap: 10px;
+  }
+
+  .topRow {
+    min-height: 42px;
+    justify-content: center;
+    position: relative;
+  }
+
+  .topRow:first-child .settingsBtn,
+  .topRow:first-child .settingsBtnActive {
+    position: absolute;
+    right: 0;
+  }
+
+  .workspaceSwitch {
+    flex: 0 1 468px;
+  }
+
+  .topRow:nth-child(2) .modeSwitchCompact {
+    position: absolute;
+    left: 0;
+  }
+
+  .groupSwitcherSlot {
+    flex: 0 1 210px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: var(--space-5);
+  }
 }
