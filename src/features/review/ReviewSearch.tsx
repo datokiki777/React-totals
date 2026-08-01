@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "../../app/store";
 import { buildSearchIndex, searchIndex, highlightParts, type SearchIndexItem } from "../../shared/lib/search";
+import { useOpenClientInEdit } from "../navigation/useOpenClientInEdit";
 import styles from "./ReviewSearch.module.css";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -28,11 +29,7 @@ export function ReviewSearch() {
   const groups = useAppStore((s) => s.groups);
   const periods = useAppStore((s) => s.periods);
   const clientRows = useAppStore((s) => s.clientRows);
-  const setMode = useAppStore((s) => s.setMode);
-  const setWorkspace = useAppStore((s) => s.setWorkspace);
-  const setActiveGroup = useAppStore((s) => s.setActiveGroup);
-  const highlightRow = useAppStore((s) => s.highlightRow);
-  const requestExpandPeriod = useAppStore((s) => s.requestExpandPeriod);
+  const openClientInEdit = useOpenClientInEdit();
 
   const index = useMemo(() => buildSearchIndex(groups, periods, clientRows), [groups, periods, clientRows]);
   const results = useMemo(() => searchIndex(index, query), [index, query]);
@@ -54,20 +51,13 @@ export function ReviewSearch() {
 
   function handleOpenInEdit(item: SearchIndexItem) {
     if (!window.confirm("Open this client in Edit mode?")) return;
-
     setQuery("");
-    setWorkspace(item.groupArchived ? "archive" : "active");
-    setActiveGroup(item.groupId);
-    requestExpandPeriod(item.periodId);
-    setMode("edit");
-
-    // Give the edit view a moment to render the target group/period before
-    // scrolling to and highlighting the row.
-    setTimeout(() => {
-      const rowEl = document.querySelector(`tr[data-row-id="${item.rowId}"]`);
-      rowEl?.scrollIntoView({ behavior: "smooth", block: "center" });
-      highlightRow(item.rowId);
-    }, 80);
+    openClientInEdit({
+      rowId: item.rowId,
+      periodId: item.periodId,
+      groupId: item.groupId,
+      groupArchived: item.groupArchived,
+    });
   }
 
   return (

@@ -10,6 +10,7 @@ import {
   calcCoveredWeeks,
   formatMonthKey,
   formatDateForRange,
+  formatPeriodDate,
   weeksBetweenRounded,
 } from "./dates";
 import type { Period } from "../types/domain";
@@ -155,5 +156,19 @@ describe("formatMonthKey / formatDateForRange", () => {
 
   it("formats a date as DD/MM/YYYY", () => {
     expect(formatDateForRange(new Date(2026, 2, 5))).toBe("05/03/2026");
+  });
+});
+
+describe("formatPeriodDate", () => {
+  it("formats a stored ISO date string as DD/MM/YYYY", () => {
+    expect(formatPeriodDate("2026-01-31")).toBe("31/01/2026");
+    expect(formatPeriodDate("2026-03-05")).toBe("05/03/2026");
+  });
+
+  it("returns '—' for null, undefined, or an empty/unparsable string", () => {
+    expect(formatPeriodDate(null)).toBe("—");
+    expect(formatPeriodDate(undefined)).toBe("—");
+    expect(formatPeriodDate("")).toBe("—");
+    expect(formatPeriodDate("not-a-date")).toBe("—");
   });
 });

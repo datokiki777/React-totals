@@ -1,6 +1,7 @@
 import type { ClientRow, Group, Period } from "../types/domain";
 import { parseMoney } from "./money";
 import { computeGroupFinancials, computeStatusCounts } from "./calc";
+import { formatPeriodDate } from "./dates";
 
 export interface ExcelRow {
   Group: string;
@@ -57,8 +58,8 @@ export function buildExcelRows(groups: Group[], periods: Period[], clientRows: C
           Archived: group.archived ? "yes" : "no",
           DefaultRatePercent: group.defaultRate,
           DefaultSalaryPer28Days: group.defaultSalary,
-          From: period.fromDate ?? "",
-          To: period.toDate ?? "",
+          From: formatPeriodDate(period.fromDate),
+          To: formatPeriodDate(period.toDate),
           PaidWeeks: period.paidWeeks ?? 0,
           Client: row.customer,
           City: row.city,

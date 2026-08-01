@@ -7,6 +7,7 @@ import {
   formatMoney,
 } from "../../shared/lib/calc";
 import { parseMoney } from "../../shared/lib/money";
+import { formatPeriodDate } from "../../shared/lib/dates";
 import type { ClientRow, Group, Period } from "../../shared/types/domain";
 import styles from "./ReviewList.module.css";
 
@@ -178,7 +179,7 @@ function ReviewPeriodCard({
       <summary className={styles.periodSummary}>
         <div className={styles.periodMeta}>
           <div className={styles.periodRange}>
-            {period.fromDate || "—"} → {period.toDate || "—"}
+            {formatPeriodDate(period.fromDate)} → {formatPeriodDate(period.toDate)}
           </div>
           <div className={styles.periodMini}>{rows.length} clients</div>
         </div>

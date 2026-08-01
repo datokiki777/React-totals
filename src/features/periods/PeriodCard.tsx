@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "../../app/store";
 import { computePeriodTotals, formatMoney } from "../../shared/lib/calc";
+import { formatPeriodDate } from "../../shared/lib/dates";
 import { ClientRowItem } from "../clients/ClientRowItem";
 import styles from "./PeriodCard.module.css";
 
@@ -49,7 +50,7 @@ export function PeriodCard({ periodId }: { periodId: string }) {
       <button className={styles.collapseBtn} type="button" onClick={() => setCollapsed((v) => !v)}>
         <span>Period</span>
         <span className={styles.meta}>
-          {period.fromDate || "—"} → {period.toDate || "—"}
+          {formatPeriodDate(period.fromDate)} → {formatPeriodDate(period.toDate)}
         </span>
         <span>{collapsed ? "▸" : "▾"}</span>
       </button>

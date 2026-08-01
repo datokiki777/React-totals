@@ -1,6 +1,7 @@
 import type { ClientRow, DoneStatus, Group, Period } from "../types/domain";
 import { parseMoney } from "./money";
 import { formatMoney } from "./calc";
+import { formatPeriodDate } from "./dates";
 
 export interface SearchIndexItem {
   groupId: string;
@@ -48,8 +49,8 @@ export function buildSearchIndex(
       rowId: row.id,
       groupName: group.name,
       groupArchived: group.archived,
-      from: period.fromDate ?? "—",
-      to: period.toDate ?? "—",
+      from: formatPeriodDate(period.fromDate),
+      to: formatPeriodDate(period.toDate),
       customer,
       city,
       comment,

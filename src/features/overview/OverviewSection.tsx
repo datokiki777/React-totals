@@ -11,12 +11,22 @@ import { formatCurrency } from "../../shared/lib/money";
 import {
   formatDateForRange,
   formatMonthKey,
+  formatPeriodDate,
   getAllMonthKeys,
   getDurationMonthsDays,
   getPeriodsDateRange,
 } from "../../shared/lib/dates";
-import type { Group } from "../../shared/types/domain";
+import { useOpenClientInEdit } from "../navigation/useOpenClientInEdit";
+import type { DoneStatus, Group } from "../../shared/types/domain";
 import styles from "./OverviewSection.module.css";
+
+const STATUS_LABEL: Record<DoneStatus, string> = {
+  none: "—",
+  done: "Done",
+  fail: "Fail",
+  fixed: "Fixed",
+  wrong: "Wrong",
+};
 
 export function OverviewSection() {
   const workspace = useAppStore((s) => s.workspace);
@@ -102,6 +112,41 @@ export function OverviewSection() {
 
   const [collapsed, setCollapsed] = useState(false);
 
+  // --- Clicking a Done/Fail/Fixed/Wrong badge drills down into the
+  // matching clients, scrollable, click-through to Edit mode. ---
+  const [statusFilter, setStatusFilter] = useState<DoneStatus | null>(null);
+  const periodById = useMemo(() => new Map(scopedPeriods.map((p) => [p.id, p])), [scopedPeriods]);
+  const groupById = useMemo(() => new Map(scopedGroups.map((g) => [g.id, g])), [scopedGroups]);
+  const openClientInEdit = useOpenClientInEdit();
+
+  const filteredRows = useMemo(() => {
+    if (!statusFilter) return [];
+    return scopedRows.filter((r) => r.status === statusFilter);
+  }, [scopedRows, statusFilter]);
+
+  function toggleStatusFilter(status: DoneStatus) {
+    setStatusFilter((prev) => (prev === status ? null : status));
+  }
+
+  useEffect(() => {
+    setStatusFilter(null);
+  }, [scope, workspace, activeGroupId]);
+
+  function handleClientClick(rowId: string) {
+    const row = scopedRows.find((r) => r.id === rowId);
+    if (!row) return;
+    const period = periodById.get(row.periodId);
+    if (!period) return;
+    const group = groupById.get(period.groupId);
+    if (!group) return;
+    openClientInEdit({
+      rowId: row.id,
+      periodId: period.id,
+      groupId: group.id,
+      groupArchived: group.archived,
+    });
+  }
+
   return (
     <section className={styles.card}>
       <div className={styles.head}>
@@ -161,12 +206,66 @@ export function OverviewSection() {
       <div className={styles.statusRow}>
         <span>Done / Fail / Fixed / Wrong</span>
         <div className={styles.badges}>
-          <span className={styles.badgeDone}>{statusCounts.done}</span>
-          <span className={styles.badgeFail}>{statusCounts.fail}</span>
-          <span className={styles.badgeFixed}>{statusCounts.fixed}</span>
-          <span className={styles.badgeWrong}>{statusCounts.wrong}</span>
+          <button
+            type="button"
+            className={statusFilter === "done" ? styles.badgeDoneActive : styles.badgeDone}
+            onClick={() => toggleStatusFilter("done")}
+            aria-pressed={statusFilter === "done"}
+          >
+            {statusCounts.done}
+          </button>
+          <button
+            type="button"
+            className={statusFilter === "fail" ? styles.badgeFailActive : styles.badgeFail}
+            onClick={() => toggleStatusFilter("fail")}
+            aria-pressed={statusFilter === "fail"}
+          >
+            {statusCounts.fail}
+          </button>
+          <button
+            type="button"
+            className={statusFilter === "fixed" ? styles.badgeFixedActive : styles.badgeFixed}
+            onClick={() => toggleStatusFilter("fixed")}
+            aria-pressed={statusFilter === "fixed"}
+          >
+            {statusCounts.fixed}
+          </button>
+          <button
+            type="button"
+            className={statusFilter === "wrong" ? styles.badgeWrongActive : styles.badgeWrong}
+            onClick={() => toggleStatusFilter("wrong")}
+            aria-pressed={statusFilter === "wrong"}
+          >
+            {statusCounts.wrong}
+          </button>
         </div>
       </div>
+
+      {statusFilter && (
+        <div className={styles.filteredList} role="list" aria-label={`${STATUS_LABEL[statusFilter]} clients`}>
+          {filteredRows.length === 0 && (
+            <div className={styles.filteredEmpty}>No {STATUS_LABEL[statusFilter]} clients.</div>
+          )}
+          {filteredRows.map((row) => {
+            const period = periodById.get(row.periodId);
+            const group = period ? groupById.get(period.groupId) : undefined;
+            return (
+              <button
+                key={row.id}
+                type="button"
+                role="listitem"
+                className={styles.filteredItem}
+                onClick={() => handleClientClick(row.id)}
+              >
+                <span className={styles.filteredName}>{row.customer.trim() || "Client"}</span>
+                <span className={styles.filteredMeta}>
+                  {group?.name ?? "—"} · {period ? `${formatPeriodDate(period.fromDate)} → ${formatPeriodDate(period.toDate)}` : "—"}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <div className={styles.dateBox}>
         <div className={styles.dateRow}>

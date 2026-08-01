@@ -122,6 +122,18 @@ export function formatDateForRange(date: Date | null): string {
   return `${d}/${m}/${y}`;
 }
 
+/**
+ * Formats a stored ISO date string (as produced by <input type="date">,
+ * e.g. "2026-01-31") for display as DD/MM/YYYY. Returns "—" for missing or
+ * unparsable dates. This is the single source of truth for date display
+ * everywhere in the app — the underlying stored/input value stays ISO.
+ */
+export function formatPeriodDate(iso: string | null | undefined): string {
+  const parsed = parseDateOnly(iso);
+  if (!parsed) return "—";
+  return formatDateForRange(parsed);
+}
+
 export function getPeriodsDateRange(periods: Period[]): {
   min: Date | null;
   max: Date | null;

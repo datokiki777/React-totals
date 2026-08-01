@@ -2,6 +2,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { db } from "../../db/database";
 import { parseMoney } from "../../shared/lib/money";
+import { formatPeriodDate } from "../../shared/lib/dates";
 import {
   computeGrandTotals,
   computeGroupFinancials,
@@ -125,7 +126,7 @@ export async function exportToPdf() {
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
-      doc.text(`Period: ${period.fromDate || "—"} → ${period.toDate || "—"}`, margin, y);
+      doc.text(`Period: ${formatPeriodDate(period.fromDate)} → ${formatPeriodDate(period.toDate)}`, margin, y);
       y += 5;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
