@@ -1,6 +1,7 @@
 import { db } from "../db/database";
 import { useAppStore } from "../app/store";
 import { act, fireEvent, screen } from "@testing-library/react";
+import type { UserEvent } from "@testing-library/user-event";
 import { GROUP_SWITCHER_LONG_PRESS_MS } from "../features/groups/GroupSwitcher";
 
 /**
@@ -30,6 +31,7 @@ export async function resetAppForTest(): Promise<void> {
     workspace: "active",
     totalsScope: "current",
     highlightedRowId: null,
+    expandPeriodId: null,
     settings: {
       id: "app",
       defaultRate: 13.5,
@@ -56,4 +58,13 @@ export async function openGroupMenu(): Promise<void> {
     await new Promise((r) => setTimeout(r, GROUP_SWITCHER_LONG_PRESS_MS + 80));
     fireEvent.pointerUp(btn);
   });
+}
+
+/**
+ * PeriodCard now starts collapsed by default (matching the old app), so
+ * every e2e test that needs to reach the client table or the From/To/Paid
+ * weeks fields must expand it first by clicking its "Period" header.
+ */
+export async function expandFirstPeriod(user: UserEvent): Promise<void> {
+  await user.click(screen.getByRole("button", { name: /Period/ }));
 }

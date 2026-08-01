@@ -39,6 +39,9 @@ interface AppState {
   mode: ViewMode;
   workspace: WorkspaceTab;
   highlightedRowId: string | null;
+  /** Set by Review/Search when it navigates to a row, so the target
+   * period force-opens even though periods now start collapsed. */
+  expandPeriodId: string | null;
   totalsScope: TotalsScope;
   settings: AppSettings;
 
@@ -69,6 +72,8 @@ interface AppState {
   setWorkspace: (ws: WorkspaceTab) => void;
   setTotalsScope: (scope: TotalsScope) => void;
   highlightRow: (id: string) => void;
+  requestExpandPeriod: (id: string) => void;
+  clearExpandPeriodRequest: () => void;
   updateSettings: (patch: Partial<Omit<AppSettings, "id">>) => void;
   clearAllData: () => Promise<void>;
 }
@@ -97,6 +102,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   mode: "edit",
   workspace: "active",
   highlightedRowId: null,
+  expandPeriodId: null,
   totalsScope: "current",
   settings: DEFAULT_SETTINGS,
 
@@ -308,6 +314,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (get().highlightedRowId === id) set({ highlightedRowId: null });
     }, 1800);
   },
+
+  requestExpandPeriod: (id) => set({ expandPeriodId: id }),
+  clearExpandPeriodRequest: () => set({ expandPeriodId: null }),
 
   updateSettings: (patch) => {
     const full = { ...get().settings, ...patch };

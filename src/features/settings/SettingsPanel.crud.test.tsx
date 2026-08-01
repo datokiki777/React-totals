@@ -3,7 +3,7 @@ import { render, screen, cleanup, waitFor, within } from "@testing-library/react
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
 import { db } from "../../db/database";
-import { resetAppForTest, openGroupMenu } from "../../test/resetAppForTest";
+import { resetAppForTest, openGroupMenu, expandFirstPeriod } from "../../test/resetAppForTest";
 
 async function openSettings(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("tab", { name: /Settings/ }));
@@ -64,6 +64,7 @@ describe("Settings — defaults, currency display, destructive-action confirmati
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await screen.findByRole("button", { name: "+ New period" });
     await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
     await screen.findByRole("button", { name: "+ Client" });
     await user.click(screen.getByRole("button", { name: "+ Client" }));
 

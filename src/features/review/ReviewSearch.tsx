@@ -32,6 +32,7 @@ export function ReviewSearch() {
   const setWorkspace = useAppStore((s) => s.setWorkspace);
   const setActiveGroup = useAppStore((s) => s.setActiveGroup);
   const highlightRow = useAppStore((s) => s.highlightRow);
+  const requestExpandPeriod = useAppStore((s) => s.requestExpandPeriod);
 
   const index = useMemo(() => buildSearchIndex(groups, periods, clientRows), [groups, periods, clientRows]);
   const results = useMemo(() => searchIndex(index, query), [index, query]);
@@ -57,6 +58,7 @@ export function ReviewSearch() {
     setQuery("");
     setWorkspace(item.groupArchived ? "archive" : "active");
     setActiveGroup(item.groupId);
+    requestExpandPeriod(item.periodId);
     setMode("edit");
 
     // Give the edit view a moment to render the target group/period before

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "../../app/store";
 import { computePeriodTotals, formatMoney } from "../../shared/lib/calc";
 import { ClientRowItem } from "../clients/ClientRowItem";
@@ -14,7 +14,21 @@ export function PeriodCard({ periodId }: { periodId: string }) {
   const removePeriod = useAppStore((s) => s.removePeriod);
   const addClientRow = useAppStore((s) => s.addClientRow);
   const confirmDestructive = useAppStore((s) => s.settings.confirmDestructiveActions);
-  const [collapsed, setCollapsed] = useState(false);
+  const expandPeriodId = useAppStore((s) => s.expandPeriodId);
+  const clearExpandPeriodRequest = useAppStore((s) => s.clearExpandPeriodRequest);
+
+  // Periods start collapsed by default (matching the old app), but if
+  // Review/Search just navigated here for a specific row, force this
+  // period open instead — otherwise the row it's trying to reveal would
+  // stay hidden.
+  const [collapsed, setCollapsed] = useState(() => expandPeriodId !== periodId);
+
+  useEffect(() => {
+    if (expandPeriodId === periodId) {
+      setCollapsed(false);
+      clearExpandPeriodRequest();
+    }
+  }, [expandPeriodId, periodId, clearExpandPeriodRequest]);
 
   const rows = useMemo(
     () => allClientRows.filter((r) => r.periodId === periodId),

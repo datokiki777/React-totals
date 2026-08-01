@@ -3,7 +3,7 @@ import { render, screen, within, cleanup, waitFor } from "@testing-library/react
 import userEvent from "@testing-library/user-event";
 import App from "../App";
 import { db } from "../db/database";
-import { resetAppForTest, openGroupMenu } from "../test/resetAppForTest";
+import { resetAppForTest, openGroupMenu, expandFirstPeriod } from "../test/resetAppForTest";
 
 describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
   beforeEach(async () => {
@@ -31,6 +31,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
 
     // 2. Create a period.
     await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
     expect(await screen.findByText("+ Client")).toBeInTheDocument();
 
     // 3. Add a client row.
@@ -94,6 +95,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
     await user.click(screen.getByRole("button", { name: "+ Client" }));
 
     const table = screen.getByRole("table");
@@ -118,5 +120,59 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
       expect(screen.getByTestId("period-total-my-eur")).toHaveTextContent("0.00")
     );
     expect(screen.getByDisplayValue("500")).toBeInTheDocument();
+  });
+
+  it("the Settings icon toggles open and closed on repeated taps", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText("Select group ▾");
+
+    const settingsBtn = screen.getByRole("tab", { name: "Settings" });
+    expect(settingsBtn).toHaveAttribute("aria-selected", "false");
+    expect(screen.getByRole("tab", { name: "Edit" })).toHaveAttribute("aria-selected", "true");
+
+    await user.click(settingsBtn);
+    expect(settingsBtn).toHaveAttribute("aria-selected", "true");
+    expect(await screen.findByRole("heading", { name: "Delete all data" })).toBeInTheDocument();
+
+    // A second tap must close it again, back to Edit (where we started).
+    await user.click(settingsBtn);
+    expect(settingsBtn).toHaveAttribute("aria-selected", "false");
+    expect(screen.getByRole("tab", { name: "Edit" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByRole("heading", { name: "Delete all data" })).not.toBeInTheDocument();
+  });
+
+  it("closing Settings returns to Review if that's where the person was, not always Edit", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText("Select group ▾");
+
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+    const settingsBtn = screen.getByRole("tab", { name: "Settings" });
+    await user.click(settingsBtn);
+    expect(settingsBtn).toHaveAttribute("aria-selected", "true");
+
+    await user.click(settingsBtn);
+    expect(screen.getByRole("tab", { name: "Review" })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("a newly created period starts collapsed, matching the old app", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, "prompt").mockReturnValue("Collapsed Test Group");
+
+    render(<App />);
+    await screen.findByText("Select group ▾");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+
+    // The client table/fields must NOT be visible until expanded.
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "+ Client" })).not.toBeInTheDocument();
+
+    // Expanding it reveals the table.
+    await expandFirstPeriod(user);
+    expect(screen.getByRole("table")).toBeInTheDocument();
   });
 });

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useAppStore } from "./app/store";
 import { GroupSwitcher } from "./features/groups/GroupSwitcher";
 import { PeriodList } from "./features/periods/PeriodList";
@@ -17,6 +17,18 @@ function App() {
   const setMode = useAppStore((s) => s.setMode);
   const workspace = useAppStore((s) => s.workspace);
   const setWorkspace = useAppStore((s) => s.setWorkspace);
+
+  // Remembers which mode (Edit/Review) was active before Settings was
+  // opened, so a second tap on the Settings button closes it back to
+  // wherever the person actually was, instead of always landing on Edit.
+  const lastNonSettingsMode = useRef<"edit" | "review">("edit");
+  if (mode !== "settings") {
+    lastNonSettingsMode.current = mode;
+  }
+
+  function toggleSettings() {
+    setMode(mode === "settings" ? lastNonSettingsMode.current : "settings");
+  }
 
   useEffect(() => {
     init();
@@ -54,7 +66,7 @@ function App() {
         <div className={styles.topRow}>
           <button
             className={mode === "settings" ? styles.settingsBtnActive : styles.settingsBtn}
-            onClick={() => setMode("settings")}
+            onClick={toggleSettings}
             role="tab"
             aria-selected={mode === "settings"}
             aria-label="Settings"

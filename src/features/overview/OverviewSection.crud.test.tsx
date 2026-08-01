@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, cleanup, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
-import { resetAppForTest, openGroupMenu } from "../../test/resetAppForTest";
+import { resetAppForTest, openGroupMenu, expandFirstPeriod } from "../../test/resetAppForTest";
 
 describe("Overview page — matches the old app's business logic", () => {
   beforeEach(async () => {
@@ -24,6 +24,7 @@ describe("Overview page — matches the old app's business logic", () => {
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
     await user.click(screen.getByRole("button", { name: "+ Client" }));
 
     const overviewCard = screen.getByText("📊 Overview").closest("section")!;
@@ -77,6 +78,7 @@ describe("Overview page — matches the old app's business logic", () => {
     await user.type(salaryInput, "400");
 
     await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
 
     // A 1-week period with paidWeeks = 0 -> full week of salary owed.
     const fromInput = screen.getByLabelText("From");
