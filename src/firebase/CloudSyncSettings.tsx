@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAppStore } from "../app/store";
 import { manualCloudSave, resolveCloudConflict } from "./cloudSyncController";
 import { RestoreSourcePicker } from "./RestoreSourcePicker";
+import { DataBackupPanel } from "../features/backup/DataBackupPanel";
 import { signInWithEmail } from "./auth";
 import styles from "../features/settings/SettingsPanel.module.css";
 
@@ -115,6 +116,7 @@ export function CloudSyncSettings() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [dataPanelOpen, setDataPanelOpen] = useState(false);
 
   async function handleSave() {
     setBusy(true);
@@ -178,21 +180,38 @@ export function CloudSyncSettings() {
       {cloudLastSyncDetail && (
         <div style={{ fontSize: 13, color: "var(--success)" }}>{cloudLastSyncDetail}</div>
       )}
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <button type="button" className={styles.clearBtn} onClick={handleSave} disabled={busy}>
-          Save to cloud now
+      <div style={{ display: "flex", gap: 10 }}>
+        <button
+          type="button"
+          className={styles.clearBtn}
+          style={{ flex: 1 }}
+          onClick={handleSave}
+          disabled={busy}
+        >
+          ☁️ Save to cloud now
         </button>
         <button
           type="button"
           className={styles.clearBtn}
+          style={{ flex: 1 }}
           onClick={() => setPickerOpen(true)}
           disabled={busy}
         >
-          Load from cloud
+          ☁️ Load from cloud
         </button>
       </div>
       {message && <div style={{ fontSize: 13, color: "var(--text-muted)" }}>{message}</div>}
       {pickerOpen && <RestoreSourcePicker onClose={() => setPickerOpen(false)} />}
+
+      <button
+        type="button"
+        className={styles.clearBtn}
+        style={{ marginTop: 6, alignSelf: "center" }}
+        onClick={() => setDataPanelOpen(true)}
+      >
+        💾 Data & Backup details
+      </button>
+      {dataPanelOpen && <DataBackupPanel onClose={() => setDataPanelOpen(false)} />}
     </div>
   );
 }

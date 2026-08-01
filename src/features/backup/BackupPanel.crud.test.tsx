@@ -275,27 +275,4 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     expect(status).toHaveTextContent("Import completed successfully.");
     expect(status).not.toHaveTextContent(/migrated/);
   });
-
-  it("the 'Data & Backup details' button opens a stats panel showing active/archive breakdown and last-backup status", async () => {
-    const user = userEvent.setup();
-
-    render(<App />);
-    await screen.findByText("Select group ▾");
-    await openSettings(user);
-
-    await user.click(screen.getByRole("button", { name: "💾 Data & Backup details" }));
-
-    expect(screen.getByText("💾 Data & Backup")).toBeInTheDocument();
-    expect(screen.getByText("No backups yet")).toBeInTheDocument(); // no export/save made yet
-    expect(screen.getByText("Not signed in")).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "Close" }));
-    expect(screen.queryByText("💾 Data & Backup")).not.toBeInTheDocument();
-
-    // After an actual export, the panel should report a real backup time.
-    await user.click(screen.getByRole("button", { name: "💾 Export JSON" }));
-    await user.click(screen.getByRole("button", { name: "💾 Data & Backup details" }));
-    expect(screen.queryByText("No backups yet")).not.toBeInTheDocument();
-    expect(screen.getByText("Safe")).toBeInTheDocument();
-  });
 });

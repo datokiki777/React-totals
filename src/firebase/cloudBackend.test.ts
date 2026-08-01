@@ -9,8 +9,6 @@ const settings: AppSettings = {
   defaultSalary: 0,
   currencySymbol: "€",
   confirmDestructiveActions: true,
-  pinEnabled: false,
-  pinHash: null,
 };
 
 describe("CloudBackend history (restore-source picker support)", () => {

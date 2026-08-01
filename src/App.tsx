@@ -20,7 +20,6 @@ function App() {
   const setMode = useAppStore((s) => s.setMode);
   const workspace = useAppStore((s) => s.workspace);
   const setWorkspace = useAppStore((s) => s.setWorkspace);
-  const pinEnabled = useAppStore((s) => s.settings.pinEnabled);
   const deviceVerified = useAppStore((s) => s.deviceVerified);
   const activeGroupsCount = useAppStore((s) => s.groups.filter((g) => !g.archived).length);
   const archivedGroupsCount = useAppStore((s) => s.groups.filter((g) => g.archived).length);
@@ -78,8 +77,9 @@ function App() {
     );
   }
 
-  // PIN lock is the only thing that ever blocks the whole app.
-  if (pinEnabled && !deviceVerified) {
+  // PIN lock is automatic and mandatory on every new device — the one
+  // thing that blocks the whole app.
+  if (!deviceVerified) {
     return <PinLockScreen />;
   }
 

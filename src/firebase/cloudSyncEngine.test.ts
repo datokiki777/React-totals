@@ -10,8 +10,6 @@ const settings: AppSettings = {
   defaultSalary: 0,
   currencySymbol: "€",
   confirmDestructiveActions: true,
-  pinEnabled: false,
-  pinHash: null,
 };
 
 function makeSnapshot(dataUpdatedAt: string, groupCount = 1): CloudSnapshot {

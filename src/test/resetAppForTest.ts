@@ -73,6 +73,10 @@ export async function resetAppForTest(): Promise<void> {
   await db.clientRows.clear();
   await db.settings.clear();
   await db.deviceSecurity.clear();
+  // Default every test to an already-verified device — the PIN gate is a
+  // deliberate, separately-tested concern (see PinLock.crud.test.tsx), not
+  // something every unrelated e2e test should have to work around.
+  await db.deviceSecurity.put({ id: "device", verified: true });
   await db.syncMeta.clear();
   await new Promise((r) => setTimeout(r, 30));
 
@@ -89,7 +93,7 @@ export async function resetAppForTest(): Promise<void> {
     highlightedRowId: null,
     expandPeriodId: null,
     dataUpdatedAt: null,
-    deviceVerified: false,
+    deviceVerified: true,
     cloudStatus: "idle",
     cloudError: null,
     cloudUserEmail: null,
@@ -102,8 +106,6 @@ export async function resetAppForTest(): Promise<void> {
       defaultSalary: 0,
       currencySymbol: "€",
       confirmDestructiveActions: true,
-      pinEnabled: false,
-      pinHash: null,
     },
     loaded: false,
     initError: null,

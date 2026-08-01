@@ -69,10 +69,6 @@ export interface AppSettings {
   currencySymbol: string;
   /** Whether destructive actions (delete group/period/row) ask for confirmation. */
   confirmDestructiveActions: boolean;
-  /** PIN lock — synced across devices so every device asks for the same PIN.
-   * Only a SHA-256 hex digest is ever stored/synced, never the plaintext PIN. */
-  pinEnabled: boolean;
-  pinHash: string | null;
 }
 
 /** Per-device "have I already unlocked this PIN once" flag. Deliberately

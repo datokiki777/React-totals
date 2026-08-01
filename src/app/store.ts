@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { db } from "../db/database";
 import { generateId, now } from "../shared/lib/id";
 import { roundMoneyString } from "../shared/lib/money";
-import { hashPin } from "../shared/lib/pin";
+import { hashPin, REQUIRED_PIN } from "../shared/lib/pin";
 import type {
   Group,
   Period,
@@ -23,8 +23,6 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultSalary: 0,
   currencySymbol: "€",
   confirmDestructiveActions: true,
-  pinEnabled: false,
-  pinHash: null,
 };
 
 interface AppState {
@@ -104,7 +102,6 @@ interface AppState {
 
   // PIN lock actions
   verifyPin: (pin: string) => Promise<boolean>;
-  setPinLock: (opts: { enabled: boolean; newPin?: string }) => Promise<void>;
 
   // Cloud sync actions (state setters — the actual Firebase orchestration
   // lives in src/firebase/, which calls these; keeps this store
@@ -422,29 +419,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   verifyPin: async (pin) => {
-    const { pinHash } = get().settings;
-    if (!pinHash) return false;
     const attemptHash = await hashPin(pin);
-    if (attemptHash !== pinHash) return false;
+    const requiredHash = await hashPin(REQUIRED_PIN);
+    if (attemptHash !== requiredHash) return false;
     set({ deviceVerified: true });
     await db.deviceSecurity.put({ id: "device", verified: true });
     return true;
-  },
-
-  setPinLock: async ({ enabled, newPin }) => {
-    if (enabled) {
-      if (!newPin) throw new Error("A PIN is required to enable PIN lock.");
-      const pinHash = await hashPin(newPin);
-      get().updateSettings({ pinEnabled: true, pinHash });
-      // Setting a fresh PIN immediately verifies THIS device, so the
-      // person isn't locked out of the device they just set it on.
-      set({ deviceVerified: true });
-      await db.deviceSecurity.put({ id: "device", verified: true });
-    } else {
-      get().updateSettings({ pinEnabled: false, pinHash: null });
-      set({ deviceVerified: false });
-      await db.deviceSecurity.delete("device");
-    }
   },
 
   setCloudStatus: (cloudStatus, error = null) => set({ cloudStatus, cloudError: error }),

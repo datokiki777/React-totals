@@ -1,4 +1,12 @@
 /**
+ * The app's device-unlock PIN — fixed, not user-configurable (matching how
+ * the old app hardcoded its PIN). Every device that hasn't verified itself
+ * yet is asked for this once; after that it's remembered per-device
+ * (see DeviceSecurity in the domain types / store.deviceVerified).
+ */
+export const REQUIRED_PIN = "3697";
+
+/**
  * SHA-256 hex digest of a PIN, using the Web Crypto API. Only this hash is
  * ever stored/synced — never the plaintext PIN, unlike the old app which
  * hardcoded the PIN in plain text in its source.

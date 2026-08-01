@@ -1,12 +1,22 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, cleanup, waitFor } from "@testing-library/react";
+import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
 import { db } from "../../db/database";
 import { useAppStore } from "../../app/store";
 import { resetAppForTest } from "../../test/resetAppForTest";
+import { REQUIRED_PIN } from "../../shared/lib/pin";
 
-describe("PIN Lock — end to end", () => {
+/** resetAppForTest() defaults every test to an already-verified device (so
+ * unrelated e2e tests don't have to deal with the PIN gate) — these tests
+ * are specifically about that gate, so they simulate a genuinely fresh,
+ * unverified device instead. */
+async function simulateFreshDevice() {
+  await db.deviceSecurity.clear();
+  useAppStore.setState({ deviceVerified: false });
+}
+
+describe("PIN Lock — automatic, fixed PIN, end to end", () => {
   beforeEach(async () => {
     await resetAppForTest();
   });
@@ -16,81 +26,55 @@ describe("PIN Lock — end to end", () => {
     vi.restoreAllMocks();
   });
 
-  it("the app loads normally (no lock screen) when PIN lock has never been enabled", async () => {
+  it("a brand-new device is asked for the PIN immediately — the app content is not reachable yet", async () => {
+    await simulateFreshDevice();
     render(<App />);
-    expect(await screen.findByText("Select group ▾")).toBeInTheDocument();
-    expect(screen.queryByLabelText("PIN")).not.toBeInTheDocument();
-  });
-
-  it("enabling a PIN in Settings verifies this device immediately — no lock screen appears yet", async () => {
-    const user = userEvent.setup();
-    render(<App />);
-    await screen.findByText("Select group ▾");
-
-    await user.click(screen.getByRole("tab", { name: "Settings" }));
-    const [newPinInput, confirmPinInput] = screen.getAllByLabelText(/PIN/, { selector: "input" });
-    await user.type(newPinInput, "482913");
-    await user.type(confirmPinInput, "482913");
-    await user.click(screen.getByRole("button", { name: "Enable PIN lock" }));
-
-    await waitFor(async () => {
-      expect((await db.settings.get("app"))?.pinEnabled).toBe(true);
-    });
-    // Still on the settings screen, not locked out — this device auto-verifies.
-    expect(screen.getByRole("heading", { name: "PIN Lock" })).toBeInTheDocument();
-  });
-
-  it("a locked-out device (PIN enabled, not yet verified) shows the lock screen and blocks the app until the correct PIN is entered", async () => {
-    // Simulate the PIN already being set (e.g. from another device via
-    // cloud sync) but this device hasn't verified it yet.
-    const { hashPin } = await import("../../shared/lib/pin");
-    await db.settings.put({
-      id: "app",
-      defaultRate: 13.5,
-      defaultSalary: 0,
-      currencySymbol: "€",
-      confirmDestructiveActions: true,
-      pinEnabled: true,
-      pinHash: await hashPin("135790"),
-    });
-
-    const user = userEvent.setup();
-    render(<App />);
-
-    // The app content must NOT be reachable yet.
     const pinInput = await screen.findByLabelText("PIN");
+    expect(pinInput).toBeInTheDocument();
     expect(screen.queryByText("Select group ▾")).not.toBeInTheDocument();
+  });
 
-    // Wrong PIN -> stays locked, shows an error.
-    await user.type(pinInput, "000000");
+  it("there is no Settings UI to configure or disable the PIN — it's automatic and fixed", async () => {
+    const user = userEvent.setup();
+    render(<App />); // already-verified device, per resetAppForTest's default
+    await screen.findByText("Select group ▾");
+    await user.click(screen.getByRole("tab", { name: "Settings" }));
+
+    expect(screen.queryByRole("heading", { name: "PIN Lock" })).not.toBeInTheDocument();
+  });
+
+  it("a wrong PIN stays locked and shows an error", async () => {
+    await simulateFreshDevice();
+    const user = userEvent.setup();
+    render(<App />);
+
+    const pinInput = await screen.findByLabelText("PIN");
+    await user.type(pinInput, "0000");
     await user.click(screen.getByRole("button", { name: "Unlock" }));
+
     expect(await screen.findByRole("alert")).toHaveTextContent(/Incorrect PIN/);
     expect(screen.queryByText("Select group ▾")).not.toBeInTheDocument();
+    expect(useAppStore.getState().deviceVerified).toBe(false);
+  });
 
-    // Correct PIN -> unlocks and the normal app appears.
-    await user.clear(pinInput);
-    await user.type(pinInput, "135790");
+  it("the correct PIN unlocks the app and remembers this device", async () => {
+    await simulateFreshDevice();
+    const user = userEvent.setup();
+    render(<App />);
+
+    const pinInput = await screen.findByLabelText("PIN");
+    await user.type(pinInput, REQUIRED_PIN);
     await user.click(screen.getByRole("button", { name: "Unlock" }));
 
     expect(await screen.findByText("Select group ▾")).toBeInTheDocument();
     expect(useAppStore.getState().deviceVerified).toBe(true);
+    expect((await db.deviceSecurity.get("device"))?.verified).toBe(true);
   });
 
-  it("disabling PIN lock from Settings requires the current PIN and then removes the requirement", async () => {
-    await useAppStore.getState().setPinLock({ enabled: true, newPin: "112233" });
+  it("a device that already verified itself (e.g. a previous session) skips the lock screen entirely", async () => {
+    render(<App />); // resetAppForTest already marks this device verified
 
-    const user = userEvent.setup();
-    render(<App />);
-    await screen.findByText("Select group ▾");
-    await user.click(screen.getByRole("tab", { name: "Settings" }));
-
-    const currentPinInput = screen.getByLabelText("Current PIN");
-    await user.type(currentPinInput, "112233");
-    await user.click(screen.getByRole("button", { name: "Disable PIN lock" }));
-
-    await waitFor(async () => {
-      expect((await db.settings.get("app"))?.pinEnabled).toBe(false);
-    });
-    expect(useAppStore.getState().deviceVerified).toBe(false);
+    expect(await screen.findByText("Select group ▾")).toBeInTheDocument();
+    expect(screen.queryByLabelText("PIN")).not.toBeInTheDocument();
   });
 });

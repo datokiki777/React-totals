@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAppStore } from "../../app/store";
 import { BackupPanel } from "../backup/BackupPanel";
-import { PinLockSettings } from "../security/PinLockSettings";
 import { CloudSyncSettings } from "../../firebase/CloudSyncSettings";
 import packageJson from "../../../package.json";
 import styles from "./SettingsPanel.module.css";
@@ -106,11 +105,6 @@ export function SettingsPanel() {
           />
           <span>Confirm destructive actions (group, period, client)</span>
         </label>
-      </section>
-
-      <section className={styles.card}>
-        <h2 className={styles.cardTitle}>PIN Lock</h2>
-        <PinLockSettings />
       </section>
 
       <section className={styles.card}>
