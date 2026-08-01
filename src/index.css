@@ -66,6 +66,19 @@ button {
   font-family: inherit;
 }
 
+button,
+[role="button"],
+input,
+select,
+textarea,
+label {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(button, [role="button"], input, select, textarea):focus:not(:focus-visible) {
+  outline: none;
+}
+
 input,
 select,
 textarea {
