@@ -322,10 +322,13 @@
   }
 }
 
-/* Wide glass-dashboard treatment. Kept as a CSS-only layer so component
-   behavior and data flow remain untouched. */
-@media (min-width: 701px) {
-  .card {
+/* Modern glass-capsule treatment — applies at every viewport size (phones
+   included), matching the wide-dashboard look. Only the KPI grid's column
+   count stays responsive (single column on narrow phones, three columns
+   from tablet width up), everything else — gradients, borders, shadows,
+   pill radii, type scale — is the same look everywhere. Kept as a
+   CSS-only layer so component behavior and data flow remain untouched. */
+.card {
     background:
       radial-gradient(circle at 8% 0%, rgba(23, 139, 177, 0.2), transparent 32%),
       linear-gradient(135deg, rgba(11, 42, 70, 0.96), rgba(13, 35, 72, 0.96));
@@ -366,12 +369,6 @@
     color: var(--text);
     background: linear-gradient(180deg, rgba(119, 151, 190, 0.75), rgba(73, 99, 136, 0.75));
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.24), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
   }
 
   .kpi {
@@ -499,10 +496,11 @@
   .monthRow b {
     font-size: 18px;
   }
-}
 
-@media (max-width: 700px) {
-  .card {
-    border-radius: 20px;
+@media (min-width: 560px) {
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
   }
 }
