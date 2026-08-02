@@ -1,6 +1,8 @@
 import { useRegisterSW } from "virtual:pwa-register/react";
 import styles from "./UpdatePrompt.module.css";
 
+const PERIODIC_CHECK_MS = 60 * 60 * 1000; // 1 hour
+
 /**
  * Visible "new version available" banner (instead of silently swapping the
  * service worker under the user), plus friendly offline-ready and
@@ -14,6 +16,20 @@ export function UpdatePrompt() {
   } = useRegisterSW({
     onRegisterError(error) {
       console.error("Service worker registration failed:", error);
+    },
+    onRegisteredSW(_url, registration) {
+      if (!registration) return;
+      // The browser only checks for a new service worker on a fresh
+      // navigation by default — someone who just switches back to an
+      // already-open tab/PWA (foregrounding, not reloading) wouldn't see
+      // this banner for a long time otherwise. Actively re-check:
+      // whenever the app becomes visible again, and periodically while
+      // it stays open.
+      const check = () => registration.update().catch(() => {});
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") check();
+      });
+      window.setInterval(check, PERIODIC_CHECK_MS);
     },
   });
 
