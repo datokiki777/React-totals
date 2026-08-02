@@ -62,6 +62,12 @@
         <div class="app-boot-title">Client Totals</div>
       </div>
     </div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module">
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          import("/src/main.tsx");
+        });
+      });
+    </script>
   </body>
 </html>
