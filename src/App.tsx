@@ -6,7 +6,8 @@ import { OverviewSection } from "./features/overview/OverviewSection";
 import { ReviewSearch } from "./features/review/ReviewSearch";
 import { ReviewList } from "./features/review/ReviewList";
 import { SettingsPanel } from "./features/settings/SettingsPanel";
-import { UpdatePrompt } from "./pwa/UpdatePrompt";
+// TEMPORARILY DISABLED for a diagnostic test — see App body + commit message.
+// import { UpdatePrompt } from "./pwa/UpdatePrompt";
 import { ModalHost } from "./shared/modal/ModalHost";
 import { startCloudSync } from "./firebase/cloudSyncController";
 import styles from "./App.module.css";
@@ -185,7 +186,14 @@ function App() {
         Data is stored on this device (IndexedDB). Backup/restore is under the Settings tab.
       </footer>
 
-      <UpdatePrompt />
+      {/* TEMPORARILY DISABLED for a diagnostic test — see commit message.
+          Rendering <UpdatePrompt/> is the ONLY thing that calls
+          useRegisterSW(), which is the only place anything in this app
+          calls navigator.serviceWorker.register(). Removing this means NO
+          service worker gets registered at all for this build, to
+          conclusively rule service workers in or out of the WebAPK launch
+          flash investigation. Restore once the test is done. */}
+      {/* <UpdatePrompt /> */}
       <ModalHost />
     </div>
   );
