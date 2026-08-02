@@ -28,6 +28,7 @@ export default defineConfig({
       registerType: "prompt",
       injectRegister: false,
       includeAssets: ["favicon.svg"],
+      manifestFilename: "manifest-v2.webmanifest",
       manifest: {
         id: "/",
         name: "Client Totals",
