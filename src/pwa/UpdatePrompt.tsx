@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import styles from "./UpdatePrompt.module.css";
 
@@ -8,40 +7,15 @@ import styles from "./UpdatePrompt.module.css";
  * registration-error messages. Uses vite-plugin-pwa's official React hook.
  */
 export function UpdatePrompt() {
-  const registrationRef = useRef<ServiceWorkerRegistration | null>(null);
-
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     offlineReady: [offlineReady, setOfflineReady],
     updateServiceWorker,
   } = useRegisterSW({
-    immediate: true,
-    onRegisteredSW(_swUrl, registration) {
-      registrationRef.current = registration ?? null;
-      void registration?.update();
-    },
     onRegisterError(error) {
       console.error("Service worker registration failed:", error);
     },
   });
-
-  useEffect(() => {
-    const checkForUpdate = () => {
-      if (document.visibilityState === "visible" && navigator.onLine) {
-        void registrationRef.current?.update();
-      }
-    };
-
-    document.addEventListener("visibilitychange", checkForUpdate);
-    window.addEventListener("online", checkForUpdate);
-    const intervalId = window.setInterval(checkForUpdate, 15 * 60 * 1000);
-
-    return () => {
-      document.removeEventListener("visibilitychange", checkForUpdate);
-      window.removeEventListener("online", checkForUpdate);
-      window.clearInterval(intervalId);
-    };
-  }, []);
 
   if (needRefresh) {
     return (
