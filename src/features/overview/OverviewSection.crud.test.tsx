@@ -153,4 +153,101 @@ describe("Overview page — matches the old app's business logic", () => {
     expect(await screen.findByRole("tab", { name: "Edit", selected: true })).toBeInTheDocument();
     expect(screen.getByDisplayValue("Drilldown Client")).toBeInTheDocument();
   });
+
+  it("the Comments widget counts only clients with a non-empty comment, and clicking one jumps to it in Edit mode", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Comments Group");
+
+    render(<App />);
+    await screen.findByText("Select group");
+
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+
+    // First client — has a comment.
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
+    let table = screen.getByRole("table");
+    let rows = within(table).getAllByPlaceholderText("Client name");
+    await user.type(rows[rows.length - 1], "Noted Client");
+    await user.click(within(table).getAllByRole("button", { name: /Add note|Saved/ })[0]);
+    await user.type(screen.getByPlaceholderText("Private note for this client..."), "Call back Monday");
+
+    // Second client — left with no comment at all.
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
+    table = screen.getByRole("table");
+    rows = within(table).getAllByPlaceholderText("Client name");
+    await user.type(rows[rows.length - 1], "Silent Client");
+
+    const overviewCard = screen.getByText("📊 Overview").closest("section")!;
+    await user.click(within(overviewCard).getByRole("button", { name: /Overview/ }));
+
+    // Only the ONE client with an actual comment is counted, not both.
+    const commentsToggle = within(overviewCard).getByRole("button", { name: /📝 Comments/ });
+    expect(within(commentsToggle).getByText("1")).toBeInTheDocument();
+
+    expect(within(overviewCard).queryByRole("list")).not.toBeInTheDocument();
+    await user.click(commentsToggle);
+
+    const list = within(overviewCard).getByRole("list", { name: "Clients with comments" });
+    expect(within(list).getByText("Noted Client")).toBeInTheDocument();
+    expect(within(list).getByText("Call back Monday")).toBeInTheDocument();
+    expect(within(list).queryByText("Silent Client")).not.toBeInTheDocument();
+
+    // Toggle closed.
+    await user.click(commentsToggle);
+    expect(within(overviewCard).queryByRole("list")).not.toBeInTheDocument();
+
+    // Reopen and jump to the client — same navigate/highlight behavior as
+    // the status badges use.
+    await user.click(commentsToggle);
+    await user.click(within(overviewCard).getByText("Noted Client"));
+
+    expect(await screen.findByRole("tab", { name: "Edit", selected: true })).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Noted Client")).toBeInTheDocument();
+  });
+
+  it("the Comments count respects Current vs All scope, counting only the active group unless All is selected", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Group A");
+
+    render(<App />);
+    await screen.findByText("Select group");
+
+    // Group A: one client with a comment.
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
+    let table = screen.getByRole("table");
+    await user.type(within(table).getByPlaceholderText("Client name"), "A Client");
+    await user.click(within(table).getByRole("button", { name: /Add note|Saved/ }));
+    await user.type(screen.getByPlaceholderText("Private note for this client..."), "note A");
+
+    // Group B: a different client, also with a comment. (The group menu
+    // is already open from creating Group A — it doesn't auto-close.)
+    mockModalPrompt("Group B");
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
+    table = screen.getByRole("table");
+    await user.type(within(table).getByPlaceholderText("Client name"), "B Client");
+    await user.click(within(table).getByRole("button", { name: /Add note|Saved/ }));
+    await user.type(screen.getByPlaceholderText("Private note for this client..."), "note B");
+
+    // Now viewing Group B (the active one) — "Current" scope must show
+    // only Group B's one commented client, not Group A's.
+    const overviewCard = screen.getByText("📊 Overview").closest("section")!;
+    await user.click(within(overviewCard).getByRole("button", { name: /Overview/ }));
+
+    const commentsToggle = within(overviewCard).getByRole("button", { name: /📝 Comments/ });
+    expect(within(commentsToggle).getByText("1")).toBeInTheDocument();
+
+    // Switching to "All" must count both groups' commented clients together.
+    await user.click(within(overviewCard).getByRole("button", { name: "All" }));
+    expect(within(commentsToggle).getByText("2")).toBeInTheDocument();
+  });
 });

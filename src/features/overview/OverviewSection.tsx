@@ -126,10 +126,20 @@ export function OverviewSection() {
 
   function toggleStatusFilter(status: DoneStatus) {
     setStatusFilter((prev) => (prev === status ? null : status));
+    setCommentsOpen(false);
   }
+
+  // --- Comments widget: same drill-down/navigate pattern as the status
+  // badges above, but for every client with a non-empty comment. ---
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const commentedRows = useMemo(
+    () => scopedRows.filter((r) => r.comment.trim() !== ""),
+    [scopedRows]
+  );
 
   useEffect(() => {
     setStatusFilter(null);
+    setCommentsOpen(false);
   }, [scope, workspace, activeGroupId]);
 
   function handleClientClick(rowId: string) {
@@ -258,6 +268,50 @@ export function OverviewSection() {
                 onClick={() => handleClientClick(row.id)}
               >
                 <span className={styles.filteredName}>{row.customer.trim() || "Client"}</span>
+                <span className={styles.filteredMeta}>
+                  {group?.name ?? "—"} · {period ? `${formatPeriodDate(period.fromDate)} → ${formatPeriodDate(period.toDate)}` : "—"}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      <button
+        type="button"
+        className={styles.commentsRow}
+        onClick={() => {
+          setCommentsOpen((v) => !v);
+          setStatusFilter(null);
+        }}
+        aria-expanded={commentsOpen}
+      >
+        <span>📝 Comments</span>
+        <div className={styles.badges}>
+          <span className={commentsOpen ? styles.badgeDoneActive : styles.badgeDone}>
+            {commentedRows.length}
+          </span>
+        </div>
+      </button>
+
+      {commentsOpen && (
+        <div className={styles.filteredList} role="list" aria-label="Clients with comments">
+          {commentedRows.length === 0 && (
+            <div className={styles.filteredEmpty}>No clients with comments.</div>
+          )}
+          {commentedRows.map((row) => {
+            const period = periodById.get(row.periodId);
+            const group = period ? groupById.get(period.groupId) : undefined;
+            return (
+              <button
+                key={row.id}
+                type="button"
+                role="listitem"
+                className={styles.filteredItem}
+                onClick={() => handleClientClick(row.id)}
+              >
+                <span className={styles.filteredName}>{row.customer.trim() || "Client"}</span>
+                <span className={styles.filteredComment}>{row.comment}</span>
                 <span className={styles.filteredMeta}>
                   {group?.name ?? "—"} · {period ? `${formatPeriodDate(period.fromDate)} → ${formatPeriodDate(period.toDate)}` : "—"}
                 </span>
