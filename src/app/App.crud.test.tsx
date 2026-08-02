@@ -398,4 +398,22 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
       expect(headers[1]).toHaveTextContent("01/06/2026");
     });
   });
+
+  it("remembers the last Edit/Review mode across a full app reload — but never remembers Settings as a mode to reopen into", async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<App />);
+    await screen.findByText("Select group");
+
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+    expect(localStorage.getItem("client-totals:last-mode")).toBe("review");
+
+    unmount();
+    render(<App />);
+    await screen.findByText("Select group");
+    expect(screen.getByRole("tab", { name: "Review" })).toHaveAttribute("aria-selected", "true");
+
+    // Opening Settings must not overwrite the remembered content tab.
+    await user.click(screen.getByLabelText("Settings"));
+    expect(localStorage.getItem("client-totals:last-mode")).toBe("review");
+  });
 });

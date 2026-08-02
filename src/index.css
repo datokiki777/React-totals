@@ -4,9 +4,9 @@
   /* Colors — slightly lightened from the original (per explicit request:
      the near-black background was hard to read in bright light), still
      dark-only. */
-  --surface-1: #0a1830;
-  --surface-2: #142a4d;
-  --surface-3: #1d3a68;
+  --surface-1: #0d2342;
+  --surface-2: #17304f;
+  --surface-3: #1f3a63;
   --surface-glass: rgba(20, 42, 77, 0.74);
   --border: rgba(255, 255, 255, 0.1);
   --border-soft: rgba(255, 255, 255, 0.06);

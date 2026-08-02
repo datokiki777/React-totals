@@ -16,6 +16,19 @@ export type WorkspaceTab = "active" | "archive";
 export type TotalsScope = "current" | "all";
 export type CloudSyncStatus = "idle" | "syncing" | "synced" | "local" | "error";
 
+const LAST_MODE_STORAGE_KEY = "client-totals:last-mode";
+
+function getInitialMode(): ViewMode {
+  try {
+    const stored = localStorage.getItem(LAST_MODE_STORAGE_KEY);
+    if (stored === "edit" || stored === "review") return stored;
+  } catch {
+    // Storage can fail (private browsing, quota, etc.) — fall through to
+    // the default below.
+  }
+  return "edit";
+}
+
 const DEFAULT_SETTINGS: AppSettings = {
   id: "app",
   defaultRate: 13.5,
@@ -146,7 +159,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   activeGroupId: null,
   lastActiveGroupIdActive: null,
   lastActiveGroupIdArchive: null,
-  mode: "edit",
+  mode: getInitialMode(),
   workspace: "active",
   highlightedRowId: null,
   expandPeriodId: null,
@@ -368,7 +381,20 @@ export const useAppStore = create<AppState>((set, get) => ({
     get().updateClientRow(id, { status: nextStatus });
   },
 
-  setMode: (mode) => set({ mode }),
+  setMode: (mode) => {
+    set({ mode });
+    // Remembered per-device (not synced) — only edit/review are real
+    // content tabs; settings is a temporary overlay, not something to
+    // reopen into next time.
+    if (mode === "edit" || mode === "review") {
+      try {
+        localStorage.setItem(LAST_MODE_STORAGE_KEY, mode);
+      } catch {
+        // Storage can fail (private browsing, quota, etc.) — not worth
+        // surfacing to the person, the app just won't remember this time.
+      }
+    }
+  },
   setWorkspace: (workspace) =>
     set((s) => {
       const remembered =

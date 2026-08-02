@@ -27,6 +27,6 @@
   padding: 12px 20px;
   border-radius: var(--radius-pill);
   cursor: pointer;
-  box-shadow: 0 8px 20px rgba(255, 196, 64, 0.35);
+  box-shadow: 0 8px 20px rgba(255, 196, 64, 0.21);
   white-space: nowrap;
 }
