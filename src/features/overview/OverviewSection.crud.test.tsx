@@ -19,7 +19,7 @@ describe("Overview page — matches the old app's business logic", () => {
     mockModalPrompt("Overview Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
 
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
@@ -70,7 +70,7 @@ describe("Overview page — matches the old app's business logic", () => {
     mockModalPrompt("Salary Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
 
@@ -114,7 +114,7 @@ describe("Overview page — matches the old app's business logic", () => {
     mockModalPrompt("Status Drilldown Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
 
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));

@@ -23,7 +23,7 @@ describe("Settings — defaults, currency display, destructive-action confirmati
   it("uses the configured default rate/salary for newly created groups", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openSettings(user);
 
     const rateInput = screen.getByLabelText("Default rate %");
@@ -59,7 +59,7 @@ describe("Settings — defaults, currency display, destructive-action confirmati
     mockModalPrompt("Currency Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await screen.findByRole("button", { name: "+ New period" });
@@ -98,7 +98,7 @@ describe("Settings — defaults, currency display, destructive-action confirmati
     mockModalPrompt("Group To Delete");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await screen.findByRole("button", { name: /Group To Delete/ });
@@ -122,7 +122,7 @@ describe("Settings — defaults, currency display, destructive-action confirmati
     mockModalConfirm(false); // decline
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await screen.findByRole("button", { name: /Group Kept/ });
@@ -138,7 +138,7 @@ describe("Settings — defaults, currency display, destructive-action confirmati
     mockModalPrompt("Group X");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await screen.findByRole("button", { name: /Group X/ });

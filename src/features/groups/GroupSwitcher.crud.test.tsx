@@ -28,7 +28,7 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
   it("a short tap cycles to the next group, wrapping back to the first", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
 
     await addGroupViaMenu(user, "Group One");
     await addGroupViaMenu(user, "Group Two");
@@ -51,7 +51,7 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
   it("a short tap does nothing when there are no groups yet", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
 
     const switcherBtn = screen.getByTestId("group-switcher-btn");
     await user.click(switcherBtn);
@@ -60,7 +60,7 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
 
   it("long-pressing opens a management menu with group actions and default-rate/salary fields", async () => {
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
 
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
 
@@ -78,7 +78,7 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
 
   it("long-pressing again closes the menu", async () => {
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
 
     await openGroupMenu();
     expect(screen.getByRole("menu")).toBeInTheDocument();
@@ -89,7 +89,7 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
 
   it("releasing before the long-press threshold does NOT open the menu (it's a real long-press, not just any hold)", async () => {
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
 
     const switcherBtn = screen.getByTestId("group-switcher-btn");
     await act(async () => {
@@ -104,7 +104,7 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
   it("releasing a long-press does not also trigger the tap-to-cycle action", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
 
     await addGroupViaMenu(user, "Only Group");
     // The menu is left open by addGroupViaMenu's long-press; close it with
@@ -120,7 +120,7 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
   it("the menu's actions (rename) still work exactly as before, just inside the collapsible panel", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
 
     await addGroupViaMenu(user, "Original Name");
 
@@ -134,7 +134,7 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
   it("switching Active <-> Archive restores the group last selected on that tab (instead of showing zeros)", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
 
     await addGroupViaMenu(user, "Active One");
     const switcherBtn = screen.getByTestId("group-switcher-btn");
@@ -159,7 +159,7 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
   it("group management controls (add/rename/archive/delete, default rate/salary) are disabled in Review mode", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
 
     await addGroupViaMenu(user, "Manageable In Edit");
     const switcherBtn = screen.getByTestId("group-switcher-btn");
@@ -196,7 +196,7 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
   it("clearing Default % or salary mid-edit and typing again never leaves a stray leading zero", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await addGroupViaMenu(user, "Clear And Retype Group");
 
     const rateInput = screen.getByLabelText("Default %");

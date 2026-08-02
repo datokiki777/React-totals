@@ -20,6 +20,12 @@
   font-size: var(--font-base);
   font-weight: 600;
   text-align: left;
+  transition: transform 0.1s ease, background 0.1s ease;
+}
+
+.collapseBtn:active {
+  transform: scale(0.985);
+  background: var(--surface-2);
 }
 
 .collapseBtnLead {

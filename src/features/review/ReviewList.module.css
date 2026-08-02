@@ -179,6 +179,12 @@
   cursor: pointer;
   list-style: none;
   flex-wrap: wrap;
+  transition: background 0.1s ease;
+  border-radius: var(--radius-sm);
+}
+
+.periodSummary:active {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .periodSummary::-webkit-details-marker {

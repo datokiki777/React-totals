@@ -22,7 +22,7 @@ describe("Cloud Sync settings — sign-in form", () => {
 
     // The app itself is immediately usable — Cloud Sync is opt-in, not a
     // gate blocking the rest of the app.
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
 
     await user.click(screen.getByRole("tab", { name: "Settings" }));
 
@@ -35,7 +35,7 @@ describe("Cloud Sync settings — sign-in form", () => {
   it("shows a validation message instead of attempting a sign-in with empty fields", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await user.click(screen.getByRole("tab", { name: "Settings" }));
 
     await user.click(screen.getByRole("button", { name: "Sign in" }));
@@ -60,7 +60,7 @@ describe("Cloud Sync settings — signed-in view", () => {
   it("Save/Load are on one row with cloud icons, and a Data & Backup details button lives at the bottom", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await user.click(screen.getByRole("tab", { name: "Settings" }));
 
     const saveBtn = screen.getByRole("button", { name: "☁️ Save to cloud now" });
@@ -82,7 +82,7 @@ describe("Cloud Sync settings — signed-in view", () => {
   it("the Data & Backup details button opens a stats panel with active/archive breakdown and backup status", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await user.click(screen.getByRole("tab", { name: "Settings" }));
 
     await user.click(screen.getByRole("button", { name: "💾 Data & Backup details" }));
@@ -116,7 +116,7 @@ describe("Cloud Sync settings — signed-in view", () => {
     });
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await user.click(screen.getByRole("tab", { name: "Settings" }));
 
     const saveBtn = screen.getByRole("button", { name: "☁️ Save Cloud" });

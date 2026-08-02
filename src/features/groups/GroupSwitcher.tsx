@@ -110,7 +110,7 @@ export function GroupSwitcher() {
         <span className={styles.switcherIcon} aria-hidden="true">
           👤
         </span>
-        {activeGroup ? activeGroup.name : "Select group"} ▾
+        {activeGroup ? activeGroup.name : "Select group"}
       </button>
 
       {menuOpen && (

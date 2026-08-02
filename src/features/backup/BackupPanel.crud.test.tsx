@@ -32,7 +32,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
   it("shows a clear inline error for a file that isn't valid JSON at all", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openSettings(user);
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -44,7 +44,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
   it("shows a clear inline error for structurally invalid backup data", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openSettings(user);
 
     const badPayload = JSON.stringify({ groups: [{ id: "g1" }], periods: [], clientRows: [] });
@@ -58,7 +58,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
   it("rejects an otherwise-valid backup where a row points at a period that isn't in the file", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openSettings(user);
 
     const payload = buildBackupPayload(
@@ -91,7 +91,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     mockModalConfirm(false);
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openSettings(user);
 
     const payload = buildBackupPayload(
@@ -116,7 +116,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     vi.stubGlobal("location", { ...window.location, reload: reloadSpy });
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openSettings(user);
 
     const payload = buildBackupPayload(
@@ -189,7 +189,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     mockModalConfirm(true);
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openSettings(user);
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -243,7 +243,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     mockModalConfirm(true);
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openSettings(user);
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -260,7 +260,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
     mockModalConfirm(true);
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openSettings(user);
 
     const payload = buildBackupPayload(
@@ -279,7 +279,7 @@ describe("Import/Export — JSON backup validation, confirmation, and state refr
   it("Export/Import JSON share one color, Export Excel/PDF share a different one, and the two pairs don't match each other", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openSettings(user);
 
     const exportJson = screen.getByRole("button", { name: "💾 Export JSON" });

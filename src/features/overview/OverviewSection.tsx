@@ -270,10 +270,12 @@ export function OverviewSection() {
       <div className={styles.dateBox}>
         <div className={styles.dateRow}>
           <span className={styles.dateLabel}>Working period</span>
-          <span className={styles.durationBadge}>
-            {duration ? `${duration.months} Mo ${duration.days} D` : "—"}
+          <span className={styles.dateBadges}>
+            <span className={styles.durationBadge}>
+              {duration ? `${duration.months} Mo ${duration.days} D` : "—"}
+            </span>
+            <span className={styles.durationBadge}>{clientsCount} Clients</span>
           </span>
-          <span className={styles.durationBadge}>{clientsCount} Clients</span>
         </div>
         <div className={styles.dateValue}>
           {min && max ? `${formatDateForRange(min)} → ${formatDateForRange(max)}` : "—"}

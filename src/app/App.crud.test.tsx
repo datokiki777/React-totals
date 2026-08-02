@@ -22,7 +22,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     render(<App />);
 
     // Wait for initial load to finish.
-    expect(await screen.findByText("Select group ▾")).toBeInTheDocument();
+    expect(await screen.findByText("Select group")).toBeInTheDocument();
 
     // 1. Create a group (long-press the group switcher to open its menu first).
     await openGroupMenu();
@@ -91,7 +91,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
 
     render(<App />);
 
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await user.click(screen.getByRole("button", { name: "+ New period" }));
@@ -125,7 +125,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
   it("the Settings icon toggles open and closed on repeated taps", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
 
     const settingsBtn = screen.getByRole("tab", { name: "Settings" });
     expect(settingsBtn).toHaveAttribute("aria-selected", "false");
@@ -145,7 +145,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
   it("closing Settings returns to Review if that's where the person was, not always Edit", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
 
     await user.click(screen.getByRole("tab", { name: "Review" }));
     const settingsBtn = screen.getByRole("tab", { name: "Settings" });
@@ -161,7 +161,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     mockModalPrompt("Collapsed Test Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
 
@@ -181,7 +181,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     mockModalPrompt("Extra Cycle Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await user.click(screen.getByRole("button", { name: "+ New period" }));
@@ -199,7 +199,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     mockModalPrompt("Scroll Table Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await user.click(screen.getByRole("button", { name: "+ New period" }));
@@ -226,7 +226,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     mockModalPrompt("Overlap Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await user.click(screen.getByRole("button", { name: "+ New period" }));
@@ -280,7 +280,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     mockModalPrompt("Mismatch Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await user.click(screen.getByRole("button", { name: "+ New period" }));
@@ -308,7 +308,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     mockModalConfirm(false); // decline the very first time
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await user.click(screen.getByRole("button", { name: "+ New period" }));
@@ -334,7 +334,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     mockModalPrompt("FAB Target Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
 
@@ -373,7 +373,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     mockModalPrompt("Sort Order Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
 

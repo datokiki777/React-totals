@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useAppStore } from "../../app/store";
 import {
   computeGroupFinancials,
@@ -79,8 +79,6 @@ function ReviewGroupCard({
   periods: Period[];
   clientRows: ClientRow[];
 }) {
-  const [expanded, setExpanded] = useState(false);
-
   const groupRows = useMemo(
     () => clientRows.filter((r) => periods.some((p) => p.id === r.periodId)),
     [clientRows, periods]
@@ -94,12 +92,7 @@ function ReviewGroupCard({
 
   return (
     <section className={styles.groupCard}>
-      <button
-        type="button"
-        className={styles.groupToggle}
-        onClick={() => setExpanded((v) => !v)}
-        aria-expanded={expanded}
-      >
+      <div className={styles.groupToggle}>
         <div className={styles.groupHeadMain}>
           <h3 className={styles.groupTitle}>
             {group.name}
@@ -114,15 +107,13 @@ function ReviewGroupCard({
           {statusCounts.fail > 0 && <span className={styles.badgeFail}>{statusCounts.fail}</span>}
           {statusCounts.fixed > 0 && <span className={styles.badgeFixed}>{statusCounts.fixed}</span>}
           {statusCounts.wrong > 0 && <span className={styles.badgeWrong}>{statusCounts.wrong}</span>}
-          <span className={styles.chevron}>{expanded ? "▾" : "▸"}</span>
         </div>
-      </button>
+      </div>
 
-      {expanded && (
-        <div className={styles.groupBody}>
-          <div className={styles.groupKpis}>
-            <div className={`${styles.kpi} ${styles.kpiGross}`}>
-              <div className={styles.kpiLabel}>Gross</div>
+      <div className={styles.groupBody}>
+        <div className={styles.groupKpis}>
+          <div className={`${styles.kpi} ${styles.kpiGross}`}>
+            <div className={styles.kpiLabel}>Gross</div>
               <div className={styles.kpiValue}>{formatMoney(financials.gross)}</div>
             </div>
             <div className={`${styles.kpi} ${styles.kpiNet}`}>
@@ -146,7 +137,6 @@ function ReviewGroupCard({
             />
           ))}
         </div>
-      )}
     </section>
   );
 }

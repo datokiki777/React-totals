@@ -35,7 +35,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     mockModalPrompt("Search Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await setupOneClient(user);
 
     await user.click(screen.getByRole("tab", { name: "Review" }));
@@ -51,13 +51,16 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     mockModalPrompt("Search Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await setupOneClient(user);
 
     await user.click(screen.getByRole("tab", { name: "Review" }));
     await user.type(screen.getByPlaceholderText(/Search client/), "bilis");
 
-    expect(await screen.findByText("Acme Corp")).toBeInTheDocument();
+    // Scoped to the search-result button specifically — "Acme Corp" is
+    // now also always visible in the Review list body below, since
+    // group cards no longer collapse.
+    expect(await screen.findByRole("button", { name: /Acme Corp/ })).toBeInTheDocument();
   });
 
   it("finds a client by partial comment/notes match", async () => {
@@ -65,13 +68,13 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     mockModalPrompt("Search Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await setupOneClient(user);
 
     await user.click(screen.getByRole("tab", { name: "Review" }));
     await user.type(screen.getByPlaceholderText(/Search client/), "discount");
 
-    expect(await screen.findByText("Acme Corp")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Acme Corp/ })).toBeInTheDocument();
   });
 
   it("shows 'No results' for a query that matches nothing, and clears instantly as you type", async () => {
@@ -79,7 +82,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     mockModalPrompt("Search Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await setupOneClient(user);
 
     await user.click(screen.getByRole("tab", { name: "Review" }));
@@ -99,7 +102,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     mockModalConfirm(true);
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await setupOneClient(user);
 
     await user.click(screen.getByRole("tab", { name: "Review" }));
@@ -118,16 +121,12 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     mockModalPrompt("Browse Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await setupOneClient(user);
 
     await user.click(screen.getByRole("tab", { name: "Review" }));
 
-    // Group card starts collapsed; expand it. (The GroupSwitcher picker
-    // button also contains the group name, so disambiguate via aria-expanded,
-    // which only the ReviewList toggle exposes.)
-    const groupToggle = screen.getByRole("button", { name: /Browse Group/, expanded: false });
-    await user.click(groupToggle);
+    // Group cards are always expanded in Review mode now — no toggle to click.
 
     // Period card (native <details>) — expand to see the client list.
     const periodSummary = await screen.findByText(/clients/);
@@ -142,7 +141,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     mockModalPrompt("Multi Status Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await user.click(screen.getByRole("button", { name: "+ New period" }));
@@ -165,12 +164,16 @@ describe("Review/Search module — matches the old app's search behavior", () =>
 
     await user.click(screen.getByRole("tab", { name: "Review" }));
 
-    // Collapsed group card — must show all four status colors at once,
-    // not just a single green "total" badge.
-    const groupToggle = screen.getByRole("button", { name: /Multi Status Group/, expanded: false });
+    // Group card is always expanded now — must show all four status
+    // colors at once, not just a single green "total" badge. Scoped to
+    // just the header row (not the whole section) since the body below
+    // is always rendered too now and has its own numeric-looking text
+    // (money amounts) that would otherwise pollute this count.
+    const groupHeading = screen.getByRole("heading", { name: "Multi Status Group" });
+    const groupHeader = groupHeading.closest("section")!.firstElementChild as HTMLElement;
     // The badge classes are hashed by CSS Modules, so assert by the
     // actual visible counts instead of a specific class name.
-    const badgeTexts = within(groupToggle)
+    const badgeTexts = within(groupHeader)
       .getAllByText(/^[0-9]+$/)
       .map((el) => el.textContent);
     expect(badgeTexts).toEqual(["1", "1", "1", "1"]); // Done, Fail, Fixed, Wrong
@@ -181,7 +184,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     mockModalPrompt("Paid Weeks Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await user.click(screen.getByRole("button", { name: "+ New period" }));
@@ -193,8 +196,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     fireEvent.change(screen.getByLabelText("Paid Weeks"), { target: { value: "1" } });
 
     await user.click(screen.getByRole("tab", { name: "Review" }));
-    const groupToggle = screen.getByRole("button", { name: /Paid Weeks Group/, expanded: false });
-    await user.click(groupToggle);
+    // Group card is always expanded now — no toggle to click.
 
     const badge = await screen.findByText("💰 1w / 2w");
     expect(badge.className).toMatch(/badgeUnpaid/);
@@ -204,8 +206,6 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     await expandFirstPeriod(user); // periods remount collapsed when leaving/returning to Edit
     fireEvent.change(screen.getByLabelText("Paid Weeks"), { target: { value: "2" } });
     await user.click(screen.getByRole("tab", { name: "Review" }));
-    const groupToggleAgain = screen.getByRole("button", { name: /Paid Weeks Group/, expanded: false });
-    await user.click(groupToggleAgain);
 
     const paidBadge = await screen.findByText("💰 2w / 2w");
     expect(paidBadge.className).toContain("badgePaid");
@@ -217,7 +217,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     mockModalPrompt("Review Sort Group");
 
     render(<App />);
-    await screen.findByText("Select group ▾");
+    await screen.findByText("Select group");
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
 
@@ -237,8 +237,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     fireEvent.change(fromInputs[1], { target: { value: "2026-01-01" } });
 
     await user.click(screen.getByRole("tab", { name: "Review" }));
-    const groupToggle = screen.getByRole("button", { name: /Review Sort Group/, expanded: false });
-    await user.click(groupToggle);
+    // Group card is always expanded now — no toggle to click.
 
     const ranges = await screen.findAllByText(/\d{2}\/\d{2}\/2026 → \d{2}\/\d{2}\/2026/);
     expect(ranges[0]).toHaveTextContent("01/01/2026 → 08/01/2026");
