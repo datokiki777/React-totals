@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, cleanup, waitFor, within } from "@testing-library/react";
+import { render, screen, cleanup, waitFor, within, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
 import { resetAppForTest, openGroupMenu, expandFirstPeriod, mockModalPrompt } from "../../test/resetAppForTest";
@@ -249,5 +249,77 @@ describe("Overview page — matches the old app's business logic", () => {
     // Switching to "All" must count both groups' commented clients together.
     await user.click(within(overviewCard).getByRole("button", { name: "All" }));
     expect(within(commentsToggle).getByText("2")).toBeInTheDocument();
+  });
+
+  it("Working period and Monthly Statistics only reflect the current group on Current scope, and every group on All scope", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Older Group");
+
+    render(<App />);
+    await screen.findByText("Select group");
+
+    // Group with an OLDER period (Jan 2026).
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    fireEvent.change(screen.getByLabelText("From"), { target: { value: "2026-01-01" } });
+    fireEvent.change(screen.getByLabelText("To"), { target: { value: "2026-01-08" } });
+
+    // Second group, now active, with a NEWER period (June 2026).
+    mockModalPrompt("Newer Group");
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    fireEvent.change(screen.getByLabelText("From"), { target: { value: "2026-06-01" } });
+    fireEvent.change(screen.getByLabelText("To"), { target: { value: "2026-06-08" } });
+
+    const overviewCard = screen.getByText("📊 Overview").closest("section")!;
+    await user.click(within(overviewCard).getByRole("button", { name: /Overview/ }));
+
+    // Current (active group = "Newer Group") -> only June's range, and
+    // Monthly Statistics should default to June, not January.
+    expect(within(overviewCard).getByText("01/06/2026 → 08/06/2026")).toBeInTheDocument();
+    expect(within(overviewCard).getByText("June 2026")).toBeInTheDocument();
+
+    // All -> spans both groups, January through June.
+    await user.click(within(overviewCard).getByRole("button", { name: "All" }));
+    expect(within(overviewCard).getByText("01/01/2026 → 08/06/2026")).toBeInTheDocument();
+  });
+
+  it("Working period respects Current/All scope in the Archive workspace exactly the same way as Active", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Archived Older");
+
+    render(<App />);
+    await screen.findByText("Select group");
+
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    fireEvent.change(screen.getByLabelText("From"), { target: { value: "2026-02-01" } });
+    fireEvent.change(screen.getByLabelText("To"), { target: { value: "2026-02-08" } });
+    await user.click(screen.getByLabelText("Archive / Restore"));
+
+    mockModalPrompt("Archived Newer");
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    fireEvent.change(screen.getByLabelText("From"), { target: { value: "2026-09-01" } });
+    fireEvent.change(screen.getByLabelText("To"), { target: { value: "2026-09-08" } });
+    await user.click(screen.getByLabelText("Archive / Restore"));
+
+    await user.click(screen.getByRole("tab", { name: "Archive" }));
+    const overviewCard = screen.getByText("📊 Overview").closest("section")!;
+    await user.click(within(overviewCard).getByRole("button", { name: /Overview/ }));
+
+    // Current (active archived group = "Archived Newer") -> only that
+    // group's range.
+    expect(within(overviewCard).getByText("01/09/2026 → 08/09/2026")).toBeInTheDocument();
+
+    // All -> spans both archived groups.
+    await user.click(within(overviewCard).getByRole("button", { name: "All" }));
+    expect(within(overviewCard).getByText("01/02/2026 → 08/09/2026")).toBeInTheDocument();
   });
 });
