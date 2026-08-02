@@ -53,6 +53,13 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html,svg,png,ico}"],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
+        // Without this, SW-controlled navigation requests (i.e. every
+        // launch after the very first, once the worker has activated and
+        // clientsClaim'd) rely on exact precache URL matching for the
+        // navigation itself, which can behave inconsistently for a
+        // WebAPK/TWA-style launch. Explicitly routes every navigation to
+        // the precached shell immediately and unambiguously.
+        navigateFallback: "/index.html",
       },
     }),
   ],
