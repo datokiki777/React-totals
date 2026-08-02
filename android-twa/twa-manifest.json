@@ -1,0 +1,52 @@
+{
+  "packageId": "eu.dbuilder.reacttotals",
+  "host": "react-totals.dbuilder.eu",
+  "name": "Client Totals",
+  "launcherName": "ClientTotals",
+  "display": "standalone",
+  "themeColor": "#0D2342",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#0D2342",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://react-totals.dbuilder.eu/icons/icon-512.png",
+  "maskableIconUrl": "https://react-totals.dbuilder.eu/icons/icon-512-maskable.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./reacttotals-release.keystore",
+    "alias": "reacttotals"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "@bubblewrap/cli",
+  "webManifestUrl": "https://react-totals.dbuilder.eu/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://react-totals.dbuilder.eu/",
+  "minSdkVersion": 21,
+  "orientation": "default",
+  "fingerprints": [
+    {
+      "name": "production-release",
+      "value": "7F:27:A1:0C:3C:BD:C2:61:9E:57:B3:58:40:1D:D9:9F:99:84:C0:FB:2B:E7:B7:82:4C:77:CC:55:4B:9E:28:42"
+    }
+  ],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "",
+  "displayOverride": [],
+  "appVersion": "1.0.0"
+}

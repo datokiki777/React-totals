@@ -1,0 +1,14 @@
+# Local Android/Gradle state and build products
+.gradle/
+build/
+app/build/
+local.properties
+*.apk
+*.aab
+*.idsig
+
+# Production signing material must never be committed
+*.keystore
+*.jks
+*.p12
+*signing-credentials*
