@@ -11,7 +11,6 @@ export default defineConfig({
       injectRegister: false,
       includeAssets: ["favicon.svg"],
       manifest: {
-        id: "/",
         name: "Client Totals",
         short_name: "Client Totals",
         description: "Groups, periods and client tracking app",
