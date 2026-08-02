@@ -52,13 +52,16 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,ico}"],
         cleanupOutdatedCaches: true,
-        clientsClaim: true,
-        // Without this, SW-controlled navigation requests (i.e. every
-        // launch after the very first, once the worker has activated and
-        // clientsClaim'd) rely on exact precache URL matching for the
-        // navigation itself, which can behave inconsistently for a
-        // WebAPK/TWA-style launch. Explicitly routes every navigation to
-        // the precached shell immediately and unambiguously.
+        // Deliberately NOT set: a newly-activating worker with
+        // clientsClaim: true immediately calls clients.claim(), which
+        // hijacks control of whatever page is loading RIGHT NOW —
+        // including the WebAPK's own launch navigation itself. That
+        // forces a controllerchange event mid-navigation, right during
+        // the window Chrome is verifying the WebAPK/TWA's Digital Asset
+        // Link association for this launch. Without it, an activating
+        // worker only starts controlling pages from the *next* full
+        // navigation onward, so the launch navigation itself is never
+        // hijacked mid-flight by this.
         navigateFallback: "/index.html",
       },
     }),
