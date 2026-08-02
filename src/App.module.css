@@ -127,6 +127,11 @@
 
 .tab,
 .tabActive {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   border: none;
   background: transparent;
   color: var(--text-muted);
@@ -144,6 +149,25 @@
   color: #071633;
   font-weight: 700;
   box-shadow: 0 2px 8px rgba(255, 196, 64, 0.35);
+}
+
+.tabCount {
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--text);
+  border-radius: var(--radius-pill);
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  font-size: var(--font-xs);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tabActive .tabCount {
+  background: rgba(7, 22, 51, 0.25);
+  color: #071633;
 }
 
 .main {
