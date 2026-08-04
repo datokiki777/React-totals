@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useAppStore } from "../../app/store";
 import { confirmDialog, promptDialog } from "../../shared/modal/modalStore";
 import { NumericTextField } from "../../shared/ui/NumericTextField";
+import { getGroupById } from "../../shared/lib/entityLookup";
 import styles from "./GroupSwitcher.module.css";
 
 /** How long a press must be held before it counts as "long press" (ms). */
@@ -33,7 +34,7 @@ export function GroupSwitcher() {
   const visibleGroups = groups.filter((g) =>
     workspace === "active" ? !g.archived : g.archived
   );
-  const activeGroup = groups.find((g) => g.id === activeGroupId);
+  const activeGroup = getGroupById(groups, activeGroupId);
 
   function cycleGroup() {
     if (visibleGroups.length === 0) return;

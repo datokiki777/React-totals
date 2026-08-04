@@ -3,14 +3,13 @@ import { useAppStore } from "../../app/store";
 import { computePeriodTotals, formatMoney } from "../../shared/lib/calc";
 import { formatPeriodDate, dateRangesOverlap } from "../../shared/lib/dates";
 import { confirmDialog } from "../../shared/modal/modalStore";
+import { getPeriodById, getGroupById } from "../../shared/lib/entityLookup";
 import { ClientRowItem } from "../clients/ClientRowItem";
 import styles from "./PeriodCard.module.css";
 
 export function PeriodCard({ periodId }: { periodId: string }) {
-  const period = useAppStore((s) => s.periods.find((p) => p.id === periodId));
-  const group = useAppStore((s) =>
-    period ? s.groups.find((g) => g.id === period.groupId) : undefined
-  );
+  const period = useAppStore((s) => getPeriodById(s.periods, periodId));
+  const group = useAppStore((s) => (period ? getGroupById(s.groups, period.groupId) : undefined));
   const allPeriods = useAppStore((s) => s.periods);
   const allClientRows = useAppStore((s) => s.clientRows);
   const updatePeriod = useAppStore((s) => s.updatePeriod);

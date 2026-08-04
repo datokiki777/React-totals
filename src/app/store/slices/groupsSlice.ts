@@ -3,6 +3,7 @@ import { groupRepository } from "../../../db/repositories/groupRepository";
 import { generateId, now } from "../../../shared/lib/id";
 import type { Group } from "../../../shared/types/domain";
 import { createPersistHelper } from "../persistHelper";
+import { getPeriodsForGroup, getGroupById } from "../../../shared/lib/entityLookup";
 import type { AppState } from "../types";
 
 export interface GroupsSlice {
@@ -54,9 +55,7 @@ export const createGroupsSlice: StateCreator<AppState, [], [], GroupsSlice> = (s
     },
 
     deleteGroup: (id) => {
-      const periodIds = get()
-        .periods.filter((p) => p.groupId === id)
-        .map((p) => p.id);
+      const periodIds = getPeriodsForGroup(get().periods, id).map((p) => p.id);
       set((s) => ({
         groups: s.groups.filter((g) => g.id !== id),
         periods: s.periods.filter((p) => p.groupId !== id),
@@ -70,7 +69,7 @@ export const createGroupsSlice: StateCreator<AppState, [], [], GroupsSlice> = (s
     },
 
     toggleArchiveGroup: (id) => {
-      const group = get().groups.find((g) => g.id === id);
+      const group = getGroupById(get().groups, id);
       if (!group) return;
       const nowArchived = !group.archived;
       const patch = { archived: nowArchived, updatedAt: now() };

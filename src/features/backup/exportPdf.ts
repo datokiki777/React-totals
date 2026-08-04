@@ -3,6 +3,7 @@ import autoTable from "jspdf-autotable";
 import { db } from "../../db/database";
 import { parseMoney } from "../../shared/lib/money";
 import { formatPeriodDate } from "../../shared/lib/dates";
+import { getRowsForPeriod } from "../../shared/lib/entityLookup";
 import {
   computeGrandTotals,
   computeGroupFinancials,
@@ -121,7 +122,7 @@ export async function exportToPdf() {
         y = margin;
       }
 
-      const periodRows = clientRows.filter((r) => r.periodId === period.id);
+      const periodRows = getRowsForPeriod(clientRows, period.id);
       const totals = computePeriodTotals(period, clientRows, group.defaultRate);
 
       doc.setFont("helvetica", "bold");

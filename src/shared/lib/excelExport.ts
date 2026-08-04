@@ -2,6 +2,7 @@ import type { ClientRow, Group, Period } from "../types/domain";
 import { parseMoney } from "./money";
 import { computeGroupFinancials, computeStatusCounts } from "./calc";
 import { formatPeriodDate } from "./dates";
+import { getPeriodsForGroup, getRowsForPeriod } from "./entityLookup";
 
 export interface ExcelRow {
   Group: string;
@@ -50,9 +51,9 @@ export function buildExcelRows(groups: Group[], periods: Period[], clientRows: C
   const out: ExcelRow[] = [];
 
   for (const group of groups) {
-    const groupPeriods = periods.filter((p) => p.groupId === group.id);
+    const groupPeriods = getPeriodsForGroup(periods, group.id);
     for (const period of groupPeriods) {
-      const periodRows = clientRows.filter((r) => r.periodId === period.id);
+      const periodRows = getRowsForPeriod(clientRows, period.id);
       for (const row of periodRows) {
         out.push({
           Group: group.archived ? `📦 ${group.name}` : group.name,
@@ -83,7 +84,7 @@ export function buildExcelSummary(
   clientRows: ClientRow[]
 ): ExcelSummaryRow[] {
   return groups.map((group) => {
-    const groupPeriods = periods.filter((p) => p.groupId === group.id);
+    const groupPeriods = getPeriodsForGroup(periods, group.id);
     const groupRows = clientRows.filter((r) => groupPeriods.some((p) => p.id === r.periodId));
     const financials = computeGroupFinancials(group, periods, clientRows);
     const statusCounts = computeStatusCounts(groupRows);

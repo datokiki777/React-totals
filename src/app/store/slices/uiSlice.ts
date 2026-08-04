@@ -1,4 +1,5 @@
 import type { StateCreator } from "zustand";
+import { getGroupById } from "../../../shared/lib/entityLookup";
 import type { AppState } from "../types";
 
 export type ViewMode = "edit" | "review" | "settings";
@@ -54,7 +55,7 @@ export const createUiSlice: StateCreator<AppState, [], [], UiSlice> = (set, get)
 
   setActiveGroup: (id) =>
     set((s) => {
-      const group = id ? s.groups.find((g) => g.id === id) : undefined;
+      const group = getGroupById(s.groups, id);
       if (!group) return { activeGroupId: id };
       return group.archived
         ? { activeGroupId: id, lastActiveGroupIdArchive: id }

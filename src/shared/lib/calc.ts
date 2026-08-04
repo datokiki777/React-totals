@@ -7,6 +7,7 @@ import type {
   StatusCounts,
 } from "../types/domain";
 import { parseMoney, clampRate } from "./money";
+import { getPeriodsForGroup } from "./entityLookup";
 import {
   calcCoveredWeeks,
   daysBetweenInclusive,
@@ -95,7 +96,7 @@ export function computeGroupFinancials(
   periods: Period[],
   rows: ClientRow[]
 ): GroupFinancials {
-  const groupPeriods = periods.filter((p) => p.groupId === group.id);
+  const groupPeriods = getPeriodsForGroup(periods, group.id);
 
   const totals = groupPeriods.reduce(
     (acc, p) => {

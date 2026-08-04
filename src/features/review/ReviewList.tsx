@@ -8,6 +8,7 @@ import {
 } from "../../shared/lib/calc";
 import { parseMoney } from "../../shared/lib/money";
 import { formatPeriodDate, getPeriodPaidStatus, sortPeriodsByDate } from "../../shared/lib/dates";
+import { getRowsForPeriod } from "../../shared/lib/entityLookup";
 import type { ClientRow, Group, Period } from "../../shared/types/domain";
 import styles from "./ReviewList.module.css";
 
@@ -133,7 +134,7 @@ function ReviewGroupCard({
               key={period.id}
               period={period}
               rate={group.defaultRate}
-              rows={clientRows.filter((r) => r.periodId === period.id)}
+              rows={getRowsForPeriod(clientRows, period.id)}
             />
           ))}
         </div>

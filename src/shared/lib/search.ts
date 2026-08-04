@@ -2,6 +2,7 @@ import type { ClientRow, DoneStatus, Group, Period } from "../types/domain";
 import { parseMoney } from "./money";
 import { formatMoney } from "./calc";
 import { formatPeriodDate } from "./dates";
+import { getPeriodById } from "./entityLookup";
 
 export interface SearchIndexItem {
   groupId: string;
@@ -38,7 +39,7 @@ export function buildSearchIndex(
     const comment = row.comment.trim();
     if (!customer && !city && !comment) continue;
 
-    const period = periods.find((p) => p.id === row.periodId);
+    const period = getPeriodById(periods, row.periodId);
     if (!period) continue;
     const group = groupById.get(period.groupId);
     if (!group) continue;
