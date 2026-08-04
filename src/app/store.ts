@@ -1,5 +1,9 @@
 import { create } from "zustand";
-import { db } from "../db/database";
+import { groupRepository } from "../db/repositories/groupRepository";
+import { periodRepository } from "../db/repositories/periodRepository";
+import { clientRowRepository } from "../db/repositories/clientRowRepository";
+import { settingsRepository } from "../db/repositories/settingsRepository";
+import { syncMetaRepository } from "../db/repositories/syncMetaRepository";
 import { generateId, now } from "../shared/lib/id";
 import { roundMoneyString } from "../shared/lib/money";
 import type {
@@ -135,9 +139,9 @@ function persist(label: string, task: () => Promise<unknown>, touchTimestamp = t
   if (touchTimestamp) {
     const ts = new Date().toISOString();
     useAppStore.setState({ dataUpdatedAt: ts });
-    db.syncMeta
-      .get("app")
-      .then((meta) => db.syncMeta.put({ id: "app", lastBackupAt: meta?.lastBackupAt, dataUpdatedAt: ts }))
+    syncMetaRepository
+      .get()
+      .then((meta) => syncMetaRepository.put({ id: "app", lastBackupAt: meta?.lastBackupAt, dataUpdatedAt: ts }))
       .catch(() => {});
   }
   // Fire-and-forget persistence: the UI already reflects the change
@@ -176,11 +180,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   init: async () => {
     try {
       const [groups, periods, rawClientRows, storedSettings, syncMeta] = await Promise.all([
-        db.groups.toArray(),
-        db.periods.toArray(),
-        db.clientRows.toArray(),
-        db.settings.get("app"),
-        db.syncMeta.get("app"),
+        groupRepository.getAll(),
+        periodRepository.getAll(),
+        clientRowRepository.getAll(),
+        settingsRepository.get(),
+        syncMetaRepository.get(),
       ]);
 
       // The app no longer supports cents anywhere. Round any legacy
@@ -197,7 +201,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         return fixed;
       });
       if (rowsToFix.length) {
-        persist("rounding legacy cents", () => db.clientRows.bulkPut(rowsToFix), false);
+        persist("rounding legacy cents", () => clientRowRepository.bulkPut(rowsToFix), false);
       }
 
       const firstActive = groups.find((g) => !g.archived)?.id ?? null;
@@ -239,7 +243,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       updatedAt: now(),
     };
     set((s) => ({ groups: [...s.groups, group], activeGroupId: group.id }));
-    persist("group", () => db.groups.add(group));
+    persist("group", () => groupRepository.add(group));
     return group;
   },
 
@@ -248,7 +252,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((s) => ({
       groups: s.groups.map((g) => (g.id === id ? { ...g, ...patch } : g)),
     }));
-    persist("group rename", () => db.groups.update(id, patch));
+    persist("group rename", () => groupRepository.update(id, patch));
   },
 
   updateGroupSettings: (id, patch) => {
@@ -256,7 +260,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((s) => ({
       groups: s.groups.map((g) => (g.id === id ? { ...g, ...full } : g)),
     }));
-    persist("group settings", () => db.groups.update(id, full));
+    persist("group settings", () => groupRepository.update(id, full));
   },
 
   deleteGroup: (id) => {
@@ -272,13 +276,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       lastActiveGroupIdArchive:
         s.lastActiveGroupIdArchive === id ? null : s.lastActiveGroupIdArchive,
     }));
-    persist("group deletion", () =>
-      db.transaction("rw", db.groups, db.periods, db.clientRows, async () => {
-        await db.clientRows.where("periodId").anyOf(periodIds).delete();
-        await db.periods.where("groupId").equals(id).delete();
-        await db.groups.delete(id);
-      })
-    );
+    persist("group deletion", () => groupRepository.deleteCascade(id, periodIds));
   },
 
   toggleArchiveGroup: (id) => {
@@ -294,7 +292,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           : { lastActiveGroupIdActive: id }
         : {}),
     }));
-    persist("group archive toggle", () => db.groups.update(id, patch));
+    persist("group archive toggle", () => groupRepository.update(id, patch));
   },
 
   setActiveGroup: (id) =>
@@ -317,7 +315,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       updatedAt: now(),
     };
     set((s) => ({ periods: [...s.periods, period] }));
-    persist("period", () => db.periods.add(period));
+    persist("period", () => periodRepository.add(period));
     return period;
   },
 
@@ -326,7 +324,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((s) => ({
       periods: s.periods.map((p) => (p.id === id ? { ...p, ...full } : p)),
     }));
-    persist("period update", () => db.periods.update(id, full));
+    persist("period update", () => periodRepository.update(id, full));
   },
 
   removePeriod: (id) => {
@@ -334,12 +332,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       periods: s.periods.filter((p) => p.id !== id),
       clientRows: s.clientRows.filter((r) => r.periodId !== id),
     }));
-    persist("period deletion", () =>
-      db.transaction("rw", db.periods, db.clientRows, async () => {
-        await db.clientRows.where("periodId").equals(id).delete();
-        await db.periods.delete(id);
-      })
-    );
+    persist("period deletion", () => periodRepository.deleteCascade(id));
   },
 
   addClientRow: async (periodId) => {
@@ -356,7 +349,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       updatedAt: now(),
     };
     set((s) => ({ clientRows: [...s.clientRows, row] }));
-    persist("client row", () => db.clientRows.add(row));
+    persist("client row", () => clientRowRepository.add(row));
     return row;
   },
 
@@ -365,12 +358,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((s) => ({
       clientRows: s.clientRows.map((r) => (r.id === id ? { ...r, ...full } : r)),
     }));
-    persist("client row update", () => db.clientRows.update(id, full));
+    persist("client row update", () => clientRowRepository.update(id, full));
   },
 
   removeClientRow: (id) => {
     set((s) => ({ clientRows: s.clientRows.filter((r) => r.id !== id) }));
-    persist("client row deletion", () => db.clientRows.delete(id));
+    persist("client row deletion", () => clientRowRepository.delete(id));
   },
 
   cycleRowStatus: (id) => {
@@ -422,13 +415,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   updateSettings: (patch) => {
     const full = { ...get().settings, ...patch };
     set({ settings: full });
-    persist("settings", () => db.settings.put(full));
+    persist("settings", () => settingsRepository.put(full));
   },
 
   clearAllData: async () => {
-    await db.transaction("rw", db.groups, db.periods, db.clientRows, async () => {
-      await Promise.all([db.groups.clear(), db.periods.clear(), db.clientRows.clear()]);
-    });
+    await groupRepository.clearAllTables();
     set({
       groups: [],
       periods: [],
@@ -448,29 +439,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   markBackupMade: () => {
     const ts = new Date().toISOString();
     set({ lastBackupAt: ts });
-    db.syncMeta
-      .get("app")
-      .then((meta) => db.syncMeta.put({ id: "app", dataUpdatedAt: meta?.dataUpdatedAt ?? ts, lastBackupAt: ts }))
+    syncMetaRepository
+      .get()
+      .then((meta) => syncMetaRepository.put({ id: "app", dataUpdatedAt: meta?.dataUpdatedAt ?? ts, lastBackupAt: ts }))
       .catch(() => {});
   },
 
   applyCloudSnapshot: async (snapshot) => {
-    await db.transaction(
-      "rw",
-      db.groups,
-      db.periods,
-      db.clientRows,
-      db.settings,
-      db.syncMeta,
-      async () => {
-        await Promise.all([db.groups.clear(), db.periods.clear(), db.clientRows.clear()]);
-        if (snapshot.groups.length) await db.groups.bulkAdd(snapshot.groups);
-        if (snapshot.periods.length) await db.periods.bulkAdd(snapshot.periods);
-        if (snapshot.clientRows.length) await db.clientRows.bulkAdd(snapshot.clientRows);
-        await db.settings.put(snapshot.settings);
-        await db.syncMeta.put({ id: "app", dataUpdatedAt: snapshot.dataUpdatedAt });
-      }
-    );
+    await groupRepository.replaceAllData(snapshot);
 
     const firstActive = snapshot.groups.find((g) => !g.archived)?.id ?? null;
     const firstArchived = snapshot.groups.find((g) => g.archived)?.id ?? null;
