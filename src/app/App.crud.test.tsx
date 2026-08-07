@@ -416,4 +416,49 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     await user.click(screen.getByLabelText("Settings"));
     expect(localStorage.getItem("client-totals:last-mode")).toBe("review");
   });
+
+  it("client rows stay in the exact order they were typed in, even after a full app reload", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Order Group");
+
+    const { unmount } = render(<App />);
+    await screen.findByText("Select group");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+
+    // Add three clients in a specific order. Their ids are random UUIDs
+    // (not sequential), so if anything ever re-fetched them sorted by id
+    // instead of creation order, this order would come back scrambled.
+    for (const name of ["Zeta", "Alpha", "Mike"]) {
+      await user.click(screen.getByRole("button", { name: "+ Add client" }));
+      const table = screen.getByRole("table");
+      const inputs = within(table).getAllByPlaceholderText("Client name");
+      await user.type(inputs[inputs.length - 1], name);
+    }
+
+    const namesBefore = within(screen.getByRole("table"))
+      .getAllByPlaceholderText("Client name")
+      .map((el) => (el as HTMLInputElement).value);
+    expect(namesBefore).toEqual(["Zeta", "Alpha", "Mike"]);
+
+    // Simulate a full app reload — re-fetches everything from IndexedDB
+    // from scratch, exactly where the ordering bug would show up.
+    unmount();
+    render(<App />);
+    // The group is already selected on reload (restored from IndexedDB),
+    // so the switcher shows its name rather than the "Select group"
+    // placeholder — wait for that instead (scoped to the switcher button
+    // itself, since "Order Group" also appears in the period card's tag).
+    await waitFor(() => {
+      expect(screen.getByTestId("group-switcher-btn")).toHaveTextContent("Order Group");
+    });
+    await expandFirstPeriod(user);
+
+    const namesAfter = within(screen.getByRole("table"))
+      .getAllByPlaceholderText("Client name")
+      .map((el) => (el as HTMLInputElement).value);
+    expect(namesAfter).toEqual(["Zeta", "Alpha", "Mike"]);
+  });
 });

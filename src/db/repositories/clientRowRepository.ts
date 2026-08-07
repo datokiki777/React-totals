@@ -7,8 +7,13 @@ import type { ClientRow } from "../../shared/types/domain";
  * relocated.
  */
 export const clientRowRepository = {
+  /** Ordered by createdAt (ascending) — client rows have a random UUID
+   * as their primary key, not a sequential one, so without an explicit
+   * order Dexie's default toArray() would return them sorted by that
+   * random id (effectively shuffled) instead of the order they were
+   * actually typed in. */
   getAll(): Promise<ClientRow[]> {
-    return db.clientRows.toArray();
+    return db.clientRows.orderBy("createdAt").toArray();
   },
 
   add(row: ClientRow): Promise<string> {
