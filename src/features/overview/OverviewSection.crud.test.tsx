@@ -154,7 +154,7 @@ describe("Overview page — matches the old app's business logic", () => {
     expect(screen.getByDisplayValue("Drilldown Client")).toBeInTheDocument();
   });
 
-  it("the Comments widget counts only clients with a non-empty comment, and clicking one jumps to it in Edit mode", async () => {
+  it("the Comments widget breaks down by status (like Done/Fail/Fixed/Wrong), counting only clients with a comment, and clicking one jumps to it in Edit mode", async () => {
     const user = userEvent.setup();
     mockModalPrompt("Comments Group");
 
@@ -166,42 +166,52 @@ describe("Overview page — matches the old app's business logic", () => {
     await user.click(screen.getByRole("button", { name: "+ New period" }));
     await expandFirstPeriod(user);
 
-    // First client — has a comment.
+    // First client — has a comment AND is marked Done.
     await user.click(screen.getByRole("button", { name: "+ Add client" }));
     let table = screen.getByRole("table");
     let rows = within(table).getAllByPlaceholderText("Client name");
     await user.type(rows[rows.length - 1], "Noted Client");
     await user.click(within(table).getAllByRole("button", { name: /Add note|Saved/ })[0]);
     await user.type(screen.getByPlaceholderText("Private note for this client..."), "Call back Monday");
+    await user.click(within(table).getByRole("button", { name: "—" })); // none -> done
 
-    // Second client — left with no comment at all.
+    // Second client — also Done, but left with no comment at all.
     await user.click(screen.getByRole("button", { name: "+ Add client" }));
     table = screen.getByRole("table");
     rows = within(table).getAllByPlaceholderText("Client name");
     await user.type(rows[rows.length - 1], "Silent Client");
+    await user.click(within(table).getByRole("button", { name: "—" }));
 
     const overviewCard = screen.getByText("📊 Overview").closest("section")!;
     await user.click(within(overviewCard).getByRole("button", { name: /Overview/ }));
 
-    // Only the ONE client with an actual comment is counted, not both.
-    const commentsToggle = within(overviewCard).getByRole("button", { name: /📝 Comments/ });
-    expect(within(commentsToggle).getByText("1")).toBeInTheDocument();
+    // "Comments" row, same shape as Done/Fail/Fixed/Wrong: 4 status-colored
+    // badges. Only the ONE Done client with an actual comment is counted
+    // under the green (Done) badge — the commentless Done client doesn't
+    // bump it, and Fail/Fixed/Wrong all stay at 0.
+    const commentsLabel = within(overviewCard).getByText("📝 Comments");
+    const commentsRow = commentsLabel.closest("div")!;
+    const [doneBadge, failBadge, fixedBadge, wrongBadge] = within(commentsRow).getAllByRole("button");
+    expect(doneBadge).toHaveTextContent("1");
+    expect(failBadge).toHaveTextContent("0");
+    expect(fixedBadge).toHaveTextContent("0");
+    expect(wrongBadge).toHaveTextContent("0");
 
     expect(within(overviewCard).queryByRole("list")).not.toBeInTheDocument();
-    await user.click(commentsToggle);
+    await user.click(doneBadge);
 
-    const list = within(overviewCard).getByRole("list", { name: "Clients with comments" });
+    const list = within(overviewCard).getByRole("list", { name: "Done clients with comments" });
     expect(within(list).getByText("Noted Client")).toBeInTheDocument();
     expect(within(list).getByText("Call back Monday")).toBeInTheDocument();
     expect(within(list).queryByText("Silent Client")).not.toBeInTheDocument();
 
     // Toggle closed.
-    await user.click(commentsToggle);
+    await user.click(doneBadge);
     expect(within(overviewCard).queryByRole("list")).not.toBeInTheDocument();
 
     // Reopen and jump to the client — same navigate/highlight behavior as
     // the status badges use.
-    await user.click(commentsToggle);
+    await user.click(doneBadge);
     await user.click(within(overviewCard).getByText("Noted Client"));
 
     expect(await screen.findByRole("tab", { name: "Edit", selected: true })).toBeInTheDocument();
@@ -215,7 +225,7 @@ describe("Overview page — matches the old app's business logic", () => {
     render(<App />);
     await screen.findByText("Select group");
 
-    // Group A: one client with a comment.
+    // Group A: one Done client with a comment.
     await openGroupMenu();
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await user.click(screen.getByRole("button", { name: "+ New period" }));
@@ -225,9 +235,10 @@ describe("Overview page — matches the old app's business logic", () => {
     await user.type(within(table).getByPlaceholderText("Client name"), "A Client");
     await user.click(within(table).getByRole("button", { name: /Add note|Saved/ }));
     await user.type(screen.getByPlaceholderText("Private note for this client..."), "note A");
+    await user.click(within(table).getByRole("button", { name: "—" }));
 
-    // Group B: a different client, also with a comment. (The group menu
-    // is already open from creating Group A — it doesn't auto-close.)
+    // Group B: a different Done client, also with a comment. (The group
+    // menu is already open from creating Group A — it doesn't auto-close.)
     mockModalPrompt("Group B");
     await user.click(screen.getByRole("button", { name: "+ Group" }));
     await user.click(screen.getByRole("button", { name: "+ New period" }));
@@ -237,18 +248,21 @@ describe("Overview page — matches the old app's business logic", () => {
     await user.type(within(table).getByPlaceholderText("Client name"), "B Client");
     await user.click(within(table).getByRole("button", { name: /Add note|Saved/ }));
     await user.type(screen.getByPlaceholderText("Private note for this client..."), "note B");
+    await user.click(within(table).getByRole("button", { name: "—" }));
 
     // Now viewing Group B (the active one) — "Current" scope must show
     // only Group B's one commented client, not Group A's.
     const overviewCard = screen.getByText("📊 Overview").closest("section")!;
     await user.click(within(overviewCard).getByRole("button", { name: /Overview/ }));
 
-    const commentsToggle = within(overviewCard).getByRole("button", { name: /📝 Comments/ });
-    expect(within(commentsToggle).getByText("1")).toBeInTheDocument();
+    const commentsLabel = within(overviewCard).getByText("📝 Comments");
+    const commentsRow = commentsLabel.closest("div")!;
+    const [doneBadge] = within(commentsRow).getAllByRole("button");
+    expect(doneBadge).toHaveTextContent("1");
 
     // Switching to "All" must count both groups' commented clients together.
     await user.click(within(overviewCard).getByRole("button", { name: "All" }));
-    expect(within(commentsToggle).getByText("2")).toBeInTheDocument();
+    expect(doneBadge).toHaveTextContent("2");
   });
 
   it("Working period and Monthly Statistics only reflect the current group on Current scope, and every group on All scope", async () => {

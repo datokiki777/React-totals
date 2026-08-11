@@ -126,20 +126,31 @@ export function OverviewSection() {
 
   function toggleStatusFilter(status: DoneStatus) {
     setStatusFilter((prev) => (prev === status ? null : status));
-    setCommentsOpen(false);
+    setCommentsFilter(null);
   }
 
-  // --- Comments widget: same drill-down/navigate pattern as the status
-  // badges above, but for every client with a non-empty comment. ---
-  const [commentsOpen, setCommentsOpen] = useState(false);
+  // --- Comments widget: same "4 status-colored badges, click to filter"
+  // shape as the Done/Fail/Fixed/Wrong row above, but scoped to clients
+  // that also have a non-empty comment. ---
+  const [commentsFilter, setCommentsFilter] = useState<DoneStatus | null>(null);
   const commentedRows = useMemo(
     () => scopedRows.filter((r) => r.comment.trim() !== ""),
     [scopedRows]
   );
+  const commentedStatusCounts = useMemo(() => computeStatusCounts(commentedRows), [commentedRows]);
+  const filteredCommentedRows = useMemo(() => {
+    if (!commentsFilter) return [];
+    return commentedRows.filter((r) => r.status === commentsFilter);
+  }, [commentedRows, commentsFilter]);
+
+  function toggleCommentsFilter(status: DoneStatus) {
+    setCommentsFilter((prev) => (prev === status ? null : status));
+    setStatusFilter(null);
+  }
 
   useEffect(() => {
     setStatusFilter(null);
-    setCommentsOpen(false);
+    setCommentsFilter(null);
   }, [scope, workspace, activeGroupId]);
 
   function handleClientClick(rowId: string) {
@@ -277,29 +288,54 @@ export function OverviewSection() {
         </div>
       )}
 
-      <button
-        type="button"
-        className={styles.commentsRow}
-        onClick={() => {
-          setCommentsOpen((v) => !v);
-          setStatusFilter(null);
-        }}
-        aria-expanded={commentsOpen}
-      >
+      <div className={styles.statusRow}>
         <span>📝 Comments</span>
         <div className={styles.badges}>
-          <span className={commentsOpen ? styles.badgeDoneActive : styles.badgeDone}>
-            {commentedRows.length}
-          </span>
+          <button
+            type="button"
+            className={commentsFilter === "done" ? styles.badgeDoneActive : styles.badgeDone}
+            onClick={() => toggleCommentsFilter("done")}
+            aria-pressed={commentsFilter === "done"}
+          >
+            {commentedStatusCounts.done}
+          </button>
+          <button
+            type="button"
+            className={commentsFilter === "fail" ? styles.badgeFailActive : styles.badgeFail}
+            onClick={() => toggleCommentsFilter("fail")}
+            aria-pressed={commentsFilter === "fail"}
+          >
+            {commentedStatusCounts.fail}
+          </button>
+          <button
+            type="button"
+            className={commentsFilter === "fixed" ? styles.badgeFixedActive : styles.badgeFixed}
+            onClick={() => toggleCommentsFilter("fixed")}
+            aria-pressed={commentsFilter === "fixed"}
+          >
+            {commentedStatusCounts.fixed}
+          </button>
+          <button
+            type="button"
+            className={commentsFilter === "wrong" ? styles.badgeWrongActive : styles.badgeWrong}
+            onClick={() => toggleCommentsFilter("wrong")}
+            aria-pressed={commentsFilter === "wrong"}
+          >
+            {commentedStatusCounts.wrong}
+          </button>
         </div>
-      </button>
+      </div>
 
-      {commentsOpen && (
-        <div className={styles.filteredList} role="list" aria-label="Clients with comments">
-          {commentedRows.length === 0 && (
-            <div className={styles.filteredEmpty}>No clients with comments.</div>
+      {commentsFilter && (
+        <div
+          className={styles.filteredList}
+          role="list"
+          aria-label={`${STATUS_LABEL[commentsFilter]} clients with comments`}
+        >
+          {filteredCommentedRows.length === 0 && (
+            <div className={styles.filteredEmpty}>No {STATUS_LABEL[commentsFilter]} clients with comments.</div>
           )}
-          {commentedRows.map((row) => {
+          {filteredCommentedRows.map((row) => {
             const period = periodById.get(row.periodId);
             const group = period ? groupById.get(period.groupId) : undefined;
             return (
