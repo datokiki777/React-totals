@@ -34,6 +34,15 @@ export interface ClientRow {
   city: string;
   status: DoneStatus;
   comment: string;
+  /** ISO date (YYYY-MM-DD) or null — the day this client's job happened/
+   * started. Purely informational: never affects any calculation, only
+   * shown + searchable. Always within the period's own date range in
+   * practice, but not enforced. */
+  visitDate: string | null;
+  /** How many days this client's job took (1-5 in practice) — shown
+   * alongside visitDate as a small hint once both are set. Purely
+   * informational, same as visitDate. */
+  visitDays: number | null;
   createdAt: number;
   updatedAt: number;
 }

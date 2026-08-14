@@ -155,6 +155,7 @@ export function PeriodCard({ periodId }: { periodId: string }) {
                   <th>Gross</th>
                   <th>Net</th>
                   <th>City</th>
+                  <th>Date</th>
                   <th>Done</th>
                   <th>Actions</th>
                 </tr>

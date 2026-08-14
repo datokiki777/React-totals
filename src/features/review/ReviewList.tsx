@@ -198,6 +198,12 @@ function ReviewPeriodCard({
               <div className={styles.clientCity}>
                 City: <b>{row.city.trim() || "—"}</b>
               </div>
+              {(row.visitDate || row.visitDays) && (
+                <div className={styles.clientVisit}>
+                  📅 {row.visitDate ? formatPeriodDate(row.visitDate) : "—"}
+                  {row.visitDays ? ` · ${row.visitDays}d` : ""}
+                </div>
+              )}
               {row.comment.trim() && (
                 <div className={styles.clientComment}>
                   <span aria-hidden="true">✎</span> {row.comment.trim()}

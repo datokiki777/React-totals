@@ -32,6 +32,8 @@ export const createClientRowsSlice: StateCreator<AppState, [], [], ClientRowsSli
         city: "",
         status: "none",
         comment: "",
+        visitDate: null,
+        visitDays: null,
         createdAt: now(),
         updatedAt: now(),
       };

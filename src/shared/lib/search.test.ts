@@ -38,6 +38,8 @@ function makeRow(overrides: Partial<ClientRow> = {}): ClientRow {
     city: "Tbilisi",
     status: "none",
     comment: "",
+    visitDate: null,
+    visitDays: null,
     createdAt: 0,
     updatedAt: 0,
     ...overrides,
@@ -69,6 +71,18 @@ describe("buildSearchIndex", () => {
     const periods = [makePeriod()];
     const rows = [makeRow({ customer: "", city: "", comment: "" })];
     expect(buildSearchIndex(groups, periods, rows)).toHaveLength(0);
+  });
+
+  it("includes a row that only has a visit date set (no customer/city/comment)", () => {
+    const rows = [makeRow({ customer: "", city: "", comment: "", visitDate: "2026-01-15" })];
+    const index = buildSearchIndex([makeGroup()], [makePeriod()], rows);
+    expect(index).toHaveLength(1);
+    expect(index[0].visitDate).toBe("15/01/2026");
+  });
+
+  it("visitDate is an empty string (not a dash) when unset, so it never renders or matches empty", () => {
+    const index = buildSearchIndex([makeGroup()], [makePeriod()], [makeRow({ visitDate: null })]);
+    expect(index[0].visitDate).toBe("");
   });
 
   it("skips rows whose period or group no longer exists", () => {
@@ -107,6 +121,19 @@ describe("searchIndex", () => {
   it("matches by comment/notes", () => {
     const results = searchIndex(index, "discount");
     expect(results.map((r) => r.rowId)).toEqual(["r2"]);
+  });
+
+  it("matches by the client's own visit date", () => {
+    const withDates = buildSearchIndex(
+      [makeGroup()],
+      [makePeriod()],
+      [
+        makeRow({ id: "r1", customer: "Acme Corp", visitDate: "2026-01-15" }),
+        makeRow({ id: "r2", customer: "Beta LLC", visitDate: "2026-01-20" }),
+      ]
+    );
+    const results = searchIndex(withDates, "15/01");
+    expect(results.map((r) => r.rowId)).toEqual(["r1"]);
   });
 
   it("returns an empty array for a blank query", () => {

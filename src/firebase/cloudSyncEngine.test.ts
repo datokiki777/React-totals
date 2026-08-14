@@ -181,6 +181,8 @@ describe("Cloud sync — data integrity", () => {
           city: "Batumi",
           status: "done",
           comment: "must survive the round trip",
+          visitDate: null,
+          visitDays: null,
           createdAt: 1,
           updatedAt: 2,
         },

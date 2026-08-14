@@ -44,6 +44,8 @@ function makeRow(periodId: string, overrides: Partial<ClientRow> = {}): ClientRo
     city: "",
     status: "none",
     comment: "",
+    visitDate: null,
+    visitDays: null,
     createdAt: 0,
     updatedAt: 0,
     ...overrides,

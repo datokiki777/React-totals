@@ -52,10 +52,21 @@ export const createLifecycleSlice: StateCreator<AppState, [], [], LifecycleSlice
         // so stored data matches what's displayed everywhere from now on.
         const rowsToFix: ClientRow[] = [];
         const clientRows = rawClientRows.map((row) => {
-          const gross = roundMoneyString(row.gross);
-          const net = roundMoneyString(row.net);
-          if (gross === row.gross && net === row.net) return row;
-          const fixed = { ...row, gross, net, updatedAt: now() };
+          // Rows stored before visitDate/visitDays existed won't have
+          // these keys at all — default them in memory so every row is
+          // consistently typed. Not written back to IndexedDB (unlike the
+          // cents fix below): there's no actual stored value to correct,
+          // it's purely a missing-key vs. explicit-null distinction that
+          // only matters for the in-memory shape.
+          const normalized: ClientRow = {
+            ...row,
+            visitDate: row.visitDate ?? null,
+            visitDays: row.visitDays ?? null,
+          };
+          const gross = roundMoneyString(normalized.gross);
+          const net = roundMoneyString(normalized.net);
+          if (gross === normalized.gross && net === normalized.net) return normalized;
+          const fixed = { ...normalized, gross, net, updatedAt: now() };
           rowsToFix.push(fixed);
           return fixed;
         });

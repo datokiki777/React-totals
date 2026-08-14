@@ -18,6 +18,10 @@ export interface SearchIndexItem {
   gross: string; // formatted for display
   net: string;
   status: DoneStatus;
+  /** The client's own visit date, formatted for display — "" (not "—")
+   * when unset, so it never renders as a stray dash and never matches an
+   * empty search query. */
+  visitDate: string;
 }
 
 /**
@@ -37,7 +41,8 @@ export function buildSearchIndex(
     const customer = row.customer.trim();
     const city = row.city.trim();
     const comment = row.comment.trim();
-    if (!customer && !city && !comment) continue;
+    const visitDate = row.visitDate ? formatPeriodDate(row.visitDate) : "";
+    if (!customer && !city && !comment && !visitDate) continue;
 
     const period = getPeriodById(periods, row.periodId);
     if (!period) continue;
@@ -58,6 +63,7 @@ export function buildSearchIndex(
       gross: formatMoney(parseMoney(row.gross) || 0),
       net: formatMoney(parseMoney(row.net) || 0),
       status: row.status,
+      visitDate,
     });
   }
 
@@ -65,9 +71,10 @@ export function buildSearchIndex(
 }
 
 /**
- * Filters the index by a query against customer name, city/address, and
- * comment/notes — partial, case-insensitive substring match. Results are
- * capped at 40, matching the old app's renderSearchResults limit.
+ * Filters the index by a query against customer name, city/address,
+ * comment/notes, and the client's own visit date — partial,
+ * case-insensitive substring match. Results are capped at 40, matching
+ * the old app's renderSearchResults limit.
  */
 export function searchIndex(index: SearchIndexItem[], query: string): SearchIndexItem[] {
   const q = query.trim().toLowerCase();
@@ -77,7 +84,8 @@ export function searchIndex(index: SearchIndexItem[], query: string): SearchInde
     (item) =>
       item.customer.toLowerCase().includes(q) ||
       item.city.toLowerCase().includes(q) ||
-      item.comment.toLowerCase().includes(q)
+      item.comment.toLowerCase().includes(q) ||
+      item.visitDate.toLowerCase().includes(q)
   );
 
   return matches.slice(0, 40);
