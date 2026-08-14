@@ -10,6 +10,7 @@ import type { ClientRow } from "../../../shared/types/domain";
 import type { CloudSnapshot } from "../../../firebase/cloudSnapshot";
 import { createPersistHelper } from "../persistHelper";
 import { DEFAULT_SETTINGS } from "./settingsSlice";
+import { getRememberedGroupId } from "./uiSlice";
 import type { AppState } from "../types";
 
 export interface LifecycleSlice {
@@ -65,13 +66,26 @@ export const createLifecycleSlice: StateCreator<AppState, [], [], LifecycleSlice
 
         const firstActive = groups.find((g) => !g.archived)?.id ?? null;
         const firstArchived = groups.find((g) => g.archived)?.id ?? null;
+
+        const rememberedActive = getRememberedGroupId(false);
+        const rememberedArchive = getRememberedGroupId(true);
+
+        const activeGroupId =
+          groups.some((g) => !g.archived && g.id === rememberedActive)
+            ? rememberedActive
+            : firstActive;
+
+        const archivedGroupId =
+          groups.some((g) => g.archived && g.id === rememberedArchive)
+            ? rememberedArchive
+            : firstArchived;
         set({
           groups,
           periods,
           clientRows,
-          activeGroupId: firstActive,
-          lastActiveGroupIdActive: firstActive,
-          lastActiveGroupIdArchive: firstArchived,
+          activeGroupId,
+          lastActiveGroupIdActive: activeGroupId,
+          lastActiveGroupIdArchive: archivedGroupId,
           settings: storedSettings ? { ...DEFAULT_SETTINGS, ...storedSettings } : DEFAULT_SETTINGS,
           dataUpdatedAt: syncMeta?.dataUpdatedAt ?? null,
           lastBackupAt: syncMeta?.lastBackupAt ?? null,

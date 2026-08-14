@@ -7,6 +7,29 @@ export type WorkspaceTab = "active" | "archive";
 export type TotalsScope = "current" | "all";
 
 const LAST_MODE_STORAGE_KEY = "client-totals:last-mode";
+const LAST_ACTIVE_GROUP_STORAGE_KEY = "client-totals:last-active-group";
+const LAST_ARCHIVE_GROUP_STORAGE_KEY = "client-totals:last-archive-group";
+
+export function getRememberedGroupId(archived: boolean): string | null {
+  try {
+    return localStorage.getItem(
+      archived ? LAST_ARCHIVE_GROUP_STORAGE_KEY : LAST_ACTIVE_GROUP_STORAGE_KEY
+    );
+  } catch {
+    return null;
+  }
+}
+
+function rememberGroupId(id: string, archived: boolean) {
+  try {
+    localStorage.setItem(
+      archived ? LAST_ARCHIVE_GROUP_STORAGE_KEY : LAST_ACTIVE_GROUP_STORAGE_KEY,
+      id
+    );
+  } catch {
+    // Ignore storage failures.
+  }
+}
 
 function getInitialMode(): ViewMode {
   try {
@@ -57,6 +80,7 @@ export const createUiSlice: StateCreator<AppState, [], [], UiSlice> = (set, get)
     set((s) => {
       const group = getGroupById(s.groups, id);
       if (!group) return { activeGroupId: id };
+      if (id) rememberGroupId(id, group.archived);
       return group.archived
         ? { activeGroupId: id, lastActiveGroupIdArchive: id }
         : { activeGroupId: id, lastActiveGroupIdActive: id };
