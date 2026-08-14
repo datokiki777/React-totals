@@ -147,8 +147,6 @@ export function migrateLegacyAppState(legacy: LegacyAppState): {
           net: r.net === undefined || r.net === null ? "" : String(r.net),
           comment: r.comment ?? "",
           status: toStatus(r.done),
-          visitDate: null,
-          visitDays: null,
           createdAt: now(),
           updatedAt: now(),
         });

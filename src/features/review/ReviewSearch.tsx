@@ -103,11 +103,6 @@ export function ReviewSearch() {
                 <span>
                   <b>City:</b> <Highlighted text={item.city || "—"} query={query} />
                 </span>
-                {item.visitDate && (
-                  <span>
-                    <b>Visit:</b> <Highlighted text={item.visitDate} query={query} />
-                  </span>
-                )}
                 <span>
                   <b>Gross:</b> {item.gross}
                 </span>

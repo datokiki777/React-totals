@@ -14,9 +14,9 @@ const periods: Period[] = [
 ];
 
 const rows: ClientRow[] = [
-  { id: "r1", periodId: "p1", customer: "X", gross: "", net: "", city: "", status: "none", comment: "", visitDate: null, visitDays: null, createdAt: 0, updatedAt: 0 },
-  { id: "r2", periodId: "p1", customer: "Y", gross: "", net: "", city: "", status: "none", comment: "", visitDate: null, visitDays: null, createdAt: 0, updatedAt: 0 },
-  { id: "r3", periodId: "p2", customer: "Z", gross: "", net: "", city: "", status: "none", comment: "", visitDate: null, visitDays: null, createdAt: 0, updatedAt: 0 },
+  { id: "r1", periodId: "p1", customer: "X", gross: "", net: "", city: "", status: "none", comment: "", createdAt: 0, updatedAt: 0 },
+  { id: "r2", periodId: "p1", customer: "Y", gross: "", net: "", city: "", status: "none", comment: "", createdAt: 0, updatedAt: 0 },
+  { id: "r3", periodId: "p2", customer: "Z", gross: "", net: "", city: "", status: "none", comment: "", createdAt: 0, updatedAt: 0 },
 ];
 
 describe("entityLookup", () => {

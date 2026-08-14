@@ -38,8 +38,6 @@ function makeRow(overrides: Partial<ClientRow> = {}): ClientRow {
     city: "Tbilisi",
     status: "none",
     comment: "call back",
-    visitDate: null,
-    visitDays: null,
     createdAt: 0,
     updatedAt: 0,
     ...overrides,

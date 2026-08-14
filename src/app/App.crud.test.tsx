@@ -194,7 +194,7 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     expect(periods[0].groupId).toBe(periods[1].groupId);
   });
 
-  it("the client table stays a real scrollable table (not stacked cards) with all seven columns always present", async () => {
+  it("the client table stays a real scrollable table (not stacked cards) with all six columns always present", async () => {
     const user = userEvent.setup();
     mockModalPrompt("Scroll Table Group");
 
@@ -213,13 +213,12 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
       "Gross",
       "Net",
       "City",
-      "Date",
       "Done",
       "Actions",
     ]);
     // Headers must stay visible/present (not display:none, as a stacked
     // mobile layout would do) — getAllByRole already excludes hidden
-    // elements, so finding all seven here proves the header row is intact.
+    // elements, so finding all six here proves the header row is intact.
   });
 
   it("warns when a period's dates overlap another period in the same group, and only applies the change if confirmed", async () => {
@@ -461,35 +460,5 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
       .getAllByPlaceholderText("Client name")
       .map((el) => (el as HTMLInputElement).value);
     expect(namesAfter).toEqual(["Zeta", "Alpha", "Mike"]);
-  });
-
-  it("a client's visit date/days hint only shows once something is actually entered, and stays out of any calculation", async () => {
-    const user = userEvent.setup();
-    mockModalPrompt("Visit Date Group");
-
-    render(<App />);
-    await screen.findByText("Select group");
-    await openGroupMenu();
-    await user.click(screen.getByRole("button", { name: "+ Group" }));
-    await user.click(screen.getByRole("button", { name: "+ New period" }));
-    await expandFirstPeriod(user);
-    await user.click(screen.getByRole("button", { name: "+ Add client" }));
-
-    const table = screen.getByRole("table");
-    await user.type(within(table).getByPlaceholderText("Client name"), "Visited Client");
-    await user.type(within(table).getAllByPlaceholderText("0")[0], "1000"); // Gross
-
-    // Nothing entered yet for the visit date/days — no hint chip at all.
-    expect(within(table).queryByText(/📅/)).not.toBeInTheDocument();
-
-    fireEvent.change(within(table).getByLabelText("Visit date"), {
-      target: { value: "2026-07-27" },
-    });
-    await user.selectOptions(within(table).getByLabelText("Visit days"), "2");
-
-    expect(within(table).getByText("📅 27/07/2026 · 2d")).toBeInTheDocument();
-
-    // Purely informational — Gross total is untouched by any of this.
-    expect(within(table).getByText("1000")).toBeInTheDocument();
   });
 });

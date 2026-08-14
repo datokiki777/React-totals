@@ -12,51 +12,6 @@
   font-size: var(--font-md);
 }
 
-/* Per-client visit date + duration (1-5 days) — purely informational,
-   between City and Done. Small nice hint chip appears once either part
-   is filled in; stays completely empty/invisible otherwise. */
-.visitCell {
-  min-width: 150px;
-}
-
-.visitInputs {
-  display: flex;
-  gap: 4px;
-}
-
-.visitDateInput {
-  flex: 1;
-  min-width: 92px;
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid var(--border-soft);
-  color: var(--text);
-  padding: 7px 8px;
-  border-radius: var(--radius-pill);
-  font-size: var(--font-sm);
-}
-
-.visitDaysInput {
-  width: 56px;
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid var(--border-soft);
-  color: var(--text);
-  padding: 7px 4px;
-  border-radius: var(--radius-pill);
-  font-size: var(--font-sm);
-}
-
-.visitHint {
-  display: inline-block;
-  margin-top: 4px;
-  font-size: var(--font-xs);
-  color: var(--accent);
-  background: rgba(255, 196, 64, 0.12);
-  border: 1px solid rgba(255, 196, 64, 0.3);
-  border-radius: var(--radius-pill);
-  padding: 2px 9px;
-  white-space: nowrap;
-}
-
 /* Comment accordion trigger: icon + "Comment" label + live state + chevron,
    matching the old app's foldable comment row exactly. */
 .commentRow {

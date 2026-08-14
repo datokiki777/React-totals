@@ -25,8 +25,6 @@ function makeRow(overrides: Partial<ClientRow>): ClientRow {
     city: "",
     status: "none",
     comment: "",
-    visitDate: null,
-    visitDays: null,
     createdAt: 0,
     updatedAt: 0,
     ...overrides,

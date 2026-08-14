@@ -3,7 +3,6 @@ import { useAppStore } from "../../app/store";
 import type { DoneStatus } from "../../shared/types/domain";
 import { confirmDialog } from "../../shared/modal/modalStore";
 import { parseMoney } from "../../shared/lib/money";
-import { formatPeriodDate } from "../../shared/lib/dates";
 import styles from "./ClientRowItem.module.css";
 
 const STATUS_LABEL: Record<DoneStatus, string> = {
@@ -139,38 +138,6 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
           spellCheck={false}
           onChange={(e) => updateRow(row.id, { city: e.target.value })}
         />
-      </td>
-      <td className={styles.visitCell}>
-        <div className={styles.visitInputs}>
-          <input
-            type="date"
-            className={styles.visitDateInput}
-            value={row.visitDate ?? ""}
-            aria-label="Visit date"
-            onChange={(e) => updateRow(row.id, { visitDate: e.target.value || null })}
-          />
-          <select
-            className={styles.visitDaysInput}
-            value={row.visitDays ?? ""}
-            aria-label="Visit days"
-            onChange={(e) =>
-              updateRow(row.id, { visitDays: e.target.value ? Number(e.target.value) : null })
-            }
-          >
-            <option value="">days</option>
-            <option value="1">1d</option>
-            <option value="2">2d</option>
-            <option value="3">3d</option>
-            <option value="4">4d</option>
-            <option value="5">5d</option>
-          </select>
-        </div>
-        {(row.visitDate || row.visitDays) && (
-          <span className={styles.visitHint}>
-            📅 {row.visitDate ? formatPeriodDate(row.visitDate) : "—"}
-            {row.visitDays ? ` · ${row.visitDays}d` : ""}
-          </span>
-        )}
       </td>
       <td>
         <button
