@@ -243,4 +243,35 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     expect(ranges[0]).toHaveTextContent("01/01/2026 → 08/01/2026");
     expect(ranges[1]).toHaveTextContent("01/06/2026 → 08/06/2026");
   });
+
+  it("a manual reorder in Edit mode's sort mode shows up immediately in Review mode too, with no reload needed", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Live Sort Group");
+
+    render(<App />);
+    await screen.findByText("Select group");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+
+    for (const name of ["First", "Second"]) {
+      await user.click(screen.getByRole("button", { name: "+ Add client" }));
+      const table = screen.getByRole("table");
+      const inputs = within(table).getAllByPlaceholderText("Client name");
+      await user.type(inputs[inputs.length - 1], name);
+    }
+
+    // Move "Second" above "First" using the sort-mode buttons.
+    await user.click(screen.getByRole("checkbox", { name: "Sort clients" }));
+    await user.click(screen.getAllByLabelText("Move client up")[1]);
+    await user.click(screen.getByRole("checkbox", { name: "Sort clients" }));
+
+    // Switch straight to Review — no reload, no remount — and confirm it
+    // already reflects the new order, not the original typing order.
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+    await screen.findByText("Second");
+    const bodyText = document.body.textContent ?? "";
+    expect(bodyText.indexOf("Second")).toBeLessThan(bodyText.indexOf("First"));
+  });
 });

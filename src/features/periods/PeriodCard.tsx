@@ -3,7 +3,7 @@ import { useAppStore } from "../../app/store";
 import { computePeriodTotals, formatMoney } from "../../shared/lib/calc";
 import { formatPeriodDate, dateRangesOverlap } from "../../shared/lib/dates";
 import { confirmDialog } from "../../shared/modal/modalStore";
-import { getPeriodById, getGroupById } from "../../shared/lib/entityLookup";
+import { getPeriodById, getGroupById, getRowsForPeriod } from "../../shared/lib/entityLookup";
 import { ClientRowItem } from "../clients/ClientRowItem";
 import styles from "./PeriodCard.module.css";
 
@@ -40,8 +40,7 @@ export function PeriodCard({ periodId }: { periodId: string }) {
   }, [expandPeriodId, periodId, clearExpandPeriodRequest]);
 
   const rows = useMemo(
-    () =>
-      allClientRows.filter((r) => r.periodId === periodId).sort((a, b) => a.createdAt - b.createdAt),
+    () => getRowsForPeriod(allClientRows, periodId),
     [allClientRows, periodId]
   );
 

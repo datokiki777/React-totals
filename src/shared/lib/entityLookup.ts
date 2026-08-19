@@ -14,8 +14,18 @@ export function getPeriodsForGroup(periods: Period[], groupId: string): Period[]
   return periods.filter((p) => p.groupId === groupId);
 }
 
+/**
+ * Rows belonging to a period, always in display order (createdAt
+ * ascending — the same order typing/adding them produces, and the same
+ * field moveClientRow's manual reorder swaps). Sorting here, once, means
+ * every caller (Review, exports, Edit mode) stays consistent automatically
+ * instead of each one needing to remember to sort separately — a filter-
+ * only version of this previously caused Review mode to show stale order
+ * right after a manual reorder, since re-sorting the filtered rows was
+ * only being done in Edit mode's own component, not here.
+ */
 export function getRowsForPeriod(clientRows: ClientRow[], periodId: string): ClientRow[] {
-  return clientRows.filter((r) => r.periodId === periodId);
+  return clientRows.filter((r) => r.periodId === periodId).sort((a, b) => a.createdAt - b.createdAt);
 }
 
 export function getGroupById(groups: Group[], id: string | null | undefined): Group | undefined {
