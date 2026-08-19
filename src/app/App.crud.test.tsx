@@ -461,4 +461,50 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
       .map((el) => (el as HTMLInputElement).value);
     expect(namesAfter).toEqual(["Zeta", "Alpha", "Mike"]);
   });
+
+  it("the sort-clients checkbox reveals move up/down buttons for manually reordering rows, and the new order sticks after unchecking", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Sort Mode Group");
+
+    render(<App />);
+    await screen.findByText("Select group");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+
+    for (const name of ["First", "Second", "Third"]) {
+      await user.click(screen.getByRole("button", { name: "+ Add client" }));
+      const table = screen.getByRole("table");
+      const inputs = within(table).getAllByPlaceholderText("Client name");
+      await user.type(inputs[inputs.length - 1], name);
+    }
+
+    const table = screen.getByRole("table");
+    const namesInitially = () =>
+      within(table)
+        .getAllByPlaceholderText("Client name")
+        .map((el) => (el as HTMLInputElement).value);
+    expect(namesInitially()).toEqual(["First", "Second", "Third"]);
+
+    // No move buttons before the checkbox is checked.
+    expect(screen.queryByLabelText("Move client up")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("checkbox", { name: "Sort clients" }));
+
+    // First row can't move up, last row can't move down.
+    const upButtons = screen.getAllByLabelText("Move client up");
+    const downButtons = screen.getAllByLabelText("Move client down");
+    expect(upButtons[0]).toBeDisabled();
+    expect(downButtons[2]).toBeDisabled();
+
+    // Move "Second" up above "First".
+    await user.click(upButtons[1]);
+    expect(namesInitially()).toEqual(["Second", "First", "Third"]);
+
+    // Uncheck sort mode — buttons disappear, but the new order stays.
+    await user.click(screen.getByRole("checkbox", { name: "Sort clients" }));
+    expect(screen.queryByLabelText("Move client up")).not.toBeInTheDocument();
+    expect(namesInitially()).toEqual(["Second", "First", "Third"]);
+  });
 });

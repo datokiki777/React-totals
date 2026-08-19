@@ -66,6 +66,34 @@
   resize: vertical;
 }
 
+.actionsCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.moveButtons {
+  display: flex;
+  gap: 2px;
+}
+
+.moveBtn {
+  background: transparent;
+  border: 1px solid var(--border-soft);
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-xs);
+  line-height: 1;
+}
+
+.moveBtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
 .removeBtn {
   background: transparent;
   border: 1px solid var(--border-soft);

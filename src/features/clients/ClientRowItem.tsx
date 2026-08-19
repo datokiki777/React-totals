@@ -13,11 +13,22 @@ const STATUS_LABEL: Record<DoneStatus, string> = {
   wrong: "! Wrong",
 };
 
-export function ClientRowItem({ rowId }: { rowId: string }) {
+export function ClientRowItem({
+  rowId,
+  sortMode = false,
+  isFirst = false,
+  isLast = false,
+}: {
+  rowId: string;
+  sortMode?: boolean;
+  isFirst?: boolean;
+  isLast?: boolean;
+}) {
   const row = useAppStore((s) => s.clientRows.find((r) => r.id === rowId));
   const updateRow = useAppStore((s) => s.updateClientRow);
   const removeRow = useAppStore((s) => s.removeClientRow);
   const cycleStatus = useAppStore((s) => s.cycleRowStatus);
+  const moveRow = useAppStore((s) => s.moveClientRow);
   const isHighlighted = useAppStore((s) => s.highlightedRowId === rowId);
   const confirmDestructive = useAppStore((s) => s.settings.confirmDestructiveActions);
   const [commentOpen, setCommentOpen] = useState(false);
@@ -149,9 +160,33 @@ export function ClientRowItem({ rowId }: { rowId: string }) {
         </button>
       </td>
       <td>
-        <button className={styles.removeBtn} type="button" onClick={handleRemove}>
-          Remove
-        </button>
+        <div className={styles.actionsCell}>
+          {sortMode && (
+            <span className={styles.moveButtons}>
+              <button
+                className={styles.moveBtn}
+                type="button"
+                disabled={isFirst}
+                aria-label="Move client up"
+                onClick={() => moveRow(row.id, "up")}
+              >
+                ▲
+              </button>
+              <button
+                className={styles.moveBtn}
+                type="button"
+                disabled={isLast}
+                aria-label="Move client down"
+                onClick={() => moveRow(row.id, "down")}
+              >
+                ▼
+              </button>
+            </span>
+          )}
+          <button className={styles.removeBtn} type="button" onClick={handleRemove}>
+            Remove
+          </button>
+        </div>
       </td>
     </tr>
   );

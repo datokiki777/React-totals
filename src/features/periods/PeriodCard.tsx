@@ -25,6 +25,12 @@ export function PeriodCard({ periodId }: { periodId: string }) {
   // period open instead — otherwise the row it's trying to reveal would
   // stay hidden.
   const [collapsed, setCollapsed] = useState(() => expandPeriodId !== periodId);
+  // Manual reorder mode, toggled by the checkbox next to the group pill —
+  // shows up/down move buttons on each client row while checked. Local
+  // UI state only (not persisted) — turning it off just hides the
+  // buttons again; whatever order the rows ended up in stays as-is,
+  // since moveClientRow already persists each swap immediately.
+  const [sortMode, setSortMode] = useState(false);
 
   useEffect(() => {
     if (expandPeriodId === periodId) {
@@ -34,7 +40,8 @@ export function PeriodCard({ periodId }: { periodId: string }) {
   }, [expandPeriodId, periodId, clearExpandPeriodRequest]);
 
   const rows = useMemo(
-    () => allClientRows.filter((r) => r.periodId === periodId),
+    () =>
+      allClientRows.filter((r) => r.periodId === periodId).sort((a, b) => a.createdAt - b.createdAt),
     [allClientRows, periodId]
   );
 
@@ -96,6 +103,14 @@ export function PeriodCard({ periodId }: { periodId: string }) {
 
             <div className={styles.topFields}>
               <span className={styles.groupPill}>Group: {group.name}</span>
+              <label className={styles.sortToggle}>
+                <input
+                  type="checkbox"
+                  checked={sortMode}
+                  onChange={(e) => setSortMode(e.target.checked)}
+                />
+                <span>Sort clients</span>
+              </label>
               <label className={styles.field}>
                 <span>Paid Weeks</span>
                 <input
@@ -160,8 +175,14 @@ export function PeriodCard({ periodId }: { periodId: string }) {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => (
-                  <ClientRowItem key={row.id} rowId={row.id} />
+                {rows.map((row, index) => (
+                  <ClientRowItem
+                    key={row.id}
+                    rowId={row.id}
+                    sortMode={sortMode}
+                    isFirst={index === 0}
+                    isLast={index === rows.length - 1}
+                  />
                 ))}
               </tbody>
               <tfoot>

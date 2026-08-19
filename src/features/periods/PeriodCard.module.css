@@ -87,6 +87,23 @@
   font-weight: 600;
 }
 
+.sortToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortToggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
 .dateFields {
   display: flex;
   gap: var(--space-4);
