@@ -86,3 +86,17 @@ select,
 textarea {
   font-family: inherit;
 }
+
+/* Privacy toggle (top bar, 🙈/👁️ button): blurs every money amount in
+   the app without touching layout — the text stays exactly where it
+   is (unlike replacing it with "••••", which would change width and
+   make things jump around) and no financial values leak into
+   screenshots/screen-recordings taken while it's on. Plain global
+   class (not CSS-module-scoped) since .js-money is applied across many
+   different components/modules that all need to respond to one single
+   toggle. */
+.amounts-hidden .js-money {
+  filter: blur(6px);
+  transition: filter 0.15s ease;
+  user-select: none;
+}

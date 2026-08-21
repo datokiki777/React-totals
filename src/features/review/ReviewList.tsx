@@ -115,15 +115,15 @@ function ReviewGroupCard({
         <div className={styles.groupKpis}>
           <div className={`${styles.kpi} ${styles.kpiGross}`}>
             <div className={styles.kpiLabel}>Gross</div>
-              <div className={styles.kpiValue}>{formatMoney(financials.gross)}</div>
+              <div className={styles.kpiValue}><span className="js-money">{formatMoney(financials.gross)}</span></div>
             </div>
             <div className={`${styles.kpi} ${styles.kpiNet}`}>
               <div className={styles.kpiLabel}>Net</div>
-              <div className={styles.kpiValue}>{formatMoney(financials.net)}</div>
+              <div className={styles.kpiValue}><span className="js-money">{formatMoney(financials.net)}</span></div>
             </div>
             <div className={`${styles.kpi} ${styles.kpiMy}`}>
               <div className={styles.kpiLabel}>My €</div>
-              <div className={styles.kpiValue}>{formatMoney(financials.myEur)}</div>
+              <div className={styles.kpiValue}><span className="js-money">{formatMoney(financials.myEur)}</span></div>
             </div>
           </div>
 
@@ -164,13 +164,13 @@ function ReviewPeriodCard({
         </div>
         <div className={styles.periodSums}>
           <span className={styles.badge}>
-            Gross: <b>{formatMoney(totals.gross)}</b>
+            Gross: <b className="js-money">{formatMoney(totals.gross)}</b>
           </span>
           <span className={styles.badge}>
-            Net: <b>{formatMoney(totals.net)}</b>
+            Net: <b className="js-money">{formatMoney(totals.net)}</b>
           </span>
           <span className={styles.badge}>
-            My €: <b>{formatMoney(totals.myEur)}</b>
+            My €: <b className="js-money">{formatMoney(totals.myEur)}</b>
           </span>
           {(() => {
             const { spanWeeks, fullyPaid } = getPeriodPaidStatus(period);
@@ -205,8 +205,8 @@ function ReviewPeriodCard({
               )}
             </div>
             <div className={styles.clientValues}>
-              <span>Gross: <b>{formatMoney(parseMoney(row.gross) || 0)}</b></span>
-              <span>Net: <b>{formatMoney(parseMoney(row.net) || 0)}</b></span>
+              <span>Gross: <b className="js-money">{formatMoney(parseMoney(row.gross) || 0)}</b></span>
+              <span>Net: <b className="js-money">{formatMoney(parseMoney(row.net) || 0)}</b></span>
             </div>
           </div>
         ))}

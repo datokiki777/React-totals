@@ -104,10 +104,10 @@ export function ReviewSearch() {
                   <b>City:</b> <Highlighted text={item.city || "—"} query={query} />
                 </span>
                 <span>
-                  <b>Gross:</b> {item.gross}
+                  <b>Gross:</b> <span className="js-money">{item.gross}</span>
                 </span>
                 <span>
-                  <b>Net:</b> {item.net}
+                  <b>Net:</b> <span className="js-money">{item.net}</span>
                 </span>
               </div>
               {item.comment && (

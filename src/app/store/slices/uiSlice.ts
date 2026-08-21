@@ -9,6 +9,7 @@ export type TotalsScope = "current" | "all";
 const LAST_MODE_STORAGE_KEY = "client-totals:last-mode";
 const LAST_ACTIVE_GROUP_STORAGE_KEY = "client-totals:last-active-group";
 const LAST_ARCHIVE_GROUP_STORAGE_KEY = "client-totals:last-archive-group";
+const AMOUNTS_HIDDEN_STORAGE_KEY = "client-totals:amounts-hidden";
 
 export function getRememberedGroupId(archived: boolean): string | null {
   try {
@@ -42,6 +43,18 @@ function getInitialMode(): ViewMode {
   return "edit";
 }
 
+function getInitialAmountsHidden(): boolean {
+  try {
+    const stored = localStorage.getItem(AMOUNTS_HIDDEN_STORAGE_KEY);
+    // Defaults to hidden (privacy-first) unless the person has
+    // explicitly turned it off before — "0" is the only way to get false.
+    if (stored === "0") return false;
+    return true;
+  } catch {
+    return true;
+  }
+}
+
 export interface UiSlice {
   activeGroupId: string | null;
   /** Remembers which group was last selected on each workspace tab, so
@@ -56,6 +69,10 @@ export interface UiSlice {
    * period force-opens even though periods now start collapsed. */
   expandPeriodId: string | null;
   totalsScope: TotalsScope;
+  /** Blurs every money amount in the app when true — a privacy toggle
+   * for when someone's phone might be glanced at. Per-device (not
+   * synced), defaults to true (hidden) on first use. */
+  amountsHidden: boolean;
 
   setActiveGroup: (id: string | null) => void;
   setMode: (mode: ViewMode) => void;
@@ -64,6 +81,7 @@ export interface UiSlice {
   highlightRow: (id: string) => void;
   requestExpandPeriod: (id: string) => void;
   clearExpandPeriodRequest: () => void;
+  toggleAmountsHidden: () => void;
 }
 
 export const createUiSlice: StateCreator<AppState, [], [], UiSlice> = (set, get) => ({
@@ -75,6 +93,7 @@ export const createUiSlice: StateCreator<AppState, [], [], UiSlice> = (set, get)
   highlightedRowId: null,
   expandPeriodId: null,
   totalsScope: "current",
+  amountsHidden: getInitialAmountsHidden(),
 
   setActiveGroup: (id) =>
     set((s) => {
@@ -125,4 +144,16 @@ export const createUiSlice: StateCreator<AppState, [], [], UiSlice> = (set, get)
 
   requestExpandPeriod: (id) => set({ expandPeriodId: id }),
   clearExpandPeriodRequest: () => set({ expandPeriodId: null }),
+
+  toggleAmountsHidden: () =>
+    set((s) => {
+      const next = !s.amountsHidden;
+      try {
+        localStorage.setItem(AMOUNTS_HIDDEN_STORAGE_KEY, next ? "1" : "0");
+      } catch {
+        // Storage can fail (private browsing, quota, etc.) — the toggle
+        // still works for this session, it just won't be remembered.
+      }
+      return { amountsHidden: next };
+    }),
 });

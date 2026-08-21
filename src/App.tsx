@@ -21,6 +21,8 @@ function App() {
   const setWorkspace = useAppStore((s) => s.setWorkspace);
   const activeGroupsCount = useAppStore((s) => s.groups.filter((g) => !g.archived).length);
   const archivedGroupsCount = useAppStore((s) => s.groups.filter((g) => g.archived).length);
+  const amountsHidden = useAppStore((s) => s.amountsHidden);
+  const toggleAmountsHidden = useAppStore((s) => s.toggleAmountsHidden);
 
   // Remembers which mode (Edit/Review) was active before Settings was
   // opened, so a second tap on the Settings button closes it back to
@@ -100,7 +102,7 @@ function App() {
   // benefit (client-side PINs are trivially bypassable anyway).
 
   return (
-    <div className={styles.app}>
+    <div className={`${styles.app}${amountsHidden ? " amounts-hidden" : ""}`}>
       <header className={styles.topbar}>
         <div className={styles.topRow}>
           <div className={styles.workspaceSwitch} role="tablist" aria-label="Workspace">
@@ -160,6 +162,16 @@ function App() {
           <div className={styles.groupSwitcherSlot}>
             <GroupSwitcher />
           </div>
+          <button
+            type="button"
+            className={amountsHidden ? styles.amountsToggleActive : styles.amountsToggle}
+            onClick={toggleAmountsHidden}
+            aria-pressed={amountsHidden}
+            aria-label={amountsHidden ? "Show amounts" : "Hide amounts"}
+            title={amountsHidden ? "Show amounts" : "Hide amounts"}
+          >
+            {amountsHidden ? "🙈" : "👁️"}
+          </button>
         </div>
       </header>
 

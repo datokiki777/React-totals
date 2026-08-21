@@ -507,4 +507,33 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     expect(screen.queryByLabelText("Move client up")).not.toBeInTheDocument();
     expect(namesInitially()).toEqual(["Second", "First", "Third"]);
   });
+
+  it("amounts are hidden (blurred) by default via a toggle next to the group switcher, and remember the choice across a reload", async () => {
+    const user = userEvent.setup();
+
+    const { unmount } = render(<App />);
+    await screen.findByText("Select group");
+
+    // Hidden by default — the toggle button reflects that, and the root
+    // app element carries the class the blur CSS hooks into.
+    const toggle = screen.getByRole("button", { name: "Show amounts" });
+    expect(toggle).toHaveAttribute("aria-pressed", "true");
+    expect(document.querySelector(".amounts-hidden")).toBeInTheDocument();
+
+    await user.click(toggle);
+    expect(screen.getByRole("button", { name: "Hide amounts" })).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    );
+    expect(document.querySelector(".amounts-hidden")).not.toBeInTheDocument();
+
+    // Choice persists across a reload.
+    unmount();
+    render(<App />);
+    await screen.findByText("Select group");
+    expect(screen.getByRole("button", { name: "Hide amounts" })).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    );
+  });
 });

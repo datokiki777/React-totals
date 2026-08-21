@@ -125,6 +125,33 @@
   min-width: 0;
 }
 
+.amountsToggle,
+.amountsToggleActive {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 17px;
+  cursor: pointer;
+  background: var(--surface-3);
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-card);
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.amountsToggle:active,
+.amountsToggleActive:active {
+  transform: scale(0.94);
+}
+
+.amountsToggleActive {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
 .tab,
 .tabActive {
   flex: 1;

@@ -187,10 +187,17 @@ export function PeriodCard({ periodId }: { periodId: string }) {
               <tfoot>
                 <tr>
                   <td className={styles.totalLabel}>Total</td>
-                  <td data-testid="period-total-gross">{formatMoney(totals.gross)}</td>
-                  <td data-testid="period-total-net">{formatMoney(totals.net)}</td>
+                  <td data-testid="period-total-gross">
+                    <span className="js-money">{formatMoney(totals.gross)}</span>
+                  </td>
+                  <td data-testid="period-total-net">
+                    <span className="js-money">{formatMoney(totals.net)}</span>
+                  </td>
                   <td colSpan={3}>
-                    My €: <b data-testid="period-total-my-eur">{formatMoney(totals.myEur)}</b>
+                    My €:{" "}
+                    <b data-testid="period-total-my-eur">
+                      <span className="js-money">{formatMoney(totals.myEur)}</span>
+                    </b>
                   </td>
                 </tr>
               </tfoot>

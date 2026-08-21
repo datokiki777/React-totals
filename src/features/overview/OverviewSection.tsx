@@ -38,7 +38,9 @@ export function OverviewSection() {
   const setScope = useAppStore((s) => s.setTotalsScope);
   const currencySymbol = useAppStore((s) => s.settings.currencySymbol);
 
-  const money = (n: number) => formatCurrency(formatMoney(n), currencySymbol);
+  const money = (n: number) => (
+    <span className="js-money">{formatCurrency(formatMoney(n), currencySymbol)}</span>
+  );
 
   const [monthIndex, setMonthIndex] = useState<number | null>(null);
 
