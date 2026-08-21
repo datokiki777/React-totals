@@ -508,10 +508,10 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     expect(namesInitially()).toEqual(["Second", "First", "Third"]);
   });
 
-  it("amounts are hidden (blurred) by default via a toggle next to the group switcher, and remember the choice across a reload", async () => {
+  it("amounts are hidden (blurred) by default via a toggle next to the group switcher, and re-hide automatically the instant the app is backgrounded", async () => {
     const user = userEvent.setup();
 
-    const { unmount } = render(<App />);
+    render(<App />);
     await screen.findByText("Select group");
 
     // Hidden by default — the toggle button reflects that, and the root
@@ -527,13 +527,22 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     );
     expect(document.querySelector(".amounts-hidden")).not.toBeInTheDocument();
 
-    // Choice persists across a reload.
-    unmount();
-    render(<App />);
-    await screen.findByText("Select group");
-    expect(screen.getByRole("button", { name: "Hide amounts" })).toHaveAttribute(
+    // Simulate the app being backgrounded (task-switcher, phone lock,
+    // switching to another app) — amounts must re-hide immediately, not
+    // only on the next reload. This is what actually protects someone
+    // who leaves the app "unlocked": a PWA on Android commonly resumes
+    // the same still-running page instead of truly restarting it, so
+    // relying only on the store's initial value wouldn't be enough.
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => "hidden",
+    });
+    fireEvent(document, new Event("visibilitychange"));
+
+    expect(screen.getByRole("button", { name: "Show amounts" })).toHaveAttribute(
       "aria-pressed",
-      "false"
+      "true"
     );
+    expect(document.querySelector(".amounts-hidden")).toBeInTheDocument();
   });
 });

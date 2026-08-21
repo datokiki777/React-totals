@@ -9,7 +9,6 @@ export type TotalsScope = "current" | "all";
 const LAST_MODE_STORAGE_KEY = "client-totals:last-mode";
 const LAST_ACTIVE_GROUP_STORAGE_KEY = "client-totals:last-active-group";
 const LAST_ARCHIVE_GROUP_STORAGE_KEY = "client-totals:last-archive-group";
-const AMOUNTS_HIDDEN_STORAGE_KEY = "client-totals:amounts-hidden";
 
 export function getRememberedGroupId(archived: boolean): string | null {
   try {
@@ -43,18 +42,6 @@ function getInitialMode(): ViewMode {
   return "edit";
 }
 
-function getInitialAmountsHidden(): boolean {
-  try {
-    const stored = localStorage.getItem(AMOUNTS_HIDDEN_STORAGE_KEY);
-    // Defaults to hidden (privacy-first) unless the person has
-    // explicitly turned it off before — "0" is the only way to get false.
-    if (stored === "0") return false;
-    return true;
-  } catch {
-    return true;
-  }
-}
-
 export interface UiSlice {
   activeGroupId: string | null;
   /** Remembers which group was last selected on each workspace tab, so
@@ -70,8 +57,11 @@ export interface UiSlice {
   expandPeriodId: string | null;
   totalsScope: TotalsScope;
   /** Blurs every money amount in the app when true — a privacy toggle
-   * for when someone's phone might be glanced at. Per-device (not
-   * synced), defaults to true (hidden) on first use. */
+   * for when someone's phone might be glanced at. Deliberately NOT
+   * persisted across sessions — every fresh app open starts hidden
+   * again regardless of how a previous session was left, since the
+   * whole point is that leaving the app with amounts visible (then
+   * someone else picking the phone up) shouldn't stay "unlocked". */
   amountsHidden: boolean;
 
   setActiveGroup: (id: string | null) => void;
@@ -82,6 +72,11 @@ export interface UiSlice {
   requestExpandPeriod: (id: string) => void;
   clearExpandPeriodRequest: () => void;
   toggleAmountsHidden: () => void;
+  /** Forces amounts back to hidden — used when the app is backgrounded,
+   * so returning to it (foreground/reopen) never shows a brief flash of
+   * whatever was visible before, regardless of whether the JS process
+   * actually restarted or just resumed. */
+  hideAmounts: () => void;
 }
 
 export const createUiSlice: StateCreator<AppState, [], [], UiSlice> = (set, get) => ({
@@ -93,7 +88,7 @@ export const createUiSlice: StateCreator<AppState, [], [], UiSlice> = (set, get)
   highlightedRowId: null,
   expandPeriodId: null,
   totalsScope: "current",
-  amountsHidden: getInitialAmountsHidden(),
+  amountsHidden: true,
 
   setActiveGroup: (id) =>
     set((s) => {
@@ -145,15 +140,6 @@ export const createUiSlice: StateCreator<AppState, [], [], UiSlice> = (set, get)
   requestExpandPeriod: (id) => set({ expandPeriodId: id }),
   clearExpandPeriodRequest: () => set({ expandPeriodId: null }),
 
-  toggleAmountsHidden: () =>
-    set((s) => {
-      const next = !s.amountsHidden;
-      try {
-        localStorage.setItem(AMOUNTS_HIDDEN_STORAGE_KEY, next ? "1" : "0");
-      } catch {
-        // Storage can fail (private browsing, quota, etc.) — the toggle
-        // still works for this session, it just won't be remembered.
-      }
-      return { amountsHidden: next };
-    }),
+  toggleAmountsHidden: () => set((s) => ({ amountsHidden: !s.amountsHidden })),
+  hideAmounts: () => set({ amountsHidden: true }),
 });

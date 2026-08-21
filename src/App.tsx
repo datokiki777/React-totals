@@ -23,6 +23,7 @@ function App() {
   const archivedGroupsCount = useAppStore((s) => s.groups.filter((g) => g.archived).length);
   const amountsHidden = useAppStore((s) => s.amountsHidden);
   const toggleAmountsHidden = useAppStore((s) => s.toggleAmountsHidden);
+  const hideAmounts = useAppStore((s) => s.hideAmounts);
 
   // Remembers which mode (Edit/Review) was active before Settings was
   // opened, so a second tap on the Settings button closes it back to
@@ -39,6 +40,23 @@ function App() {
   useEffect(() => {
     init();
   }, [init]);
+
+  // Re-hides amounts the instant the app is backgrounded (tab switch,
+  // app-switcher, phone lock, etc.) — not when it comes back into view,
+  // specifically so there's zero chance of a visible-amounts flash for
+  // whoever looks at the screen next. Covers both a true reload (where
+  // the store already starts hidden anyway) and the more common PWA case
+  // where Android just resumes the same still-running page instead of
+  // actually restarting it.
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.visibilityState === "hidden") {
+        hideAmounts();
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [hideAmounts]);
 
   useEffect(() => {
     if (loaded && !initError) {

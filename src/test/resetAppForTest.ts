@@ -69,7 +69,6 @@ function clearModalMocks() {
 export async function resetAppForTest(): Promise<void> {
   clearModalMocks();
   localStorage.removeItem("client-totals:last-mode");
-  localStorage.removeItem("client-totals:amounts-hidden");
   await db.groups.clear();
   await db.periods.clear();
   await db.clientRows.clear();
