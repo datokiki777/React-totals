@@ -183,6 +183,23 @@
   border-radius: var(--radius-sm);
 }
 
+/* The period that contains today's date — same subtle "this is the one
+   running right now" cue as Edit mode's period header. */
+.periodSummaryCurrent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  list-style: none;
+  flex-wrap: wrap;
+  transition: background 0.1s ease;
+  border-radius: var(--radius-sm);
+  background: rgba(53, 208, 127, 0.1);
+  border-left: 3px solid var(--success);
+}
+
 .periodSummary:active {
   background: rgba(255, 255, 255, 0.05);
 }

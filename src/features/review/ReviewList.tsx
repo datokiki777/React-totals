@@ -7,7 +7,7 @@ import {
   formatMoney,
 } from "../../shared/lib/calc";
 import { parseMoney } from "../../shared/lib/money";
-import { formatPeriodDate, getPeriodPaidStatus, sortPeriodsByDate } from "../../shared/lib/dates";
+import { formatPeriodDate, getPeriodPaidStatus, sortPeriodsByDate, isPeriodCurrentToday } from "../../shared/lib/dates";
 import { getRowsForPeriod } from "../../shared/lib/entityLookup";
 import type { ClientRow, Group, Period } from "../../shared/types/domain";
 import styles from "./ReviewList.module.css";
@@ -155,7 +155,9 @@ function ReviewPeriodCard({
 
   return (
     <details className={styles.periodCard}>
-      <summary className={styles.periodSummary}>
+      <summary
+        className={isPeriodCurrentToday(period) ? styles.periodSummaryCurrent : styles.periodSummary}
+      >
         <div className={styles.periodMeta}>
           <div className={styles.periodRange}>
             {formatPeriodDate(period.fromDate)} → {formatPeriodDate(period.toDate)}
