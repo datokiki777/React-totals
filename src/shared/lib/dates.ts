@@ -199,6 +199,24 @@ export function sortPeriodsByDate<T extends Pick<Period, "fromDate" | "createdAt
   });
 }
 
+/**
+ * Whether today's date falls within the period's own [fromDate, toDate]
+ * range (inclusive on both ends) — used to highlight "this is the period
+ * that's actually running right now" in the period list. A period
+ * missing either date can never be "current". `today` is injectable for
+ * tests; defaults to the real current date.
+ */
+export function isPeriodCurrentToday(
+  period: Pick<Period, "fromDate" | "toDate">,
+  today: Date = new Date()
+): boolean {
+  const from = parseDateOnly(period.fromDate);
+  const to = parseDateOnly(period.toDate);
+  if (!from || !to) return false;
+  const t = startOfDay(today).getTime();
+  return t >= startOfDay(from).getTime() && t <= startOfDay(to).getTime();
+}
+
 export function getPeriodsDateRange(periods: Period[]): {
   min: Date | null;
   max: Date | null;

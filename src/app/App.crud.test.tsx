@@ -545,4 +545,41 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     );
     expect(document.querySelector(".amounts-hidden")).toBeInTheDocument();
   });
+
+  it("the period that contains today's date gets a distinct highlighted header, others don't", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Today Highlight Group");
+
+    render(<App />);
+    await screen.findByText("Select group");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+
+    const today = new Date();
+    const iso = (d: Date) => d.toISOString().slice(0, 10);
+    const addDays = (base: Date, n: number) => {
+      const copy = new Date(base);
+      copy.setDate(copy.getDate() + n);
+      return copy;
+    };
+
+    // Period spanning today.
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    fireEvent.change(screen.getByLabelText("From"), { target: { value: iso(addDays(today, -3)) } });
+    fireEvent.change(screen.getByLabelText("To"), { target: { value: iso(addDays(today, 3)) } });
+
+    // A second period, well in the future, that does NOT include today.
+    await user.click(screen.getByRole("button", { name: "+ Add period" }));
+    const collapseButtons = screen.getAllByTestId("period-collapse-btn");
+    await user.click(collapseButtons[1]);
+    const fromInputs = screen.getAllByLabelText("From");
+    const toInputs = screen.getAllByLabelText("To");
+    fireEvent.change(fromInputs[1], { target: { value: iso(addDays(today, 30)) } });
+    fireEvent.change(toInputs[1], { target: { value: iso(addDays(today, 37)) } });
+
+    const headers = screen.getAllByTestId("period-collapse-btn");
+    expect(headers[0].className).toMatch(/collapseBtnCurrent/);
+    expect(headers[1].className).not.toMatch(/collapseBtnCurrent/);
+  });
 });

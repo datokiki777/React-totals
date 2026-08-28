@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "../../app/store";
 import { computePeriodTotals, formatMoney } from "../../shared/lib/calc";
-import { formatPeriodDate, dateRangesOverlap } from "../../shared/lib/dates";
+import { formatPeriodDate, dateRangesOverlap, isPeriodCurrentToday } from "../../shared/lib/dates";
 import { confirmDialog } from "../../shared/modal/modalStore";
 import { getPeriodById, getGroupById, getRowsForPeriod } from "../../shared/lib/entityLookup";
 import { ClientRowItem } from "../clients/ClientRowItem";
@@ -84,7 +84,12 @@ export function PeriodCard({ periodId }: { periodId: string }) {
 
   return (
     <section className={styles.card}>
-      <button className={styles.collapseBtn} type="button" data-testid="period-collapse-btn" onClick={() => setCollapsed((v) => !v)}>
+      <button
+        className={isPeriodCurrentToday(period) ? styles.collapseBtnCurrent : styles.collapseBtn}
+        type="button"
+        data-testid="period-collapse-btn"
+        onClick={() => setCollapsed((v) => !v)}
+      >
         <span className={styles.collapseBtnLead}>
           <span className={styles.collapseBtnTitle}>Period</span>
           <span className={styles.groupTag}>{group.name}</span>

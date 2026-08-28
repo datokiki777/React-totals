@@ -13,6 +13,7 @@ import {
   formatPeriodDate,
   dateRangesOverlap,
   getPeriodPaidStatus,
+  isPeriodCurrentToday,
   weeksBetweenRounded,
 } from "./dates";
 import type { Period } from "../types/domain";
@@ -173,6 +174,40 @@ describe("dateRangesOverlap", () => {
     expect(dateRangesOverlap("2026-01-01", null, "2026-01-15", "2026-02-15")).toBe(false);
     expect(dateRangesOverlap("2026-01-01", "2026-01-31", null, "2026-02-15")).toBe(false);
     expect(dateRangesOverlap("2026-01-01", "2026-01-31", "2026-01-15", null)).toBe(false);
+  });
+});
+
+describe("isPeriodCurrentToday", () => {
+  const today = new Date(2026, 6, 15); // 15 July 2026
+
+  it("true when today falls strictly inside the range", () => {
+    expect(isPeriodCurrentToday({ fromDate: "2026-07-01", toDate: "2026-07-31" }, today)).toBe(
+      true
+    );
+  });
+
+  it("true when today is exactly the from or to date (inclusive)", () => {
+    expect(isPeriodCurrentToday({ fromDate: "2026-07-15", toDate: "2026-07-20" }, today)).toBe(
+      true
+    );
+    expect(isPeriodCurrentToday({ fromDate: "2026-07-10", toDate: "2026-07-15" }, today)).toBe(
+      true
+    );
+  });
+
+  it("false when today is outside the range, before or after", () => {
+    expect(isPeriodCurrentToday({ fromDate: "2026-08-01", toDate: "2026-08-31" }, today)).toBe(
+      false
+    );
+    expect(isPeriodCurrentToday({ fromDate: "2026-06-01", toDate: "2026-06-30" }, today)).toBe(
+      false
+    );
+  });
+
+  it("false when either date is missing", () => {
+    expect(isPeriodCurrentToday({ fromDate: null, toDate: "2026-07-31" }, today)).toBe(false);
+    expect(isPeriodCurrentToday({ fromDate: "2026-07-01", toDate: null }, today)).toBe(false);
+    expect(isPeriodCurrentToday({ fromDate: null, toDate: null }, today)).toBe(false);
   });
 });
 

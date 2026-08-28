@@ -28,6 +28,32 @@
   background: var(--surface-2);
 }
 
+/* The period that contains today's date — a quick "this is the one
+   that's actually running right now" visual cue among possibly several
+   periods, subtle enough not to look like a status/error color. */
+.collapseBtnCurrent {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  background: rgba(53, 208, 127, 0.1);
+  border: none;
+  border-left: 3px solid var(--success);
+  color: var(--text);
+  padding: var(--space-4) var(--space-5);
+  cursor: pointer;
+  font-size: var(--font-base);
+  font-weight: 600;
+  text-align: left;
+  transition: transform 0.1s ease, background 0.1s ease;
+}
+
+.collapseBtnCurrent:active {
+  transform: scale(0.985);
+  background: rgba(53, 208, 127, 0.16);
+}
+
 .collapseBtnLead {
   display: flex;
   flex-direction: column;
