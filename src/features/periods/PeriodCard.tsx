@@ -116,7 +116,7 @@ export function PeriodCard({ periodId }: { periodId: string }) {
                 />
                 <span>Sort clients</span>
               </label>
-              <label className={styles.field}>
+              <label className={styles.narrowField}>
                 <span>Paid Weeks</span>
                 <input
                   type="text"
@@ -129,7 +129,7 @@ export function PeriodCard({ periodId }: { periodId: string }) {
                   }}
                 />
               </label>
-              <label className={styles.field}>
+              <label className={styles.narrowField}>
                 <span>Car Number</span>
                 <input
                   type="text"

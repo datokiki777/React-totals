@@ -150,6 +150,28 @@
   color: var(--text-muted);
 }
 
+/* Paid Weeks + Car Number specifically — short numeric values, so a
+   fixed compact width keeps them side by side on one line instead of
+   each stretching to fill the row and wrapping onto their own line. */
+.narrowField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--font-sm);
+  color: var(--text-muted);
+  flex: 0 0 auto;
+}
+
+.narrowField input {
+  width: 84px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--border-soft);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-md);
+}
+
 .field input {
   background: rgba(0, 0, 0, 0.22);
   border: 1px solid var(--border-soft);
