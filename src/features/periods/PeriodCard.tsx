@@ -116,33 +116,35 @@ export function PeriodCard({ periodId }: { periodId: string }) {
                 />
                 <span>Sort clients</span>
               </label>
-              <label className={styles.narrowField}>
-                <span>Paid Weeks</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="0"
-                  value={period.paidWeeks ?? ""}
-                  onChange={(e) => {
-                    const digits = e.target.value.replace(/\D/g, "");
-                    updatePeriod(period.id, { paidWeeks: digits === "" ? null : Number(digits) });
-                  }}
-                />
-              </label>
-              <label className={styles.narrowField}>
-                <span>Car Number</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="chrome-off"
-                  placeholder="—"
-                  value={period.carNumber ?? ""}
-                  onChange={(e) => {
-                    const digits = e.target.value.replace(/\D/g, "");
-                    updatePeriod(period.id, { carNumber: digits || null });
-                  }}
-                />
-              </label>
+              <div className={styles.numberFieldsRow}>
+                <label className={styles.narrowField}>
+                  <span>Paid Weeks</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={period.paidWeeks ?? ""}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, "");
+                      updatePeriod(period.id, { paidWeeks: digits === "" ? null : Number(digits) });
+                    }}
+                  />
+                </label>
+                <label className={styles.narrowField}>
+                  <span>Car Number</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="chrome-off"
+                    placeholder="—"
+                    value={period.carNumber ?? ""}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, "");
+                      updatePeriod(period.id, { carNumber: digits || null });
+                    }}
+                  />
+                </label>
+              </div>
             </div>
 
             <div className={styles.dateFields}>

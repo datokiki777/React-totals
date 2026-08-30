@@ -142,6 +142,15 @@
   flex-wrap: wrap;
 }
 
+/* Groups Paid Weeks + Car Number as one unit, so flex-wrap on
+   .topFields wraps them together onto their own line as a pair
+   instead of splitting them apart depending on how much room the
+   Group pill / Sort checkbox happen to take first. */
+.numberFieldsRow {
+  display: flex;
+  gap: var(--space-4);
+}
+
 .field {
   display: flex;
   flex-direction: column;
