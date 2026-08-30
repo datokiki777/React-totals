@@ -162,7 +162,9 @@ function ReviewPeriodCard({
           <div className={styles.periodRange}>
             {formatPeriodDate(period.fromDate)} → {formatPeriodDate(period.toDate)}
           </div>
-          <div className={styles.periodMini}>{rows.length} clients</div>
+          <div className={styles.periodMini}>
+            {rows.length} clients{period.carNumber ? ` · 🚗 ${period.carNumber}` : ""}
+          </div>
         </div>
         <div className={styles.periodSums}>
           <span className={styles.badge}>

@@ -127,7 +127,12 @@ export async function exportToPdf() {
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
-      doc.text(`Period: ${formatPeriodDate(period.fromDate)} → ${formatPeriodDate(period.toDate)}`, margin, y);
+      doc.text(
+        `Period: ${formatPeriodDate(period.fromDate)} → ${formatPeriodDate(period.toDate)}` +
+          (period.carNumber ? `   Car: ${period.carNumber}` : ""),
+        margin,
+        y
+      );
       y += 5;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);

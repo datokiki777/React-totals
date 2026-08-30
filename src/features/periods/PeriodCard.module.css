@@ -70,6 +70,12 @@
   font-weight: 600;
 }
 
+.carTag {
+  color: var(--text-muted);
+  font-size: var(--font-sm);
+  font-weight: 500;
+}
+
 .meta {
   font-weight: 400;
   color: var(--text-muted);

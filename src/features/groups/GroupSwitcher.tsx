@@ -176,6 +176,22 @@ export function GroupSwitcher() {
                 onChange={(n) => activeGroup && !isReviewMode && updateGroupSettings(activeGroup.id, { defaultSalary: n })}
               />
             </label>
+            <label className={styles.settingsField}>
+              <span>Current car number</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="chrome-off"
+                disabled={!activeGroup || isReviewMode}
+                value={activeGroup?.currentCarNumber ?? ""}
+                placeholder="—"
+                onChange={(e) => {
+                  if (!activeGroup || isReviewMode) return;
+                  const digits = e.target.value.replace(/\D/g, "");
+                  updateGroupSettings(activeGroup.id, { currentCarNumber: digits || null });
+                }}
+              />
+            </label>
           </div>
         </div>
       )}

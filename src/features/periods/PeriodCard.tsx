@@ -93,6 +93,7 @@ export function PeriodCard({ periodId }: { periodId: string }) {
         <span className={styles.collapseBtnLead}>
           <span className={styles.collapseBtnTitle}>Period</span>
           <span className={styles.groupTag}>{group.name}</span>
+          {period.carNumber && <span className={styles.carTag}>🚗 {period.carNumber}</span>}
         </span>
         <span className={styles.meta}>
           {formatPeriodDate(period.fromDate)} → {formatPeriodDate(period.toDate)}
@@ -125,6 +126,20 @@ export function PeriodCard({ periodId }: { periodId: string }) {
                   onChange={(e) => {
                     const digits = e.target.value.replace(/\D/g, "");
                     updatePeriod(period.id, { paidWeeks: digits === "" ? null : Number(digits) });
+                  }}
+                />
+              </label>
+              <label className={styles.field}>
+                <span>Car Number</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="chrome-off"
+                  placeholder="—"
+                  value={period.carNumber ?? ""}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "");
+                    updatePeriod(period.id, { carNumber: digits || null });
                   }}
                 />
               </label>

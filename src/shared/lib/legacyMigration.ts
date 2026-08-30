@@ -116,6 +116,7 @@ export function migrateLegacyAppState(legacy: LegacyAppState): {
         0,
         Number(groupData.defaultSalaryPer28Days ?? groupData.defaultSalaryAmount ?? 0) || 0
       ),
+      currentCarNumber: null,
       createdAt: now(),
       updatedAt: now(),
     });
@@ -131,6 +132,7 @@ export function migrateLegacyAppState(legacy: LegacyAppState): {
         fromDate: p.from || null,
         toDate: p.to || null,
         paidWeeks: toPaidWeeks(p.paidWeeks),
+        carNumber: null,
         createdAt: now(),
         updatedAt: now(),
       });

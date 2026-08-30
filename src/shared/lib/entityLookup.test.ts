@@ -3,14 +3,14 @@ import { getPeriodsForGroup, getRowsForPeriod, getGroupById, getPeriodById } fro
 import type { Group, Period, ClientRow } from "../types/domain";
 
 const groups: Group[] = [
-  { id: "g1", name: "A", archived: false, defaultRate: 10, defaultSalary: 0, createdAt: 0, updatedAt: 0 },
-  { id: "g2", name: "B", archived: true, defaultRate: 10, defaultSalary: 0, createdAt: 0, updatedAt: 0 },
+  { id: "g1", name: "A", archived: false, defaultRate: 10, defaultSalary: 0, currentCarNumber: null, createdAt: 0, updatedAt: 0 },
+  { id: "g2", name: "B", archived: true, defaultRate: 10, defaultSalary: 0, currentCarNumber: null, createdAt: 0, updatedAt: 0 },
 ];
 
 const periods: Period[] = [
-  { id: "p1", groupId: "g1", fromDate: null, toDate: null, paidWeeks: null, createdAt: 0, updatedAt: 0 },
-  { id: "p2", groupId: "g1", fromDate: null, toDate: null, paidWeeks: null, createdAt: 0, updatedAt: 0 },
-  { id: "p3", groupId: "g2", fromDate: null, toDate: null, paidWeeks: null, createdAt: 0, updatedAt: 0 },
+  { id: "p1", groupId: "g1", fromDate: null, toDate: null, paidWeeks: null, carNumber: null, createdAt: 0, updatedAt: 0 },
+  { id: "p2", groupId: "g1", fromDate: null, toDate: null, paidWeeks: null, carNumber: null, createdAt: 0, updatedAt: 0 },
+  { id: "p3", groupId: "g2", fromDate: null, toDate: null, paidWeeks: null, carNumber: null, createdAt: 0, updatedAt: 0 },
 ];
 
 const rows: ClientRow[] = [

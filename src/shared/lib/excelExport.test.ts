@@ -9,6 +9,7 @@ function makeGroup(overrides: Partial<Group> = {}): Group {
     archived: false,
     defaultRate: 10,
     defaultSalary: 0,
+    currentCarNumber: null,
     createdAt: 0,
     updatedAt: 0,
     ...overrides,
@@ -22,6 +23,7 @@ function makePeriod(overrides: Partial<Period> = {}): Period {
     fromDate: "2026-01-01",
     toDate: "2026-01-31",
     paidWeeks: null,
+    carNumber: null,
     createdAt: 0,
     updatedAt: 0,
     ...overrides,
@@ -89,6 +91,18 @@ describe("buildExcelRows", () => {
     expect(rows).toHaveLength(2);
     expect(rows.map((r) => r.Group)).toEqual(["Group 1", "Group 2"]);
   });
+
+  it("carries each row's own period-level CarNumber, blank when unset", () => {
+    const rows = buildExcelRows(
+      [makeGroup()],
+      [makePeriod({ carNumber: "108" })],
+      [makeRow()]
+    );
+    expect(rows[0].CarNumber).toBe("108");
+
+    const unset = buildExcelRows([makeGroup()], [makePeriod()], [makeRow()]);
+    expect(unset[0].CarNumber).toBe("");
+  });
 });
 
 describe("buildExcelSummary", () => {
@@ -120,5 +134,13 @@ describe("buildExcelSummary", () => {
     expect(summary).toHaveLength(1);
     expect(summary[0].Periods).toBe(0);
     expect(summary[0].Gross).toBe(0);
+  });
+
+  it("carries the group's own CurrentCarNumber, blank when unset", () => {
+    const summary = buildExcelSummary([makeGroup({ currentCarNumber: "205" })], [], []);
+    expect(summary[0].CurrentCarNumber).toBe("205");
+
+    const unset = buildExcelSummary([makeGroup()], [], []);
+    expect(unset[0].CurrentCarNumber).toBe("");
   });
 });

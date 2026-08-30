@@ -12,6 +12,7 @@ export interface ExcelRow {
   From: string;
   To: string;
   PaidWeeks: number;
+  CarNumber: string;
   Client: string;
   City: string;
   Comment: string;
@@ -25,6 +26,7 @@ export interface ExcelSummaryRow {
   Archived: "yes" | "no";
   DefaultRatePercent: number;
   DefaultSalaryPer28Days: number;
+  CurrentCarNumber: string;
   Periods: number;
   Rows: number;
   Gross: number;
@@ -63,6 +65,7 @@ export function buildExcelRows(groups: Group[], periods: Period[], clientRows: C
           From: formatPeriodDate(period.fromDate),
           To: formatPeriodDate(period.toDate),
           PaidWeeks: period.paidWeeks ?? 0,
+          CarNumber: period.carNumber ?? "",
           Client: row.customer,
           City: row.city,
           Comment: row.comment,
@@ -94,6 +97,7 @@ export function buildExcelSummary(
       Archived: group.archived ? "yes" : "no",
       DefaultRatePercent: group.defaultRate,
       DefaultSalaryPer28Days: group.defaultSalary,
+      CurrentCarNumber: group.currentCarNumber ?? "",
       Periods: groupPeriods.length,
       Rows: groupRows.length,
       Gross: financials.gross,

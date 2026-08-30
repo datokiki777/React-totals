@@ -11,6 +11,13 @@ export interface Group {
   // group shares them; individual periods do not have their own rate.
   defaultRate: number; // %
   defaultSalary: number; // per 28 days
+  /** The car currently assigned to this group — digits only, stored as
+   * a string (not a number) so leading zeros are never silently
+   * stripped. This is the group's "current" value only: changing it
+   * only affects periods created from now on. Existing periods keep
+   * whatever car they already recorded, so past work never silently
+   * gets relabeled with a car it wasn't actually done with. */
+  currentCarNumber: string | null;
   createdAt: number;
   updatedAt: number;
 }
@@ -21,6 +28,11 @@ export interface Period {
   fromDate: string | null; // ISO date (YYYY-MM-DD)
   toDate: string | null;
   paidWeeks: number | null;
+  /** This period's own car — copied from the group's currentCarNumber
+   * automatically when the period is created, then fully independent
+   * (editing it here never touches the group's current value, and
+   * changing the group's current value later never touches this). */
+  carNumber: string | null;
   createdAt: number;
   updatedAt: number;
 }

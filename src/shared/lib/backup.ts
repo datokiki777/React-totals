@@ -129,14 +129,27 @@ export function validateBackupPayload(json: unknown): ValidationResult {
     if (err) return { ok: false, error: err };
   }
 
+  // Older exports (from before currentCarNumber/carNumber existed) won't
+  // have these keys at all — normalize them to null rather than leaving
+  // them `undefined`, so every Group/Period in the app is consistently
+  // typed regardless of which export version it came from.
+  const normalizedGroups = (groups as Group[]).map((g) => ({
+    ...g,
+    currentCarNumber: g.currentCarNumber ?? null,
+  }));
+  const normalizedPeriods = (periods as Period[]).map((p) => ({
+    ...p,
+    carNumber: p.carNumber ?? null,
+  }));
+
   return {
     ok: true,
     data: {
       __type: "client-totals-backup",
       version: BACKUP_VERSION,
       exportedAt: isString(obj.exportedAt) ? obj.exportedAt : new Date().toISOString(),
-      groups: groups as Group[],
-      periods: periods as Period[],
+      groups: normalizedGroups,
+      periods: normalizedPeriods,
       clientRows: clientRows as ClientRow[],
     },
   };

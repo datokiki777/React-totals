@@ -582,4 +582,47 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     expect(headers[0].className).toMatch(/collapseBtnCurrent/);
     expect(headers[1].className).not.toMatch(/collapseBtnCurrent/);
   });
+
+  it("a period inherits the group's current car number when created, keeps it independently afterward, and never gets changed retroactively", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Car Group");
+
+    render(<App />);
+    await screen.findByText("Select group");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+
+    // Only digits accepted, non-digit characters silently stripped.
+    const carInput = screen.getByLabelText("Current car number");
+    await user.type(carInput, "ab108cd");
+    expect(carInput).toHaveValue("108");
+
+    // First period — created while the group's current car is "108" —
+    // inherits that automatically.
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    expect(screen.getByLabelText("Car Number")).toHaveValue("108");
+
+    // The group's current car changes to "205" — the already-created
+    // first period must NOT change retroactively.
+    await user.clear(carInput);
+    await user.type(carInput, "205");
+    expect(screen.getByLabelText("Car Number")).toHaveValue("108");
+
+    // A second period, created NOW, inherits the new current car "205".
+    await user.click(screen.getByRole("button", { name: "+ Add period" }));
+    const collapseButtons = screen.getAllByTestId("period-collapse-btn");
+    await user.click(collapseButtons[1]);
+    const carInputs = screen.getAllByLabelText("Car Number");
+    expect(carInputs[0]).toHaveValue("108");
+    expect(carInputs[1]).toHaveValue("205");
+
+    // Editing the first period's car directly doesn't touch the second
+    // period or the group's current value.
+    await user.clear(carInputs[0]);
+    await user.type(carInputs[0], "999");
+    expect(carInputs[0]).toHaveValue("999");
+    expect(carInputs[1]).toHaveValue("205");
+    expect(carInput).toHaveValue("205");
+  });
 });

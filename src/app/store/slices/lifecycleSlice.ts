@@ -39,13 +39,27 @@ export const createLifecycleSlice: StateCreator<AppState, [], [], LifecycleSlice
 
     init: async () => {
       try {
-        const [groups, periods, rawClientRows, storedSettings, syncMeta] = await Promise.all([
+        const [rawGroups, rawPeriods, rawClientRows, storedSettings, syncMeta] = await Promise.all([
           groupRepository.getAll(),
           periodRepository.getAll(),
           clientRowRepository.getAll(),
           settingsRepository.get(),
           syncMetaRepository.get(),
         ]);
+
+        // Groups/periods saved before currentCarNumber/carNumber existed
+        // won't have those keys at all — default them in memory so every
+        // record is consistently typed. Not written back to IndexedDB:
+        // there's no actual value to correct, just a missing-key vs.
+        // explicit-null distinction that only matters for the in-memory
+        // shape (same treatment as the cents-rounding fix below, minus
+        // the DB write since nothing here is actually wrong).
+        const groups = rawGroups.map((g) =>
+          g.currentCarNumber === undefined ? { ...g, currentCarNumber: null } : g
+        );
+        const periods = rawPeriods.map((p) =>
+          p.carNumber === undefined ? { ...p, carNumber: null } : p
+        );
 
         // The app no longer supports cents anywhere. Round any legacy
         // gross/net values that still have decimals (e.g. from an older

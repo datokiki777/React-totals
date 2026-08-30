@@ -19,6 +19,7 @@ function makeSnapshot(dataUpdatedAt: string, groupCount = 1): CloudSnapshot {
     archived: false,
     defaultRate: 10,
     defaultSalary: 0,
+    currentCarNumber: null,
     createdAt: 0,
     updatedAt: 0,
   }));
@@ -156,6 +157,7 @@ describe("Cloud sync — data integrity", () => {
           archived: true,
           defaultRate: 20,
           defaultSalary: 400,
+          currentCarNumber: null,
           createdAt: 1,
           updatedAt: 2,
         },
@@ -167,6 +169,7 @@ describe("Cloud sync — data integrity", () => {
           fromDate: "2026-01-01",
           toDate: "2026-01-31",
           paidWeeks: 3,
+          carNumber: null,
           createdAt: 1,
           updatedAt: 2,
         },

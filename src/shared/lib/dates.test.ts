@@ -25,6 +25,7 @@ function makePeriod(fromDate: string | null, toDate: string | null, paidWeeks: n
     fromDate,
     toDate,
     paidWeeks,
+    carNumber: null,
     createdAt: 0,
     updatedAt: 0,
   };

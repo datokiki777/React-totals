@@ -314,4 +314,20 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     expect(summaries[0].className).toMatch(/periodSummaryCurrent/);
     expect(summaries[1].className).not.toMatch(/periodSummaryCurrent/);
   });
+
+  it("a period's car number, if set, shows up in Review mode's period summary too", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Review Car Group");
+
+    render(<App />);
+    await screen.findByText("Select group");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+
+    await user.type(screen.getByLabelText("Current car number"), "108");
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+    expect(await screen.findByText(/🚗 108/)).toBeInTheDocument();
+  });
 });
