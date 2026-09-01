@@ -134,7 +134,7 @@ export const createUiSlice: StateCreator<AppState, [], [], UiSlice> = (set, get)
     setTimeout(() => {
       // Only clear if nothing else re-triggered a highlight in the meantime.
       if (get().highlightedRowId === id) set({ highlightedRowId: null });
-    }, 1800);
+    }, 3500);
   },
 
   requestExpandPeriod: (id) => set({ expandPeriodId: id }),

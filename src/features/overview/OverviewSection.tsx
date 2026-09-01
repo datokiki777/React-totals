@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "../../app/store";
 import {
   computeGrandTotals,
@@ -27,6 +27,10 @@ const STATUS_LABEL: Record<DoneStatus, string> = {
   fixed: "Fixed",
   wrong: "Wrong",
 };
+
+/** How long a press must be held before jumping to a client from an
+ * Overview drill-down list counts as intentional (ms). */
+export const CLIENT_LONG_PRESS_MS = 500;
 
 export function OverviewSection() {
   const workspace = useAppStore((s) => s.workspace);
@@ -155,6 +159,27 @@ export function OverviewSection() {
     setCommentsFilter(null);
   }, [scope, workspace, activeGroupId]);
 
+  // Jumping to a client from these drill-down lists now requires a
+  // long-press (not a plain tap) — these lists get scrolled through
+  // often, and a plain tap was too easy to trigger by accident while
+  // scanning through many clients. Same 500ms threshold/pattern as the
+  // group switcher's own long-press menu.
+  const clientPressTimer = useRef<number | null>(null);
+
+  function clearClientPressTimer() {
+    if (clientPressTimer.current !== null) {
+      window.clearTimeout(clientPressTimer.current);
+      clientPressTimer.current = null;
+    }
+  }
+
+  function startClientLongPress(rowId: string) {
+    clearClientPressTimer();
+    clientPressTimer.current = window.setTimeout(() => {
+      handleClientClick(rowId);
+    }, CLIENT_LONG_PRESS_MS);
+  }
+
   function handleClientClick(rowId: string) {
     const row = scopedRows.find((r) => r.id === rowId);
     if (!row) return;
@@ -278,7 +303,11 @@ export function OverviewSection() {
                 type="button"
                 role="listitem"
                 className={styles.filteredItem}
-                onClick={() => handleClientClick(row.id)}
+                onPointerDown={() => startClientLongPress(row.id)}
+                onPointerUp={clearClientPressTimer}
+                onPointerLeave={clearClientPressTimer}
+                onPointerCancel={clearClientPressTimer}
+                title="Press and hold to jump to this client"
               >
                 <span className={styles.filteredName}>{row.customer.trim() || "Client"}</span>
                 <span className={styles.filteredMeta}>
@@ -346,7 +375,11 @@ export function OverviewSection() {
                 type="button"
                 role="listitem"
                 className={styles.filteredItem}
-                onClick={() => handleClientClick(row.id)}
+                onPointerDown={() => startClientLongPress(row.id)}
+                onPointerUp={clearClientPressTimer}
+                onPointerLeave={clearClientPressTimer}
+                onPointerCancel={clearClientPressTimer}
+                title="Press and hold to jump to this client"
               >
                 <span className={styles.filteredName}>{row.customer.trim() || "Client"}</span>
                 <span className={styles.filteredComment}>{row.comment}</span>

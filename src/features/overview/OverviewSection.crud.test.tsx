@@ -3,6 +3,7 @@ import { render, screen, cleanup, waitFor, within, fireEvent } from "@testing-li
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
 import { resetAppForTest, openGroupMenu, expandFirstPeriod, mockModalPrompt } from "../../test/resetAppForTest";
+import { CLIENT_LONG_PRESS_MS } from "./OverviewSection";
 
 describe("Overview page — matches the old app's business logic", () => {
   beforeEach(async () => {
@@ -109,7 +110,7 @@ describe("Overview page — matches the old app's business logic", () => {
     });
   });
 
-  it("clicking a status badge shows a scrollable list of matching clients, and clicking one jumps to it in Edit mode", async () => {
+  it("clicking a status badge shows a scrollable list of matching clients; a plain tap on one does NOT navigate, but holding it down does", async () => {
     const user = userEvent.setup();
     mockModalPrompt("Status Drilldown Group");
 
@@ -129,6 +130,10 @@ describe("Overview page — matches the old app's business logic", () => {
     const statusBtn = within(table).getByRole("button", { name: "—" });
     await user.click(statusBtn);
 
+    // Switch to Review — so navigating to Edit afterward is unambiguous
+    // proof the long-press actually fired, not just "was already there".
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+
     const overviewCard = screen.getByText("📊 Overview").closest("section")!;
     // Overview starts collapsed by default now — open it.
     await user.click(within(overviewCard).getByRole("button", { name: /Overview/ }));
@@ -140,21 +145,24 @@ describe("Overview page — matches the old app's business logic", () => {
     await user.click(doneBadge);
 
     const list = within(overviewCard).getByRole("list", { name: "Done clients" });
-    expect(within(list).getByText("Drilldown Client")).toBeInTheDocument();
+    const clientItem = within(list).getByText("Drilldown Client");
+    expect(clientItem).toBeInTheDocument();
 
-    // Clicking the badge again hides the list (toggle).
-    await user.click(doneBadge);
-    expect(within(overviewCard).queryByRole("list")).not.toBeInTheDocument();
+    // A plain, quick tap must NOT navigate away — still in Review.
+    await user.click(clientItem);
+    expect(screen.getByRole("tab", { name: "Review", selected: true })).toBeInTheDocument();
 
-    // Reopen and click the client — should jump to Edit mode and highlight it.
-    await user.click(doneBadge);
-    await user.click(within(overviewCard).getByText("Drilldown Client"));
+    // Holding it down past the long-press threshold DOES jump to Edit
+    // mode and highlight it.
+    fireEvent.pointerDown(clientItem);
+    await new Promise((r) => setTimeout(r, CLIENT_LONG_PRESS_MS + 100));
+    fireEvent.pointerUp(clientItem);
 
     expect(await screen.findByRole("tab", { name: "Edit", selected: true })).toBeInTheDocument();
     expect(screen.getByDisplayValue("Drilldown Client")).toBeInTheDocument();
   });
 
-  it("the Comments widget breaks down by status (like Done/Fail/Fixed/Wrong), counting only clients with a comment, and clicking one jumps to it in Edit mode", async () => {
+  it("the Comments widget breaks down by status (like Done/Fail/Fixed/Wrong), counting only clients with a comment; a plain tap doesn't navigate but a long-press does", async () => {
     const user = userEvent.setup();
     mockModalPrompt("Comments Group");
 
@@ -181,6 +189,10 @@ describe("Overview page — matches the old app's business logic", () => {
     rows = within(table).getAllByPlaceholderText("Client name");
     await user.type(rows[rows.length - 1], "Silent Client");
     await user.click(within(table).getByRole("button", { name: "—" }));
+
+    // Switch to Review — so navigating to Edit afterward is unambiguous
+    // proof the long-press actually fired, not just "was already there".
+    await user.click(screen.getByRole("tab", { name: "Review" }));
 
     const overviewCard = screen.getByText("📊 Overview").closest("section")!;
     await user.click(within(overviewCard).getByRole("button", { name: /Overview/ }));
@@ -209,10 +221,17 @@ describe("Overview page — matches the old app's business logic", () => {
     await user.click(doneBadge);
     expect(within(overviewCard).queryByRole("list")).not.toBeInTheDocument();
 
-    // Reopen and jump to the client — same navigate/highlight behavior as
-    // the status badges use.
+    // Reopen. A plain, quick tap must NOT navigate away — still in Review.
     await user.click(doneBadge);
-    await user.click(within(overviewCard).getByText("Noted Client"));
+    const notedClient = within(overviewCard).getByText("Noted Client");
+    await user.click(notedClient);
+    expect(screen.getByRole("tab", { name: "Review", selected: true })).toBeInTheDocument();
+
+    // Holding it down past the long-press threshold DOES jump to Edit
+    // mode and highlight it.
+    fireEvent.pointerDown(notedClient);
+    await new Promise((r) => setTimeout(r, CLIENT_LONG_PRESS_MS + 100));
+    fireEvent.pointerUp(notedClient);
 
     expect(await screen.findByRole("tab", { name: "Edit", selected: true })).toBeInTheDocument();
     expect(screen.getByDisplayValue("Noted Client")).toBeInTheDocument();

@@ -148,12 +148,15 @@ tr[data-row-id] td:first-child {
 }
 
 .highlighted {
-  animation: rowHighlight 1.8s ease-out;
+  animation: rowHighlight 3.5s ease-out;
 }
 
 @keyframes rowHighlight {
   0% {
-    background: rgba(255, 196, 64, 0.35);
+    background: rgba(255, 196, 64, 0.65);
+  }
+  55% {
+    background: rgba(255, 196, 64, 0.65);
   }
   100% {
     background: transparent;
