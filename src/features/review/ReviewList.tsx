@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { useAppStore } from "../../app/store";
 import {
   computeGroupFinancials,
@@ -9,8 +9,15 @@ import {
 import { parseMoney } from "../../shared/lib/money";
 import { formatPeriodDate, getPeriodPaidStatus, sortPeriodsByDate, isPeriodCurrentToday } from "../../shared/lib/dates";
 import { getRowsForPeriod } from "../../shared/lib/entityLookup";
+import { useOpenClientInEdit } from "../navigation/useOpenClientInEdit";
 import type { ClientRow, Group, Period } from "../../shared/types/domain";
 import styles from "./ReviewList.module.css";
+
+/** How long a press must be held before jumping to that client in Edit
+ * mode counts as intentional (ms) — same threshold as the group
+ * switcher's own long-press menu. A plain tap here only ever expands/
+ * collapses the period card (native <details>), never navigates. */
+const CLIENT_LONG_PRESS_MS = 500;
 
 const STATUS_LABEL: Record<string, string> = {
   done: "Done",
@@ -135,6 +142,7 @@ function ReviewGroupCard({
               period={period}
               rate={group.defaultRate}
               rows={getRowsForPeriod(clientRows, period.id)}
+              group={group}
             />
           ))}
         </div>
@@ -146,12 +154,35 @@ function ReviewPeriodCard({
   period,
   rate,
   rows,
+  group,
 }: {
   period: Period;
   rate: number;
   rows: ClientRow[];
+  group: Group;
 }) {
   const totals = useMemo(() => computePeriodTotals(period, rows, rate), [period, rows, rate]);
+  const openClientInEdit = useOpenClientInEdit();
+  const pressTimer = useRef<number | null>(null);
+
+  function clearPressTimer() {
+    if (pressTimer.current !== null) {
+      window.clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }
+  }
+
+  function startLongPress(rowId: string) {
+    clearPressTimer();
+    pressTimer.current = window.setTimeout(() => {
+      openClientInEdit({
+        rowId,
+        periodId: period.id,
+        groupId: group.id,
+        groupArchived: group.archived,
+      });
+    }, CLIENT_LONG_PRESS_MS);
+  }
 
   return (
     <details className={styles.periodCard}>
@@ -191,7 +222,14 @@ function ReviewPeriodCard({
       <div className={styles.clientList}>
         {rows.length === 0 && <div className={styles.hint}>No clients.</div>}
         {rows.map((row) => (
-          <div key={row.id} className={styles.clientItem}>
+          <div
+            key={row.id}
+            className={styles.clientItem}
+            onPointerDown={() => startLongPress(row.id)}
+            onPointerUp={clearPressTimer}
+            onPointerLeave={clearPressTimer}
+            onPointerCancel={clearPressTimer}
+          >
             <div className={styles.clientMain}>
               <div className={styles.clientNameRow}>
                 <span className={styles.clientName}>{row.customer.trim() || "Client"}</span>

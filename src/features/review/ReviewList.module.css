@@ -273,6 +273,13 @@
   border-radius: var(--radius-sm);
   padding: var(--space-3) var(--space-4);
   flex-wrap: wrap;
+  /* Long-press here jumps to the client in Edit mode — these two
+     properties stop the browser's own touch-and-hold text-selection/
+     context-menu gesture from firing at roughly the same threshold and
+     canceling the custom press (a real, easy-to-miss mobile gotcha). */
+  touch-action: manipulation;
+  user-select: none;
+  cursor: pointer;
 }
 
 .clientMain {

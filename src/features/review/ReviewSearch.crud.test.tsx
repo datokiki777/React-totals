@@ -330,4 +330,41 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     await user.click(screen.getByRole("tab", { name: "Review" }));
     expect(await screen.findByText(/🚗 108/)).toBeInTheDocument();
   });
+
+  it("in Review mode, a plain tap on a client card does NOT navigate away, but a long-press jumps to it in Edit mode", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Long Press Group");
+
+    render(<App />);
+    await screen.findByText("Select group");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
+
+    const table = screen.getByRole("table");
+    await user.type(within(table).getByPlaceholderText("Client name"), "Press Client");
+
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+
+    // Expand the period's native <details> to reveal the client card.
+    const periodSummary = await screen.findByText(/clients/);
+    await user.click(periodSummary);
+
+    const clientItem = (await screen.findByText("Press Client")).closest("div")!;
+
+    // A plain, quick tap must not navigate — still in Review.
+    await user.click(clientItem);
+    expect(screen.getByRole("tab", { name: "Review", selected: true })).toBeInTheDocument();
+
+    // Holding it down past the long-press threshold jumps to Edit mode
+    // and highlights it.
+    fireEvent.pointerDown(clientItem);
+    await new Promise((r) => setTimeout(r, 600));
+    fireEvent.pointerUp(clientItem);
+
+    expect(await screen.findByRole("tab", { name: "Edit", selected: true })).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Press Client")).toBeInTheDocument();
+  });
 });

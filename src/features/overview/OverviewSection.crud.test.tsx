@@ -3,7 +3,6 @@ import { render, screen, cleanup, waitFor, within, fireEvent } from "@testing-li
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
 import { resetAppForTest, openGroupMenu, expandFirstPeriod, mockModalPrompt } from "../../test/resetAppForTest";
-import { CLIENT_LONG_PRESS_MS } from "./OverviewSection";
 
 describe("Overview page — matches the old app's business logic", () => {
   beforeEach(async () => {
@@ -110,7 +109,7 @@ describe("Overview page — matches the old app's business logic", () => {
     });
   });
 
-  it("clicking a status badge shows a scrollable list of matching clients; a plain tap on one does NOT navigate, but holding it down does", async () => {
+  it("clicking a status badge shows a scrollable list of matching clients, and clicking one jumps to it in Edit mode immediately (no long-press needed here)", async () => {
     const user = userEvent.setup();
     mockModalPrompt("Status Drilldown Group");
 
@@ -131,7 +130,8 @@ describe("Overview page — matches the old app's business logic", () => {
     await user.click(statusBtn);
 
     // Switch to Review — so navigating to Edit afterward is unambiguous
-    // proof the long-press actually fired, not just "was already there".
+    // proof the click actually fired the navigation, not just "was
+    // already there".
     await user.click(screen.getByRole("tab", { name: "Review" }));
 
     const overviewCard = screen.getByText("📊 Overview").closest("section")!;
@@ -145,24 +145,22 @@ describe("Overview page — matches the old app's business logic", () => {
     await user.click(doneBadge);
 
     const list = within(overviewCard).getByRole("list", { name: "Done clients" });
-    const clientItem = within(list).getByText("Drilldown Client");
-    expect(clientItem).toBeInTheDocument();
+    expect(within(list).getByText("Drilldown Client")).toBeInTheDocument();
 
-    // A plain, quick tap must NOT navigate away — still in Review.
-    await user.click(clientItem);
-    expect(screen.getByRole("tab", { name: "Review", selected: true })).toBeInTheDocument();
+    // Clicking the badge again hides the list (toggle).
+    await user.click(doneBadge);
+    expect(within(overviewCard).queryByRole("list")).not.toBeInTheDocument();
 
-    // Holding it down past the long-press threshold DOES jump to Edit
-    // mode and highlight it.
-    fireEvent.pointerDown(clientItem);
-    await new Promise((r) => setTimeout(r, CLIENT_LONG_PRESS_MS + 100));
-    fireEvent.pointerUp(clientItem);
+    // Reopen and click the client — a plain tap jumps to Edit mode and
+    // highlights it immediately, same as before.
+    await user.click(doneBadge);
+    await user.click(within(overviewCard).getByText("Drilldown Client"));
 
     expect(await screen.findByRole("tab", { name: "Edit", selected: true })).toBeInTheDocument();
     expect(screen.getByDisplayValue("Drilldown Client")).toBeInTheDocument();
   });
 
-  it("the Comments widget breaks down by status (like Done/Fail/Fixed/Wrong), counting only clients with a comment; a plain tap doesn't navigate but a long-press does", async () => {
+  it("the Comments widget breaks down by status (like Done/Fail/Fixed/Wrong), counting only clients with a comment, and clicking one jumps to it in Edit mode", async () => {
     const user = userEvent.setup();
     mockModalPrompt("Comments Group");
 
@@ -221,17 +219,10 @@ describe("Overview page — matches the old app's business logic", () => {
     await user.click(doneBadge);
     expect(within(overviewCard).queryByRole("list")).not.toBeInTheDocument();
 
-    // Reopen. A plain, quick tap must NOT navigate away — still in Review.
+    // Reopen and click the client — a plain tap jumps to Edit mode and
+    // highlights it immediately, same as before.
     await user.click(doneBadge);
-    const notedClient = within(overviewCard).getByText("Noted Client");
-    await user.click(notedClient);
-    expect(screen.getByRole("tab", { name: "Review", selected: true })).toBeInTheDocument();
-
-    // Holding it down past the long-press threshold DOES jump to Edit
-    // mode and highlight it.
-    fireEvent.pointerDown(notedClient);
-    await new Promise((r) => setTimeout(r, CLIENT_LONG_PRESS_MS + 100));
-    fireEvent.pointerUp(notedClient);
+    await user.click(within(overviewCard).getByText("Noted Client"));
 
     expect(await screen.findByRole("tab", { name: "Edit", selected: true })).toBeInTheDocument();
     expect(screen.getByDisplayValue("Noted Client")).toBeInTheDocument();
