@@ -625,4 +625,14 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     expect(carInputs[1]).toHaveValue("205");
     expect(carInput).toHaveValue("205");
   });
+
+  it("the browser's native context menu (touch-and-hold copy popup) never opens anywhere in the app", async () => {
+    render(<App />);
+    await screen.findByText("Select group");
+
+    const event = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+    document.body.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+  });
 });

@@ -58,6 +58,23 @@ function App() {
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [hideAmounts]);
 
+  // Blocks the browser's own native "Copy" context menu everywhere in the
+  // app. This isn't about preventing copying — it's that Android Chrome's
+  // touch-and-hold-to-select gesture fires at roughly the same ~500ms
+  // threshold our own long-press interactions use (Review's client cards,
+  // the group switcher's menu), and can occasionally win the race even
+  // with touch-action/user-select set on those specific elements.
+  // Blocking contextmenu directly is the reliable layer on top of that,
+  // app-wide, since a long-press anywhere should always mean "our
+  // action", never "show the browser's copy popup".
+  useEffect(() => {
+    function handleContextMenu(e: Event) {
+      e.preventDefault();
+    }
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => document.removeEventListener("contextmenu", handleContextMenu);
+  }, []);
+
   useEffect(() => {
     if (loaded && !initError) {
       // Cloud sync runs entirely in the background: it watches auth state,
