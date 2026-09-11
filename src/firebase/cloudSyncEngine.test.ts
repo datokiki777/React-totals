@@ -101,8 +101,8 @@ describe("Cloud sync — offline changes (local edited while offline, then recon
   });
 });
 
-describe("Cloud sync — conflict resolution (ambiguous timestamps ask instead of guessing)", () => {
-  it("returns an 'ask' outcome with both snapshots when timestamps tie, and touches nothing", async () => {
+describe("Cloud sync — already in sync (equal timestamps), plus the still-available manual conflict-resolution path", () => {
+  it("returns an 'in-sync' outcome with the shared timestamp when both sides tie, and touches nothing", async () => {
     const tie = "2026-08-01T10:00:00.000Z";
     const cloudSnapshot = makeSnapshot(tie, 4);
     const backend = createInMemoryCloudBackend(cloudSnapshot);
@@ -114,11 +114,12 @@ describe("Cloud sync — conflict resolution (ambiguous timestamps ask instead o
       snapshot: localSnapshot,
     });
 
-    expect(outcome.decision).toBe("ask");
-    if (outcome.decision === "ask") {
-      expect(outcome.localSnapshot.groups).toHaveLength(2);
-      expect(outcome.cloudSnapshot.groups).toHaveLength(4);
+    expect(outcome.decision).toBe("in-sync");
+    if (outcome.decision === "in-sync") {
+      expect(outcome.updatedAt).toBe(tie);
     }
+    // Neither side was written to — the cloud still has its own original
+    // data (4 groups), not overwritten by local's 2.
     expect(await backend.readMainSnapshot()).toEqual(cloudSnapshot);
   });
 

@@ -38,6 +38,21 @@ async function runSyncNow(): Promise<void> {
       useAppStore.getState().setCloudSyncDetail("Nothing to sync yet.");
       return;
     }
+    if (outcome.decision === "in-sync") {
+      // Both sides already match — nothing to upload or download, and
+      // deliberately never treated as a conflict (see syncDecision.ts).
+      useAppStore.getState().setCloudStatus("synced");
+      useAppStore.getState().markCloudSynced();
+      const when = new Date(outcome.updatedAt).toLocaleString([], {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      useAppStore.getState().setCloudSyncDetail(`Already in sync — last changed ${when}.`);
+      return;
+    }
     if (outcome.decision === "push") {
       useAppStore.getState().setCloudStatus("synced");
     useAppStore.getState().markCloudSynced();

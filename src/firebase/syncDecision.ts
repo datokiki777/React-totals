@@ -5,7 +5,7 @@
  * comparisons scattered across the sync orchestrator).
  */
 
-export type SyncDecision = "push" | "pull" | "ask" | "noop";
+export type SyncDecision = "push" | "pull" | "ask" | "noop" | "in-sync";
 
 export interface SyncSide {
   /** True if this side has at least one group (i.e. real data, not an
@@ -28,11 +28,23 @@ export interface SyncSide {
  *                                             is unambiguously newer once
  *                                             back online)
  * - Both have data, cloud is newer        -> pull
- * - Timestamps tie or are unparsable      -> ask   (never guess — let the
- *                                             person choose which side to
- *                                             keep instead of silently
- *                                             overwriting newer data with
- *                                             older data)
+ * - Timestamps are exactly equal          -> in-sync (nothing changed on
+ *                                             either side since the last
+ *                                             successful sync — this is
+ *                                             the normal, healthy state,
+ *                                             not a conflict; never
+ *                                             prompt the person over it)
+ * - A timestamp can't be read/parsed      -> push  (can't verify the
+ *                                             cloud side is trustworthy,
+ *                                             so never risk pulling
+ *                                             unknown/corrupted cloud
+ *                                             state over real local data
+ *                                             — pushing only touches the
+ *                                             cloud copy, local stays safe)
+ *
+ * "ask" is kept in the type (and the conflict-resolution UI built on it)
+ * as a deliberate safety net for any genuinely unresolvable case not
+ * covered above, but nothing currently produces it.
  */
 export function resolveSyncDirection(local: SyncSide, cloud: SyncSide): SyncDecision {
   if (!local.hasData && !cloud.hasData) return "noop";
@@ -42,7 +54,7 @@ export function resolveSyncDirection(local: SyncSide, cloud: SyncSide): SyncDeci
   const localTime = local.updatedAt ? Date.parse(local.updatedAt) : NaN;
   const cloudTime = cloud.updatedAt ? Date.parse(cloud.updatedAt) : NaN;
 
-  if (Number.isNaN(localTime) || Number.isNaN(cloudTime)) return "ask";
-  if (localTime === cloudTime) return "ask";
+  if (Number.isNaN(localTime) || Number.isNaN(cloudTime)) return "push";
+  if (localTime === cloudTime) return "in-sync";
   return localTime > cloudTime ? "push" : "pull";
 }

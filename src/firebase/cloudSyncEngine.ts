@@ -12,6 +12,7 @@ export type CloudSyncOutcome =
   | { decision: "noop" }
   | { decision: "push"; snapshot: CloudSnapshot }
   | { decision: "pull"; snapshot: CloudSnapshot }
+  | { decision: "in-sync"; updatedAt: string }
   | { decision: "ask"; localSnapshot: CloudSnapshot; cloudSnapshot: CloudSnapshot };
 
 /**
@@ -46,6 +47,12 @@ export async function determineAndPerformCloudSync(
     // cloudSnapshot is guaranteed non-null here: resolveSyncDirection only
     // returns "pull" when cloudSide.hasData is true.
     return { decision: "pull", snapshot: cloudSnapshot as CloudSnapshot };
+  }
+
+  if (decision === "in-sync") {
+    // Timestamps matched exactly — local.updatedAt and cloudSide.updatedAt
+    // are the same value, so either works as "when this last changed".
+    return { decision: "in-sync", updatedAt: local.updatedAt as string };
   }
 
   // decision === "ask"
