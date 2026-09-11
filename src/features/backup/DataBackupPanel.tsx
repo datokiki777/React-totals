@@ -100,11 +100,21 @@ export function DataBackupPanel({ onClose }: { onClose: () => void }) {
           </div>
           <div className={styles.row}>
             <span>☁️ Cloud Sync</span>
-            <b className={cloudUserEmail ? styles.safe : undefined}>
+            <b
+              className={
+                cloudUserEmail
+                  ? cloudStatus === "local"
+                    ? styles.warning
+                    : styles.safe
+                  : undefined
+              }
+            >
               {cloudUserEmail
-                ? cloudLastSyncedAt
-                  ? `Synced - ${new Date(cloudLastSyncedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`
-                  : cloudStatus
+                ? cloudStatus === "local"
+                  ? "Conflict — action needed"
+                  : cloudLastSyncedAt
+                    ? `Synced - ${new Date(cloudLastSyncedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`
+                    : cloudStatus
                 : "Not signed in"}
             </b>
           </div>

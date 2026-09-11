@@ -25,3 +25,7 @@
 .safe {
   color: var(--success) !important;
 }
+
+.warning {
+  color: var(--danger) !important;
+}

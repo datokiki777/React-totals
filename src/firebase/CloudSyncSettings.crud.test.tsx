@@ -131,6 +131,29 @@ describe("Cloud Sync settings — signed-in view", () => {
     expect(detailsBtn.className).not.toBe(saveBtn.className); // its own distinct color
   });
 
+  it("Data & Backup details shows a conflict as a clear warning, not the same green as a healthy sync", async () => {
+    const user = userEvent.setup();
+    act(() => {
+      useAppStore.setState({
+        cloudUserEmail: "person@example.com",
+        cloudStatus: "local",
+        // A stale timestamp from an earlier, unrelated successful sync —
+        // the conflict must still take priority over showing this.
+        cloudLastSyncedAt: "2026-08-01T09:00:00.000Z",
+      });
+    });
+
+    render(<App />);
+    await screen.findByText("Select group");
+    await user.click(screen.getByRole("tab", { name: "Settings" }));
+    await user.click(screen.getByRole("button", { name: "💾 Data & Backup details" }));
+
+    const cloudSyncValue = screen.getByText("Conflict — action needed");
+    expect(cloudSyncValue).toBeInTheDocument();
+    // Must NOT be styled the same "safe"/green way a real synced state is.
+    expect(cloudSyncValue.className).not.toMatch(/safe/i);
+  });
+
   it("shows a 'Synced - HH:MM:SS' timestamp once a sync has actually completed", async () => {
     // Rendered directly (not <App/>) to avoid App's startCloudSync() auth
     // subscription racing with this test's manually-mocked signed-in state.
