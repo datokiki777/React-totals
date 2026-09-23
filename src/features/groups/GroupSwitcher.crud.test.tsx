@@ -216,4 +216,20 @@ describe("GroupSwitcher — tap cycles groups, long-press opens the management m
     expect(group.defaultRate).toBe(13.5);
     expect(group.defaultSalary).toBe(3500);
   });
+
+  it("shows the group's current car number on the switcher button itself, and nothing extra when it's unset", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText("Select group");
+    await addGroupViaMenu(user, "Car Switcher Group");
+
+    const switcherBtn = screen.getByTestId("group-switcher-btn");
+
+    // No car number set yet — no car tag shown at all.
+    expect(switcherBtn).not.toHaveTextContent("🚗");
+
+    await user.type(screen.getByLabelText("Current car number"), "108");
+    expect(switcherBtn).toHaveTextContent("Car Switcher Group");
+    expect(switcherBtn).toHaveTextContent("🚗 108");
+  });
 });

@@ -315,7 +315,7 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     expect(summaries[1].className).not.toMatch(/periodSummaryCurrent/);
   });
 
-  it("a period's car number, if set, shows up in Review mode's period summary too", async () => {
+  it("a period's car number, if set, shows up in Review mode's period summary too (and also on the group switcher itself)", async () => {
     const user = userEvent.setup();
     mockModalPrompt("Review Car Group");
 
@@ -328,7 +328,11 @@ describe("Review/Search module — matches the old app's search behavior", () =>
     await user.click(screen.getByRole("button", { name: "+ New period" }));
 
     await user.click(screen.getByRole("tab", { name: "Review" }));
-    expect(await screen.findByText(/🚗 108/)).toBeInTheDocument();
+    // Now shows in two places: the group switcher (the group's current
+    // car) and the period summary (that period's own car, inherited
+    // from the group's current car at creation time) — both "108" here.
+    const matches = await screen.findAllByText(/🚗 108/);
+    expect(matches.length).toBeGreaterThanOrEqual(2);
   });
 
   it("in Review mode, a plain tap on a client card does NOT navigate away, but a long-press jumps to it in Edit mode", async () => {

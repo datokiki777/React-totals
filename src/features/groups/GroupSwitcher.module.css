@@ -30,6 +30,14 @@
   line-height: 1;
 }
 
+.switcherCarTag {
+  color: var(--text-muted);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .menuPanel {
   position: absolute;
   top: calc(100% + 6px);

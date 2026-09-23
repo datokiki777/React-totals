@@ -112,6 +112,9 @@ export function GroupSwitcher() {
           👤
         </span>
         {activeGroup ? activeGroup.name : "Select group"}
+        {activeGroup?.currentCarNumber && (
+          <span className={styles.switcherCarTag}>🚗 {activeGroup.currentCarNumber}</span>
+        )}
       </button>
 
       {menuOpen && (
