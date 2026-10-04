@@ -626,13 +626,30 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     expect(carInput).toHaveValue("205");
   });
 
-  it("the browser's native context menu (touch-and-hold copy popup) never opens anywhere in the app", async () => {
+  it("the browser's native context menu (touch-and-hold copy popup) never opens on ordinary elements, but is NOT blocked inside text fields — otherwise pasting a copied link would be impossible", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Context Menu Group");
+
     render(<App />);
     await screen.findByText("Select group");
 
-    const event = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
-    document.body.dispatchEvent(event);
+    const bodyEvent = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+    document.body.dispatchEvent(bodyEvent);
+    expect(bodyEvent.defaultPrevented).toBe(true);
 
-    expect(event.defaultPrevented).toBe(true);
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
+
+    // A real text field — e.g. the City input, exactly where someone
+    // would want to paste a copied Google Maps link. Its own native
+    // Paste/Cut/Copy/Select-all menu (triggered by the same long-press
+    // gesture on a touch keyboard) must still work.
+    const cityInput = within(screen.getByRole("table")).getByPlaceholderText("City");
+    const inputEvent = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+    cityInput.dispatchEvent(inputEvent);
+    expect(inputEvent.defaultPrevented).toBe(false);
   });
 });

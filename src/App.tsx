@@ -58,17 +58,28 @@ function App() {
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [hideAmounts]);
 
-  // Blocks the browser's own native "Copy" context menu everywhere in the
-  // app. This isn't about preventing copying — it's that Android Chrome's
-  // touch-and-hold-to-select gesture fires at roughly the same ~500ms
-  // threshold our own long-press interactions use (Review's client cards,
-  // the group switcher's menu), and can occasionally win the race even
-  // with touch-action/user-select set on those specific elements.
-  // Blocking contextmenu directly is the reliable layer on top of that,
-  // app-wide, since a long-press anywhere should always mean "our
-  // action", never "show the browser's copy popup".
+  // Blocks the browser's own native "Copy" context menu, EXCEPT inside
+  // text fields. This isn't about preventing copying — it's that Android
+  // Chrome's touch-and-hold-to-select gesture fires at roughly the same
+  // ~500ms threshold our own long-press interactions use (Review's
+  // client cards, the group switcher's menu), and can occasionally win
+  // the race even with touch-action/user-select set on those specific
+  // elements. Blocking contextmenu directly is the reliable layer on top
+  // of that, since a long-press anywhere should always mean "our
+  // action", never "show the browser's copy popup" — EXCEPT inside an
+  // actual input/textarea (or any contentEditable element), where that
+  // same long-press gesture is the only way to get the native Paste/
+  // Cut/Copy/Select-all menu on a touch keyboard — blocking it there
+  // breaks pasting a copied link into a field like City entirely.
   useEffect(() => {
     function handleContextMenu(e: Event) {
+      const target = e.target as HTMLElement | null;
+      const isEditable =
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable);
+      if (isEditable) return;
       e.preventDefault();
     }
     document.addEventListener("contextmenu", handleContextMenu);
