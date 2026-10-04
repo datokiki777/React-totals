@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, cleanup, within, fireEvent } from "@testing-library/react";
+import { render, screen, cleanup, within, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
 import { resetAppForTest, openGroupMenu, expandFirstPeriod, mockModalPrompt, mockModalConfirm } from "../../test/resetAppForTest";
@@ -370,5 +370,107 @@ describe("Review/Search module — matches the old app's search behavior", () =>
 
     expect(await screen.findByRole("tab", { name: "Edit", selected: true })).toBeInTheDocument();
     expect(screen.getByDisplayValue("Press Client")).toBeInTheDocument();
+  });
+
+  it("a City field containing a Google Maps link shows a 'Open in Maps' icon/link in Review mode instead of the raw URL text", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Maps Link Group");
+
+    render(<App />);
+    await screen.findByText("Select group");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
+
+    const table = screen.getByRole("table");
+    await user.type(within(table).getByPlaceholderText("Client name"), "Maps Client");
+    await user.type(
+      within(table).getByPlaceholderText("City"),
+      "https://maps.google.com/?q=41.7,44.8"
+    );
+
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+    const periodSummary = await screen.findByText(/clients/);
+    await user.click(periodSummary);
+
+    const mapsLink = await screen.findByText("📍 Open in Maps");
+    expect(mapsLink).toBeInTheDocument();
+    // The raw URL text itself is not shown in its place.
+    expect(screen.queryByText("https://maps.google.com/?q=41.7,44.8")).not.toBeInTheDocument();
+  });
+
+  it("an ordinary City value (postal code, city name) still shows as plain text in Review mode, unaffected", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Postal Code Group");
+
+    render(<App />);
+    await screen.findByText("Select group");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
+
+    const table = screen.getByRole("table");
+    await user.type(within(table).getByPlaceholderText("Client name"), "Postal Client");
+    await user.type(within(table).getByPlaceholderText("City"), "0179");
+
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+    const periodSummary = await screen.findByText(/clients/);
+    await user.click(periodSummary);
+
+    expect(await screen.findByText("0179")).toBeInTheDocument();
+    expect(screen.queryByText("📍 Open in Maps")).not.toBeInTheDocument();
+  });
+
+  it("a Maps link also shows up in search results, and clicking it opens the map without also navigating to Edit mode", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Search Maps Group");
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+
+    render(<App />);
+    await screen.findByText("Select group");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
+
+    const table = screen.getByRole("table");
+    await user.type(within(table).getByPlaceholderText("Client name"), "Searchable Maps Client");
+    await user.type(
+      within(table).getByPlaceholderText("City"),
+      "https://maps.google.com/?q=41.7,44.8"
+    );
+
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+    await user.type(screen.getByPlaceholderText(/Search client/), "Searchable");
+
+    // Scoped to the search-result card specifically — matching by
+    // textContent rather than exact text, since <Highlighted> splits the
+    // matched substring into its own element, so no single node contains
+    // the whole name verbatim.
+    const resultCard = await waitFor(() => {
+      const card = screen
+        .getAllByRole("button")
+        .find((btn) => btn.textContent?.includes("Searchable Maps Client"));
+      if (!card) throw new Error("search result card not found yet");
+      return card;
+    });
+    const mapsLink = within(resultCard).getByText("📍 Open in Maps");
+    await user.click(mapsLink);
+
+    expect(openSpy).toHaveBeenCalledWith(
+      "https://maps.google.com/?q=41.7,44.8",
+      "_blank",
+      "noopener,noreferrer"
+    );
+    // The result card's own click handler (navigate to Edit) must NOT
+    // also have fired — still in Review.
+    expect(screen.getByRole("tab", { name: "Review", selected: true })).toBeInTheDocument();
+
+    openSpy.mockRestore();
   });
 });

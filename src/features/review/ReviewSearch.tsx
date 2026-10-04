@@ -3,6 +3,7 @@ import { useAppStore } from "../../app/store";
 import { buildSearchIndex, searchIndex, highlightParts, type SearchIndexItem } from "../../shared/lib/search";
 import { useOpenClientInEdit } from "../navigation/useOpenClientInEdit";
 import { confirmDialog } from "../../shared/modal/modalStore";
+import { looksLikeUrl } from "../../shared/lib/url";
 import styles from "./ReviewSearch.module.css";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -101,7 +102,35 @@ export function ReviewSearch() {
                   <b>Period:</b> {item.from} → {item.to}
                 </span>
                 <span>
-                  <b>City:</b> <Highlighted text={item.city || "—"} query={query} />
+                  <b>City:</b>{" "}
+                  {looksLikeUrl(item.city) ? (
+                    // A real <a> here would be invalid HTML — resultCard
+                    // (the ancestor) is itself a <button>, and interactive
+                    // content can't nest inside a button. A span + explicit
+                    // window.open gets the same "open in a new tab" result
+                    // without that problem.
+                    <span
+                      role="link"
+                      tabIndex={0}
+                      className={styles.cityLink}
+                      aria-label="Open location in Maps"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(item.city.trim(), "_blank", "noopener,noreferrer");
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          window.open(item.city.trim(), "_blank", "noopener,noreferrer");
+                        }
+                      }}
+                    >
+                      📍 Open in Maps
+                    </span>
+                  ) : (
+                    <Highlighted text={item.city || "—"} query={query} />
+                  )}
                 </span>
                 <span>
                   <b>Gross:</b> <span className="js-money">{item.gross}</span>

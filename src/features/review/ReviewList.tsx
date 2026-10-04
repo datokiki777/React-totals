@@ -10,6 +10,7 @@ import { parseMoney } from "../../shared/lib/money";
 import { formatPeriodDate, getPeriodPaidStatus, sortPeriodsByDate, isPeriodCurrentToday } from "../../shared/lib/dates";
 import { getRowsForPeriod } from "../../shared/lib/entityLookup";
 import { useOpenClientInEdit } from "../navigation/useOpenClientInEdit";
+import { looksLikeUrl } from "../../shared/lib/url";
 import type { ClientRow, Group, Period } from "../../shared/types/domain";
 import styles from "./ReviewList.module.css";
 
@@ -238,7 +239,21 @@ function ReviewPeriodCard({
                 )}
               </div>
               <div className={styles.clientCity}>
-                City: <b>{row.city.trim() || "—"}</b>
+                City:{" "}
+                {looksLikeUrl(row.city) ? (
+                  <a
+                    href={row.city.trim()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.clientCityLink}
+                    aria-label="Open location in Maps"
+                    onPointerDown={(e) => e.stopPropagation()}
+                  >
+                    📍 Open in Maps
+                  </a>
+                ) : (
+                  <b>{row.city.trim() || "—"}</b>
+                )}
               </div>
               {row.comment.trim() && (
                 <div className={styles.clientComment}>
