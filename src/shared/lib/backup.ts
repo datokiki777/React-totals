@@ -141,6 +141,11 @@ export function validateBackupPayload(json: unknown): ValidationResult {
     ...p,
     carNumber: p.carNumber ?? null,
   }));
+  const normalizedRows = (clientRows as ClientRow[]).map((r) => ({
+    ...r,
+    visitDate: r.visitDate ?? null,
+    visitDays: r.visitDays ?? null,
+  }));
 
   return {
     ok: true,
@@ -150,7 +155,7 @@ export function validateBackupPayload(json: unknown): ValidationResult {
       exportedAt: isString(obj.exportedAt) ? obj.exportedAt : new Date().toISOString(),
       groups: normalizedGroups,
       periods: normalizedPeriods,
-      clientRows: clientRows as ClientRow[],
+      clientRows: normalizedRows,
     },
   };
 }

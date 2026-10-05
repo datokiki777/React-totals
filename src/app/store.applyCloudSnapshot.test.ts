@@ -59,6 +59,8 @@ describe("store — applyCloudSnapshot", () => {
           city: "Kutaisi",
           status: "fixed",
           comment: "from the cloud",
+          visitDate: null,
+          visitDays: null,
           createdAt: 1,
           updatedAt: 1,
         },
