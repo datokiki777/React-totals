@@ -473,4 +473,73 @@ describe("Review/Search module — matches the old app's search behavior", () =>
 
     openSpy.mockRestore();
   });
+
+  it("in Review mode, tapping a client's calendar icon opens a modal with its visit date/days, which closes on tapping the icon again or anywhere outside", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Visit Modal Group");
+
+    render(<App />);
+    await screen.findByText("Select group");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
+
+    const table = screen.getByRole("table");
+    await user.type(within(table).getByPlaceholderText("Client name"), "Modal Client");
+
+    // Set a visit date + days in Edit mode first.
+    await user.click(screen.getByRole("button", { name: "Set visit date and days" }));
+    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-10-15" } });
+    const dayButtons = screen.getAllByRole("button").filter((b) => /^[1-5]$/.test(b.textContent ?? ""));
+    await user.click(dayButtons[1]); // "2"
+    await user.click(screen.getByRole("button", { name: "Done" }));
+
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+    const periodSummary = await screen.findByText(/clients/);
+    await user.click(periodSummary);
+
+    const calendarIcon = await screen.findByRole("button", { name: "View visit date and days" });
+    expect(screen.queryByText("Close")).not.toBeInTheDocument();
+
+    await user.click(calendarIcon);
+    expect(screen.getByText("Close")).toBeInTheDocument();
+    expect(screen.getByText(/2 days/)).toBeInTheDocument();
+
+    // Tapping the icon again closes it.
+    await user.click(calendarIcon);
+    expect(screen.queryByText("Close")).not.toBeInTheDocument();
+
+    // Reopen, then close by tapping outside (the overlay) instead.
+    await user.click(calendarIcon);
+    expect(screen.getByText("Close")).toBeInTheDocument();
+    const overlay = screen.getByText("Close").closest('[class*="visitModalOverlay"]')!;
+    await user.click(overlay);
+    expect(screen.queryByText("Close")).not.toBeInTheDocument();
+  });
+
+  it("in Review mode, a client with no visit date/days set shows that plainly in the modal, not blank or misleading", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Empty Visit Modal Group");
+
+    render(<App />);
+    await screen.findByText("Select group");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
+
+    const table = screen.getByRole("table");
+    await user.type(within(table).getByPlaceholderText("Client name"), "No Visit Client");
+
+    await user.click(screen.getByRole("tab", { name: "Review" }));
+    const periodSummary = await screen.findByText(/clients/);
+    await user.click(periodSummary);
+
+    const calendarIcon = await screen.findByRole("button", { name: "View visit date and days" });
+    await user.click(calendarIcon);
+    expect(screen.getByText("No visit date set for this client.")).toBeInTheDocument();
+  });
 });

@@ -652,4 +652,45 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     cityInput.dispatchEvent(inputEvent);
     expect(inputEvent.defaultPrevented).toBe(false);
   });
+
+  it("the visit-date panel (calendar icon) only shows once something is set, stays closed by default, and setting days doesn't require a date or vice versa", async () => {
+    const user = userEvent.setup();
+    mockModalPrompt("Visit Panel Group");
+
+    render(<App />);
+    await screen.findByText("Select group");
+    await openGroupMenu();
+    await user.click(screen.getByRole("button", { name: "+ Group" }));
+    await user.click(screen.getByRole("button", { name: "+ New period" }));
+    await expandFirstPeriod(user);
+    await user.click(screen.getByRole("button", { name: "+ Add client" }));
+
+    const table = screen.getByRole("table");
+    await user.type(within(table).getByPlaceholderText("Client name"), "Panel Client");
+
+    const calendarBtn = screen.getByRole("button", { name: "Set visit date and days" });
+    // Not "filled" yet — plain styling, panel closed, no date input or
+    // day buttons visible until opened.
+    expect(calendarBtn.className).not.toMatch(/visitBtnSet/);
+    expect(screen.queryByLabelText("Date")).not.toBeInTheDocument();
+
+    await user.click(calendarBtn);
+    expect(screen.getByLabelText("Date")).toBeInTheDocument();
+    const dayButtons = screen.getAllByRole("button").filter((b) => /^[1-5]$/.test(b.textContent ?? ""));
+    expect(dayButtons).toHaveLength(5);
+
+    // Set only the day count, no date — perfectly valid on its own.
+    await user.click(dayButtons[2]); // "3"
+    await user.click(screen.getByRole("button", { name: "Done" }));
+
+    // Panel closed; icon now shows as "set".
+    expect(screen.queryByLabelText("Date")).not.toBeInTheDocument();
+    expect(calendarBtn.className).toMatch(/visitBtnSet/);
+
+    // Reopen and now also set a date.
+    await user.click(calendarBtn);
+    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-10-15" } });
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    expect(calendarBtn.className).toMatch(/visitBtnSet/);
+  });
 });

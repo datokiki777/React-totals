@@ -293,6 +293,80 @@
   gap: var(--space-3);
 }
 
+.visitIcon,
+.visitIconSet {
+  background: transparent;
+  border: 1px solid var(--border-soft);
+  color: var(--text-muted);
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-sm);
+  line-height: 1;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.visitIconSet {
+  background: rgba(255, 196, 64, 0.14);
+  border-color: var(--accent);
+}
+
+.visitModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  padding: var(--space-6);
+}
+
+.visitModalCard {
+  width: 100%;
+  max-width: 320px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-pop);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.visitModalTitle {
+  font-size: var(--font-base);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.visitModalBody {
+  font-size: var(--font-lg);
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.visitModalEmpty {
+  font-size: var(--font-md);
+  color: var(--text-muted);
+}
+
+.visitModalClose {
+  background: var(--accent);
+  border: none;
+  color: #071633;
+  padding: 9px 18px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: var(--font-md);
+  cursor: pointer;
+  align-self: center;
+}
+
 .clientName {
   font-weight: 600;
   font-size: var(--font-md);

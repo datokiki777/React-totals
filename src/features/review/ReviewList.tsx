@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useAppStore } from "../../app/store";
 import {
   computeGroupFinancials,
@@ -165,6 +165,8 @@ function ReviewPeriodCard({
   const totals = useMemo(() => computePeriodTotals(period, rows, rate), [period, rows, rate]);
   const openClientInEdit = useOpenClientInEdit();
   const pressTimer = useRef<number | null>(null);
+  const [visitModalRowId, setVisitModalRowId] = useState<string | null>(null);
+  const visitModalRow = rows.find((r) => r.id === visitModalRowId) ?? null;
 
   function clearPressTimer() {
     if (pressTimer.current !== null) {
@@ -237,6 +239,19 @@ function ReviewPeriodCard({
                 {row.status !== "none" && (
                   <span className={styles[`status_${row.status}`]}>{STATUS_LABEL[row.status]}</span>
                 )}
+                <button
+                  type="button"
+                  className={row.visitDate || row.visitDays ? styles.visitIconSet : styles.visitIcon}
+                  aria-label="View visit date and days"
+                  title="View visit date and days"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setVisitModalRowId((cur) => (cur === row.id ? null : row.id));
+                  }}
+                >
+                  📅
+                </button>
               </div>
               <div className={styles.clientCity}>
                 City:{" "}
@@ -268,6 +283,36 @@ function ReviewPeriodCard({
           </div>
         ))}
       </div>
+
+      {visitModalRow && (
+        <div
+          className={styles.visitModalOverlay}
+          onClick={() => setVisitModalRowId(null)}
+        >
+          <div className={styles.visitModalCard} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.visitModalTitle}>
+              📅 {visitModalRow.customer.trim() || "Client"}
+            </div>
+            {visitModalRow.visitDate || visitModalRow.visitDays ? (
+              <div className={styles.visitModalBody}>
+                {visitModalRow.visitDate
+                  ? formatPeriodDate(visitModalRow.visitDate)
+                  : "No date set"}
+                {visitModalRow.visitDays ? ` · ${visitModalRow.visitDays} day${visitModalRow.visitDays > 1 ? "s" : ""}` : ""}
+              </div>
+            ) : (
+              <div className={styles.visitModalEmpty}>No visit date set for this client.</div>
+            )}
+            <button
+              type="button"
+              className={styles.visitModalClose}
+              onClick={() => setVisitModalRowId(null)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </details>
   );
 }

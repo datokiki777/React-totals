@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useAppStore } from "../../app/store";
 import type { DoneStatus } from "../../shared/types/domain";
 import { confirmDialog } from "../../shared/modal/modalStore";
@@ -32,6 +32,7 @@ export function ClientRowItem({
   const isHighlighted = useAppStore((s) => s.highlightedRowId === rowId);
   const confirmDestructive = useAppStore((s) => s.settings.confirmDestructiveActions);
   const [commentOpen, setCommentOpen] = useState(false);
+  const [visitPanelOpen, setVisitPanelOpen] = useState(false);
 
   if (!row) return null;
 
@@ -62,6 +63,7 @@ export function ClientRowItem({
   }
 
   return (
+    <Fragment>
     <tr
       data-row-id={row.id}
       className={
@@ -161,6 +163,16 @@ export function ClientRowItem({
       </td>
       <td>
         <div className={styles.actionsCell}>
+          <button
+            type="button"
+            className={row.visitDate || row.visitDays ? styles.visitBtnSet : styles.visitBtn}
+            aria-expanded={visitPanelOpen}
+            aria-label="Set visit date and days"
+            title="Set visit date and days"
+            onClick={() => setVisitPanelOpen((v) => !v)}
+          >
+            📅
+          </button>
           {sortMode && (
             <span className={styles.moveButtons}>
               <button
@@ -189,5 +201,44 @@ export function ClientRowItem({
         </div>
       </td>
     </tr>
+    {visitPanelOpen && (
+      <tr className={styles.visitPanelRow}>
+        <td colSpan={6}>
+          <div className={styles.visitPanel}>
+            <label className={styles.visitPanelField}>
+              <span>Date</span>
+              <input
+                type="date"
+                value={row.visitDate ?? ""}
+                onChange={(e) => updateRow(row.id, { visitDate: e.target.value || null })}
+              />
+            </label>
+            <div className={styles.visitPanelField}>
+              <span>Days</span>
+              <div className={styles.visitDayButtons}>
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    className={row.visitDays === n ? styles.visitDayBtnActive : styles.visitDayBtn}
+                    onClick={() => updateRow(row.id, { visitDays: row.visitDays === n ? null : n })}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button
+              type="button"
+              className={styles.visitPanelClose}
+              onClick={() => setVisitPanelOpen(false)}
+            >
+              Done
+            </button>
+          </div>
+        </td>
+      </tr>
+    )}
+    </Fragment>
   );
 }
