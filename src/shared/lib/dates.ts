@@ -47,9 +47,25 @@ export function startOfDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
+/**
+ * A DST-safe integer "which calendar day is this" number, built from a
+ * Date's local year/month/day components via Date.UTC() (which never has
+ * daylight saving — it's pure calendar arithmetic). Subtracting two of
+ * these always gives an exact whole number of days, even when the range
+ * between them crosses a DST transition in the local timezone — unlike
+ * subtracting two local-midnight Date objects' getTime() directly, which
+ * is off by exactly one hour for any range crossing a "clocks back"
+ * transition (23 vs 24 vs 25-hour local days), silently inflating a
+ * Math.ceil-based day/week count by one. This was a real bug: a period
+ * spanning late October (around Europe's DST changeover) showed one
+ * extra "week" in its paid-weeks badge purely because of this.
+ */
+function calendarDayNumber(d: Date): number {
+  return Math.round(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+}
+
 export function daysBetweenInclusive(a: Date, b: Date): number {
-  const ms = startOfDay(b).getTime() - startOfDay(a).getTime();
-  return Math.floor(ms / 86400000) + 1;
+  return calendarDayNumber(b) - calendarDayNumber(a) + 1;
 }
 
 export function monthKeyFromDateObj(d: Date): string {
@@ -110,7 +126,7 @@ export function getDurationMonthsDays(
     }
   }
 
-  const days = Math.floor((end.getTime() - temp.getTime()) / 86400000);
+  const days = calendarDayNumber(end) - calendarDayNumber(temp);
   return { months, days };
 }
 
@@ -256,9 +272,7 @@ export function getAllMonthKeys(periods: Period[]): string[] {
 
 export function weeksBetweenRounded(from: Date, to: Date): number {
   if (!(from instanceof Date) || !(to instanceof Date) || from > to) return 0;
-  const elapsedDays = Math.ceil(
-    (startOfDay(to).getTime() - startOfDay(from).getTime()) / 86400000
-  );
+  const elapsedDays = calendarDayNumber(to) - calendarDayNumber(from);
   if (elapsedDays <= 0) return 1;
   return Math.ceil(elapsedDays / 7);
 }
