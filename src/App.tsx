@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAppStore } from "./app/store";
 import { GroupSwitcher } from "./features/groups/GroupSwitcher";
 import { PeriodList } from "./features/periods/PeriodList";
@@ -14,6 +14,18 @@ import styles from "./App.module.css";
 function App() {
   const loaded = useAppStore((s) => s.loaded);
   const initError = useAppStore((s) => s.initError);
+  // The splash stays mounted (covering the screen) until its fade-out
+  // transition actually finishes — tied to real `loaded` state, not a
+  // fixed delay, so it never disappears before data is ready and never
+  // lingers once it is. 300ms gives the 0.25s CSS opacity transition a
+  // small buffer to genuinely finish before the overlay is removed.
+  const [splashVisible, setSplashVisible] = useState(true);
+  useEffect(() => {
+    if (loaded && !initError) {
+      const t = setTimeout(() => setSplashVisible(false), 300);
+      return () => clearTimeout(t);
+    }
+  }, [loaded, initError]);
   const init = useAppStore((s) => s.init);
   const mode = useAppStore((s) => s.mode);
   const setMode = useAppStore((s) => s.setMode);
@@ -118,14 +130,6 @@ function App() {
     }
   }, [loaded, initError]);
 
-  if (!loaded) {
-    return (
-      <div className={styles.splash} role="status" aria-live="polite">
-        Loading…
-      </div>
-    );
-  }
-
   if (initError) {
     return (
       <div className={styles.splash}>
@@ -148,7 +152,19 @@ function App() {
   // benefit (client-side PINs are trivially bypassable anyway).
 
   return (
-    <div className={`${styles.app}${amountsHidden ? " amounts-hidden" : ""}`}>
+    <>
+      {splashVisible && (
+        <div
+          className={loaded ? `${styles.splash} ${styles.splashFadeOut}` : styles.splash}
+          aria-label="Loading"
+          data-testid="app-splash"
+        >
+          <div className={styles.splashLogo} aria-hidden="true">CT</div>
+          <div className={styles.splashSpinner} aria-hidden="true" />
+        </div>
+      )}
+      {loaded && (
+        <div className={`${styles.app}${amountsHidden ? " amounts-hidden" : ""}`}>
       <header className={styles.topbar}>
         <div className={styles.topRow}>
           <div className={styles.workspaceSwitch} role="tablist" aria-label="Workspace">
@@ -245,7 +261,9 @@ function App() {
 
       <UpdatePrompt />
       <ModalHost />
-    </div>
+        </div>
+      )}
+    </>
   );
 }
 

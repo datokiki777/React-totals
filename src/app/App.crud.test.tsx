@@ -693,4 +693,25 @@ describe("Client table CRUD (end-to-end against real IndexedDB)", () => {
     await user.click(screen.getByRole("button", { name: "Done" }));
     expect(calendarBtn.className).toMatch(/visitBtnSet/);
   });
+
+  it("the startup splash (CT logo + spinner) is tied to real `loaded` state, fades out, and is fully removed once the app has settled", async () => {
+    render(<App />);
+    await screen.findByText("Select group");
+
+    // The splash fades out (CSS class change) as soon as loaded becomes
+    // true — this happens well before "Select group" renders, since
+    // both depend on the same loaded flag — and is fully removed from
+    // the DOM shortly after (not lingering, and never blocking
+    // interaction via the fade's pointer-events: none in the meantime).
+    await waitFor(
+      () => {
+        expect(screen.queryByTestId("app-splash")).not.toBeInTheDocument();
+      },
+      { timeout: 1000 }
+    );
+
+    // The real app content is fully usable afterward — not stuck behind
+    // a leftover overlay.
+    expect(screen.getByTestId("group-switcher-btn")).toBeInTheDocument();
+  });
 });

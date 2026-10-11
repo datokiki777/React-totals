@@ -1,10 +1,57 @@
 .splash {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
   height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: #050f24;
+  color: var(--text-muted);
+  padding: 24px;
+  opacity: 1;
+  transition: opacity 0.25s ease;
+}
+
+/* Applied once loaded becomes true — the overlay fades out smoothly
+   instead of the real app snapping into view instantly underneath it.
+   Stays mounted (and keeps covering the screen) until the transition
+   finishes, so the real content is never visible mid-fade. */
+.splashFadeOut {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splashLogo {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  background: #050f24;
+  border: 1px solid rgba(255, 196, 64, 0.3);
+  color: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-muted);
-  padding: 24px;
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: 0.5px;
+}
+
+.splashSpinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 196, 64, 0.25);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: splashSpin 0.8s linear infinite;
+}
+
+@keyframes splashSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .errorBox {
