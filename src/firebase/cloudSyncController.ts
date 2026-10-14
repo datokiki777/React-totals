@@ -107,6 +107,14 @@ export function startCloudSync(): void {
     useAppStore.getState().setCloudUserEmail(user?.email ?? null);
     if (user) {
       await runSyncNow();
+    } else {
+      // Signed out — drop any leftover status/sync info from that
+      // session, so it's never still showing (even briefly) after
+      // signing back in.
+      useAppStore.getState().setCloudStatus("idle");
+      useAppStore.getState().setCloudConflict(null);
+      useAppStore.getState().setCloudSyncDetail(null);
+      useAppStore.setState({ cloudLastSyncedAt: null });
     }
   }).catch((error) => {
     // Firebase unavailable (offline install, blocked script, etc.) — the
