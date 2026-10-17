@@ -19,6 +19,7 @@ export function PeriodCard({ periodId }: { periodId: string }) {
   const confirmDestructive = useAppStore((s) => s.settings.confirmDestructiveActions);
   const expandPeriodId = useAppStore((s) => s.expandPeriodId);
   const clearExpandPeriodRequest = useAppStore((s) => s.clearExpandPeriodRequest);
+  const highlightedPeriodId = useAppStore((s) => s.highlightedPeriodId);
 
   // Periods start collapsed by default (matching the old app), but if
   // Review/Search just navigated here for a specific row, force this
@@ -147,7 +148,14 @@ export function PeriodCard({ periodId }: { periodId: string }) {
               </div>
             </div>
 
-            <div className={styles.dateFields}>
+            <div
+              className={
+                highlightedPeriodId === period.id
+                  ? `${styles.dateFields} ${styles.dateFieldsHighlight}`
+                  : styles.dateFields
+              }
+              data-period-dates={period.id}
+            >
               <label className={styles.field}>
                 <span>From</span>
                 <input

@@ -55,6 +55,10 @@ export interface UiSlice {
   /** Set by Review/Search when it navigates to a row, so the target
    * period force-opens even though periods now start collapsed. */
   expandPeriodId: string | null;
+  /** Flashes a period's own From/To date fields — used when a client's
+   * visit date/days run outside the period, and the person chooses
+   * "Edit period" to jump there and fix it. */
+  highlightedPeriodId: string | null;
   totalsScope: TotalsScope;
   /** Blurs every money amount in the app when true — a privacy toggle
    * for when someone's phone might be glanced at. Deliberately NOT
@@ -69,6 +73,7 @@ export interface UiSlice {
   setWorkspace: (ws: WorkspaceTab) => void;
   setTotalsScope: (scope: TotalsScope) => void;
   highlightRow: (id: string) => void;
+  highlightPeriodDates: (id: string) => void;
   requestExpandPeriod: (id: string) => void;
   clearExpandPeriodRequest: () => void;
   toggleAmountsHidden: () => void;
@@ -87,6 +92,7 @@ export const createUiSlice: StateCreator<AppState, [], [], UiSlice> = (set, get)
   workspace: "active",
   highlightedRowId: null,
   expandPeriodId: null,
+  highlightedPeriodId: null,
   totalsScope: "current",
   amountsHidden: true,
 
@@ -134,6 +140,13 @@ export const createUiSlice: StateCreator<AppState, [], [], UiSlice> = (set, get)
     setTimeout(() => {
       // Only clear if nothing else re-triggered a highlight in the meantime.
       if (get().highlightedRowId === id) set({ highlightedRowId: null });
+    }, 3500);
+  },
+
+  highlightPeriodDates: (id) => {
+    set({ highlightedPeriodId: id });
+    setTimeout(() => {
+      if (get().highlightedPeriodId === id) set({ highlightedPeriodId: null });
     }, 3500);
   },
 
