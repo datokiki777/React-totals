@@ -67,7 +67,7 @@ describe("client days vs. period dates", () => {
     await waitFor(() => expect(screen.queryByLabelText("Date")).not.toBeInTheDocument());
   });
 
-  it("'Keep as is' leaves everything alone — no flash, value stays saved", async () => {
+  it("'Keep as is' means keep the PERIOD as is — the out-of-range entry is discarded, never saved at all", async () => {
     const user = userEvent.setup();
     await setupClientInPeriod(user);
     fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-01-06" } });
@@ -77,6 +77,22 @@ describe("client days vs. period dates", () => {
     await user.click(screen.getByRole("button", { name: "3" }));
 
     expect(useAppStore.getState().highlightedPeriodId).toBeNull();
+    // Not 3 — the problematic value was checked BEFORE saving, so
+    // declining "Edit period" means it was never written in the first
+    // place, not written-then-silently-kept.
+    expect(useAppStore.getState().clientRows[0].visitDays).toBeNull();
+  });
+
+  it("'Edit period' DOES save the out-of-range value (that's the one being corrected for)", async () => {
+    const user = userEvent.setup();
+    await setupClientInPeriod(user);
+    fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-01-06" } });
+
+    mockModalConfirm(true); // "Edit period"
+    await user.click(screen.getByRole("button", { name: "Set number of days" }));
+    await user.click(screen.getByRole("button", { name: "3" }));
+
+    await waitFor(() => expect(useAppStore.getState().highlightedPeriodId).not.toBeNull());
     expect(useAppStore.getState().clientRows[0].visitDays).toBe(3);
   });
 });
