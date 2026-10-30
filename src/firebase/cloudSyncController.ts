@@ -51,6 +51,9 @@ async function runSyncNow(): Promise<void> {
         minute: "2-digit",
       });
       useAppStore.getState().setCloudSyncDetail(`Already in sync — last changed ${when}.`);
+      // Nothing to upload, but the app WAS just used — keep the cloud copy
+      // from aging out under the 6-month inactivity expiry.
+      backend.refreshExpiry().catch(() => {});
       return;
     }
     if (outcome.decision === "push") {
@@ -66,6 +69,7 @@ async function runSyncNow(): Promise<void> {
       useAppStore.getState().setCloudStatus("synced");
     useAppStore.getState().markCloudSynced();
       useAppStore.getState().setCloudSyncDetail("Downloaded — the cloud had newer data.");
+      backend.refreshExpiry().catch(() => {});
       return;
     }
     // "ask" — never guess; surface it for the person to resolve explicitly.
